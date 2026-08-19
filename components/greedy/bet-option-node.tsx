@@ -46,6 +46,17 @@ export function BetOptionNode({
     option.payout_denominator,
   );
   const dots = rewardDots(option.payout_numerator, option.payout_denominator);
+  const accessibilityDetails = [
+    hasBet ? `your bet is ${formatInteger(myBet)} coins` : null,
+    winner
+      ? "winning option"
+      : drawingHighlighted
+        ? "currently highlighted during the draw"
+        : null,
+    disabled ? "betting unavailable" : null,
+  ]
+    .filter(Boolean)
+    .join("; ");
 
   return (
     <button
@@ -60,11 +71,11 @@ export function BetOptionNode({
       style={{
         left: `${left}%`,
         top: `${top}%`,
-        zIndex: drawingHighlighted ? 35 : 20,
+        zIndex: drawingHighlighted ? 35 : winner ? 26 : hasBet ? 25 : 20,
       }}
       onClick={onPress}
       disabled={disabled || busy}
-      aria-label={`Bet on ${option.name}, win ${multiplier} times`}
+      aria-label={`Bet on ${option.name}, win ${multiplier} times${accessibilityDetails ? `; ${accessibilityDetails}` : ""}`}
     >
       {winner && <span className="option-node__badge">Win</span>}
 

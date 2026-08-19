@@ -1,0 +1,101 @@
+"use client";
+
+import type { AdminError, AdminPagedResult } from "@/types/admin";
+
+function csrfToken() {
+  if (typeof document === "undefined") return "";
+  return document.cookie.split("; ").find((item) => item.startsWith("admin_csrf="))?.split("=")[1] || "";
+}
+
+export class AdminRequestError extends Error {
+  constructor(message: string, public readonly requestId?: string, public readonly errors?: string[]) {
+    super(requestId ? `${message} (Request ${requestId})` : message);
+    this.name = "AdminRequestError";
+  }
+}
+
+async function adminResponse<T>(path: string, init: RequestInit = {}) {
+  const isForm = typeof FormData !== "undefined" && init.body instanceof FormData;
+  const method = (init.method || "GET").toUpperCase();
+  const headers = new Headers(init.headers);
+  headers.set("Accept", "application/json");
+  if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
+    if (!isForm) headers.set("Content-Type", "application/json");
+    headers.set("X-CSRF-Token", csrfToken());
+    if (!headers.has("Idempotency-Key")) headers.set("Idempotency-Key", crypto.randomUUID());
+    if (!headers.has("X-Request-Id")) headers.set("X-Request-Id", crypto.randomUUID());
+  }
+  const response = await fetch(`/api/admin${path}`, {
+    ...init,
+    credentials: "include",
+    cache: "no-store",
+    headers,
+  });
+  const body = (await response.json().catch(() => null)) as ({ data?: T; meta?: { page?: number; limit?: number; total?: number } } & AdminError) | null;
+  const requestId = response.headers.get("x-request-id") || undefined;
+  if (!response.ok) throw new AdminRequestError(body?.message || `Admin request failed (${response.status})`, requestId, body?.errors);
+  return { body, requestId };
+}
+
+export async function adminFetch<T>(path: string, init: RequestInit = {}) {
+  const { body } = await adminResponse<T>(path, init);
+  return (body && "data" in body ? body.data : body) as T;
+}
+
+export async function adminFetchPaged<T>(path: string): Promise<AdminPagedResult<T>> {
+  const { body } = await adminResponse<T[]>(path);
+  return {
+    data: body?.data || [],
+    meta: {
+      page: Number(body?.meta?.page || 1),
+      limit: Number(body?.meta?.limit || 20),
+      total: Number(body?.meta?.total || 0),
+    },
+  };
+}
+
+export const adminClient = {
+  session: () => adminFetch<import("@/types/admin").AdminSession>("/session"),
+  runtime: () => adminFetch<import("@/types/admin").AdminRuntime>("/greedy/runtime"),
+  configs: () => adminFetch<import("@/types/admin").AdminConfigVersion[]>("/greedy/configs"),
+  createConfig: (payload: import("@/types/admin").CreateAdminConfigInput) => adminFetch("/greedy/configs", { method: "POST", body: JSON.stringify(payload) }),
+  config: (id: string) => adminFetch<import("@/types/admin").AdminConfigVersion>(`/greedy/configs/${id}`),
+  updateConfig: (id: string, payload: import("@/types/admin").CreateAdminConfigInput) => adminFetch(`/greedy/configs/${id}`, { method: "PUT", body: JSON.stringify(payload) }),
+  cloneConfig: (id: string) => adminFetch<import("@/types/admin").AdminConfigVersion>(`/greedy/configs/${id}/clone`, { method: "POST" }),
+  validateConfig: (payload: import("@/types/admin").CreateAdminConfigInput) => adminFetch<import("@/lib/admin-config-validation").ConfigValidationPreview>("/greedy/configs/validate", { method: "POST", body: JSON.stringify(payload) }),
+  publish: (id: string) => adminFetch(`/greedy/configs/${id}/publish`, { method: "POST" }),
+  publishApproved: (approvalId: string) => adminFetch("/greedy/configs/publish-approved", { method: "POST", body: JSON.stringify({ approval_id: approvalId }) }),
+  resume: () => adminFetch("/greedy/resume", { method: "POST" }),
+  pause: () => adminFetch("/greedy/pause", { method: "POST" }),
+  cancel: (reason: string, approvalId?: string) => adminFetch<{ status?: string; approval_id?: string; round_id?: string; exposure?: string; expires_at?: string }>("/greedy/cancel-current-round", { method: "POST", body: JSON.stringify({ reason, ...(approvalId ? { approval_id: approvalId } : {}) }) }),
+  adjustWallet: (payload: import("@/types/admin").WalletAdjustmentInput) => adminFetch<import("@/types/admin").WalletAdjustmentResult>("/wallets/adjust", { method: "POST", body: JSON.stringify(payload) }),
+  overview: () => adminFetch("/greedy/overview"),
+  health: () => adminFetch("/greedy/health"),
+  metrics: (query = "") => adminFetch(`/greedy/metrics${query}`),
+  rounds: (query = "?page=1&limit=20") => adminFetchPaged<import("@/types/admin").AdminRoundSummary>(`/greedy/rounds${query}`),
+  round: (id: string) => adminFetch<import("@/types/admin").AdminRoundDetail>(`/greedy/rounds/${encodeURIComponent(id)}`),
+  roundBets: (id: string, query = "?page=1&limit=20") => adminFetchPaged<import("@/types/admin").AdminRoundBet>(`/greedy/rounds/${encodeURIComponent(id)}/bets${query}`),
+  verifyRound: (id: string) => adminFetch<import("@/types/admin").AdminRoundVerification>(`/greedy/rounds/${encodeURIComponent(id)}/result-verification`),
+  player: (id: string) => adminFetch<import("@/types/admin").AdminPlayerSummary>(`/greedy/users/${encodeURIComponent(id)}`),
+  auditLogs: (query = "?page=1&limit=50") => adminFetch(`/greedy/audit-logs${query}`),
+  auditLogsPaged: (query = "?page=1&limit=50") => adminFetchPaged<import("@/types/admin").AdminAuditLog>(`/greedy/audit-logs${query}`),
+  approvals: (query = "?page=1&limit=50") => adminFetch(`/approvals${query}`),
+  approvalsPaged: (query = "?page=1&limit=100") => adminFetchPaged<import("@/types/admin").AdminApproval>(`/approvals${query}`),
+  approve: (id: string, reason?: string) => adminFetch(`/approvals/${id}/approve`, { method: "POST", body: JSON.stringify({ reason }) }),
+  reject: (id: string, reason?: string) => adminFetch(`/approvals/${id}/reject`, { method: "POST", body: JSON.stringify({ reason }) }),
+  adminUsers: () => adminFetch<import("@/types/admin").AdminUserRecord[]>("/admin-users"),
+  createAdminUser: (payload: unknown) => adminFetch("/admin-users", { method: "POST", body: JSON.stringify(payload) }),
+  updateAdminUser: (id: string, payload: unknown) => adminFetch(`/admin-users/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  revokeAdminUserSessions: (id: string) => adminFetch(`/admin-users/${encodeURIComponent(id)}/revoke-sessions`, { method: "POST" }),
+  resetAdminUserPassword: (id: string, password: string) => adminFetch(`/admin-users/${encodeURIComponent(id)}/reset-password`, { method: "POST", body: JSON.stringify({ password }) }),
+  sessions: () => adminFetch<import("@/types/admin").AdminSessionRecord[]>("/auth/sessions"),
+  revokeSession: (id: string) => adminFetch(`/auth/sessions/${encodeURIComponent(id)}/revoke`, { method: "POST" }),
+  policy: () => adminFetch("/policy"),
+  updatePolicy: (payload: unknown) => adminFetch("/policy", { method: "PATCH", body: JSON.stringify(payload) }),
+  uploadAsset: (file: File) => { const data = new FormData(); data.append("file", file); return adminFetch<import("@/types/admin").AdminAsset>("/greedy/assets", { method: "POST", body: data }); },
+  assets: () => adminFetch<import("@/types/admin").AdminAsset[]>("/greedy/assets"),
+  alerts: (query = "?page=1&limit=50") => adminFetch(`/greedy/alerts${query}`),
+  acknowledgeAlert: (id: string) => adminFetch(`/greedy/alerts/${encodeURIComponent(id)}/acknowledge`, { method: "POST" }),
+  resolveAlert: (id: string) => adminFetch(`/greedy/alerts/${encodeURIComponent(id)}/resolve`, { method: "POST" }),
+  setAvailability: (status: "active" | "maintenance" | "disabled") => adminFetch("/greedy/availability", { method: "POST", body: JSON.stringify({ status }) }),
+};

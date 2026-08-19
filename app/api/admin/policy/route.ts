@@ -1,0 +1,3 @@
+import { forwardMutationHeaders, proxyAdminRequest, readJson } from "@/lib/admin-bff"; import { requireAdminMutation, requireAdminSession } from "@/lib/admin-session";
+export async function GET() { const session = await requireAdminSession(); if (session instanceof Response) return session; return proxyAdminRequest("/admin/policy", session); }
+export async function PATCH(request: Request) { const session = await requireAdminMutation(request); if (session instanceof Response) return session; return proxyAdminRequest("/admin/policy", session, { method: "PATCH", headers: forwardMutationHeaders(request), body: JSON.stringify(await readJson(request)) }); }
