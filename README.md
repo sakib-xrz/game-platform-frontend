@@ -1,0 +1,153 @@
+# Greedy Mobile Frontend
+
+Production-oriented **mobile-only** Next.js frontend for the supplied multi-game backend. The uploaded backend ZIP is treated as the source of truth; the older handoff PDF is used only for architecture/context where it still matches the code.
+
+## Scope implemented
+
+- Mobile game-selection page (`/`)
+- Greedy game page (`/games/greedy`)
+- No site header
+- No footer / bottom navigation
+- Reference-matched 414 × 560 Greedy machine with eight radial options, integrated chip pedestal and red results dashboard
+- Betting, drawing/highlight and result-sheet visual states from the supplied screenshots
+- Dynamic options, multipliers, chip values and image URLs from the backend config
+- Original local cartoon fallback artwork for the current seed codes: `FALCON`, `TIGER`, `PANDA`, `LION`, `SHARK`, `DRAGON`, `CROWN`, `DIAMOND`
+- Server-time countdowns (client does not authoritatively advance game state)
+- Idempotent REST bet placement with a new `client_request_id` per bet
+- Socket.IO realtime round/wallet events
+- Snapshot recovery on load, reconnect, visibility resume, network resume and fallback polling
+- Durable Socket `event_id` de-duplication
+- Wallet balance and current-user round exposure
+- Recent revealed-result strip
+- Result modal using the authoritative backend winner/settlements
+- iOS/Android safe-area handling and Flutter WebView-friendly viewport behavior
+- Loading/error/offline/reconnecting UI
+- Production standalone Docker image
+
+## Backend contract used
+
+HTTP base: `/api/v1`
+
+- `GET /games/greedy/snapshot`
+- `POST /games/greedy/bets`
+
+Socket events used:
+
+- `platform.connected`
+- `platform.game.paused`
+- `platform.game.resumed`
+- `greedy.round.opened`
+- `greedy.round.locked`
+- `greedy.round.drawing`
+- `greedy.round.result`
+- `greedy.round.settled`
+- `greedy.round.closed`
+- `greedy.round.cancelled`
+- `greedy.round.refunded`
+- `wallet.balance.updated`
+
+The UI intentionally re-fetches `/games/greedy/snapshot` after important round events because the backend defines PostgreSQL/snapshot state as authoritative.
+
+## Screenshot features intentionally not faked
+
+The screenshots contain values such as **Today's profits**, global profit ranking, biggest-winner profiles, gift state, popularity/Hot state, recommendation packages and a coin-to-diamond exchange rate. The supplied backend does not expose those values, so this frontend does **not** invent them:
+
+- the second wallet pill truthfully shows the current round selection;
+- the ranking-shaped card explicitly reports that ranking data is unavailable;
+- the result sheet shows only the current player result and authoritative payout;
+- the conversion-shaped plaque describes the backend's one-coin/one-stake semantics.
+
+Those slots can be populated without restructuring the screen when matching backend endpoints/events are added.
+
+## Local setup
+
+Backend first:
+
+```bash
+# backend terminal 1
+npm run dev
+
+# backend terminal 2
+npm run dev:worker
+```
+
+Make sure the Greedy database has been seeded and the runtime resumed.
+
+Frontend:
+
+```bash
+cp .env.example .env.local
+npm install
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+Default development environment:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
+NEXT_PUBLIC_SOCKET_URL=http://localhost:8000
+NEXT_PUBLIC_DEV_USER_ID=user-001
+```
+
+The backend must have:
+
+```env
+ALLOW_DEV_IDENTITY_HEADER=true
+CORS_ORIGIN=http://localhost:3000
+```
+
+## Production authentication
+
+The backend ZIP still uses `X-User-Id` only as a development integration seam. Do **not** expose `NEXT_PUBLIC_DEV_USER_ID` in production.
+
+For production:
+
+1. Integrate real platform authentication in the backend player middleware and Socket handshake.
+2. Remove `NEXT_PUBLIC_DEV_USER_ID`.
+3. Keep `credentials: include` / Socket credentials if your real auth uses secure cookies.
+4. Configure the backend CORS origin to the deployed frontend origin.
+
+## Production environment
+
+Example:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=https://api.example.com/api/v1
+NEXT_PUBLIC_SOCKET_URL=https://api.example.com
+```
+
+Build:
+
+```bash
+npm run typecheck
+npm run lint
+npm run build
+npm run start
+```
+
+Docker:
+
+```bash
+docker build -t greedy-mobile-frontend \
+  --build-arg NEXT_PUBLIC_API_BASE_URL=https://api.example.com/api/v1 \
+  --build-arg NEXT_PUBLIC_SOCKET_URL=https://api.example.com \
+  .
+
+docker run --rm -p 3000:3000 greedy-mobile-frontend
+```
+
+> `NEXT_PUBLIC_*` values are compiled into the browser bundle. In normal deployments, provide them during the image build rather than only changing them after the build. If your deployment platform injects build-time environment variables, configure them there.
+
+## Option artwork
+
+The backend supports `image_url` per option and it always takes precedence. If it is null (as in the current technical seed), the frontend uses the original local cartoon PNGs in `public/assets/greedy`, then falls back to emoji only for unknown codes. For final production artwork, publish a new backend config with the final image URLs.
+
+## Mobile-only behavior
+
+The application is designed for phone widths. The Greedy screen caps at the 414px reference canvas; the game-selection screen caps at 480px. On desktop, the mobile canvas is centered and there is intentionally no desktop layout.
