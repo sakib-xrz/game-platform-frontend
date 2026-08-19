@@ -24,7 +24,9 @@ export default function GameSelectionPage() {
           <div className="grid grid-cols-1 gap-4">
             <GameCard
               title="Teen Patti"
-              subtitle="Multiplayer table game."
+              subtitle="Bet on one to three hands. Highest unique Teen Patti wins the pot."
+              href="/games/teen-patti"
+              active
               accent="linear-gradient(135deg,#4b63d8 0%,#774ae8 100%)"
               art={["♠️", "♥️", "♣️", "♦️"]}
             />
