@@ -10,13 +10,24 @@ import type { ChipValue } from "@/types/teen-patti";
  * of denominations instead of a row of identical buttons.
  */
 const CHIP_THEMES = [
-  { rim: "#ff5d64", core: "#ffd6d7", ink: "#821b23" },
-  { rim: "#3aa06b", core: "#c9edd6", ink: "#123c22" },
-  { rim: "#3c8de6", core: "#d5eaff", ink: "#0f2f5e" },
+  { rim: "#21bfe3", core: "#a9eeff", ink: "#075375" },
+  { rim: "#43a844", core: "#caefad", ink: "#1a581f" },
+  { rim: "#3c8de6", core: "#c5e5ff", ink: "#0f2f5e" },
   { rim: "#7d51e0", core: "#e2d3ff", ink: "#2d1863" },
   { rim: "#f2a03c", core: "#ffe7c1", ink: "#5b330a" },
-  { rim: "#1f2531", core: "#e2e5ed", ink: "#0d1220" },
+  { rim: "#df744b", core: "#ffd8b7", ink: "#6a2f18" },
 ];
+
+function compactChipAmount(amount: string): string {
+  try {
+    const value = BigInt(amount);
+    if (value >= 1_000_000n && value % 1_000_000n === 0n) return `${value / 1_000_000n}M`;
+    if (value >= 1_000n && value % 1_000n === 0n) return `${value / 1_000n}K`;
+  } catch {
+    return amount;
+  }
+  return formatInteger(amount);
+}
 
 export const TeenPattiChipTray = forwardRef<HTMLDivElement, {
   chips: ChipValue[];
@@ -68,6 +79,7 @@ export const TeenPattiChipTray = forwardRef<HTMLDivElement, {
             }}
             disabled={disabled}
             className={clsx("tp-chip", active && "tp-chip--active")}
+            data-chip-amount={chip.amount}
             style={{
               "--chip-rim": theme.rim,
               "--chip-core": theme.core,
@@ -79,7 +91,7 @@ export const TeenPattiChipTray = forwardRef<HTMLDivElement, {
             aria-label={`${formatInteger(chip.amount)} coin chip`}
           >
             <span className="tp-chip__ring" aria-hidden="true" />
-            <span className="tp-chip__face">{formatInteger(chip.amount)}</span>
+            <span className="tp-chip__face">{compactChipAmount(chip.amount)}</span>
           </button>
         );
       })}
