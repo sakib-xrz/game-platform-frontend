@@ -22,6 +22,11 @@ export type PublicDeck = {
   is_enabled?: boolean;
 };
 
+export type WinningOption = Pick<
+  PublicDeck,
+  "id" | "code" | "name" | "image_url"
+>;
+
 export type ChipValue = {
   id: string;
   amount: string;
@@ -70,8 +75,16 @@ export type OptionPotTotal = {
 
 export type SnapshotRound = {
   id: string;
+  config_version_id: string;
   round_number: string;
   status: RoundStatus;
+  betting_duration_ms: number;
+  lock_duration_ms: number;
+  drawing_duration_ms: number;
+  result_duration_ms: number;
+  min_bet: string;
+  max_single_bet: string;
+  max_round_bet: string;
   betting_started_at: string | null;
   betting_ends_at: string | null;
   drawing_started_at: string | null;
@@ -95,7 +108,7 @@ export type Wallet = {
     id: string;
     code: string;
     name: string;
-    symbol: string;
+    symbol: string | null;
     is_active: boolean;
   };
 };
@@ -125,7 +138,7 @@ export type RecentRound = {
 export type TeenPattiSnapshot = {
   server_time: string;
   game: { code: string; name: string; status: GameStatus };
-  runtime: { status: RuntimeStatus; revision: number };
+  runtime: { status: RuntimeStatus; revision: string };
   active_config: TeenPattiConfig;
   round: SnapshotRound | null;
   wallet: Wallet;
@@ -145,14 +158,18 @@ export type BetResponse = {
   round_id: string;
   option_id: string;
   amount: string;
+  client_request_id: string;
   wallet_balance: string;
+  wallet_version: number;
   accepted_at: string;
 };
+
+export type BetAcceptedEvent = BetResponse & { event_id: string };
 
 export type RoundResultEvent = {
   event_id: string;
   round_id: string;
-  winning_option: PublicDeck;
+  winning_option: WinningOption;
   hands?: DealtHand[];
   revealed_at: string;
 };
@@ -161,6 +178,7 @@ export type WalletBalanceEvent = {
   event_id: string;
   wallet_id: string;
   balance: string;
+  wallet_version: number;
   reason: string;
   round_id?: string;
   payout?: string;

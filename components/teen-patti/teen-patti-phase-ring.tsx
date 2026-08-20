@@ -4,6 +4,8 @@ import clsx from "clsx";
 import { useCountdown } from "@/hooks/use-countdown";
 import type { SnapshotRound, TeenPattiConfig } from "@/types/teen-patti";
 
+type PhaseTiming = Pick<TeenPattiConfig, "betting_duration_ms" | "drawing_duration_ms">;
+
 function seconds(ms: number): number {
   return Math.max(0, Math.ceil(ms / 1000));
 }
@@ -18,7 +20,7 @@ export function TeenPattiPhaseRing({
   serverOffsetMs,
 }: {
   round: SnapshotRound | null;
-  config: TeenPattiConfig;
+  config: PhaseTiming;
   serverOffsetMs: number;
 }) {
   const status = round?.status ?? "idle";
@@ -43,7 +45,7 @@ export function TeenPattiPhaseRing({
     value = "…";
     tone = "wait";
   } else if (isBetting) {
-    label = "Place your bets";
+    label = "Betting open";
     value = `${seconds(bettingRemaining)}s`;
     percent = 1 - Math.min(1, bettingRemaining / Math.max(1, config.betting_duration_ms));
     tone = "bet";
@@ -72,7 +74,10 @@ export function TeenPattiPhaseRing({
   const filled = Math.max(0, Math.min(1, percent)) * dash;
 
   return (
-    <div className={clsx("tp-phase", `tp-phase--${tone}`)} aria-live="polite">
+    <div className={clsx("tp-phase", `tp-phase--${tone}`)}>
+      <span className="sr-only" aria-live="polite">
+        {isBetting || isDrawing ? label : `${label}: ${value}`}
+      </span>
       <div className="tp-phase__ring" aria-hidden="true">
         <svg viewBox="0 0 36 36">
           <circle className="tp-phase__ring-track" cx="18" cy="18" r="15.915" />
@@ -87,7 +92,7 @@ export function TeenPattiPhaseRing({
         </svg>
         <span className="tp-phase__ring-dot" />
       </div>
-      <div className="tp-phase__copy">
+      <div className="tp-phase__copy" aria-hidden="true">
         <span>{label}</span>
         <strong>{value}</strong>
       </div>

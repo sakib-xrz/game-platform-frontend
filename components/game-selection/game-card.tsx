@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, LockKeyhole, Sparkles } from "lucide-react";
-import { useState, type MouseEvent } from "react";
+import { useState } from "react";
 
 type GameCardImage = {
   src: string;
@@ -16,6 +16,9 @@ export type GameCardProps = {
   href?: string;
   active?: boolean;
   accent: string;
+  variant: "greedy" | "teen-patti" | "soon";
+  statusLabel?: string;
+  meta?: string[];
   art?: string[];
   artImages?: GameCardImage[];
   centerImage?: GameCardImage;
@@ -36,6 +39,9 @@ export function GameCard({
   href,
   active = false,
   accent,
+  variant,
+  statusLabel,
+  meta = [],
   art = [],
   artImages = [],
   centerImage,
@@ -45,27 +51,15 @@ export function GameCard({
   const [opening, setOpening] = useState(false);
   const orbitItems = artImages.length > 0 ? artImages : art;
 
-  function handleOpen(event: MouseEvent<HTMLAnchorElement>) {
-    if (
-      event.button !== 0
-      || event.metaKey
-      || event.ctrlKey
-      || event.shiftKey
-      || event.altKey
-    ) {
-      return;
-    }
-    setOpening(true);
-  }
-
   const content = (
     <div
-      className={`game-card arcade-card-glow ${active ? "game-card--active" : "game-card--locked"}`}
+      className={`game-card game-card--${variant} arcade-card-glow ${active ? "game-card--active" : "game-card--locked"}`}
       style={{ "--game-card-accent": accent } as React.CSSProperties}
       aria-busy={opening || undefined}
     >
       <span className="game-card__shine" aria-hidden="true" />
       <span className="game-card__shade" aria-hidden="true" />
+      <span className="game-card__pattern" aria-hidden="true" />
 
       {heroImage && (
         <div className="game-card__hero" aria-hidden="true">
@@ -85,10 +79,18 @@ export function GameCard({
         <div className="game-card__copy">
           <div className="game-card__status">
             {active ? <Sparkles aria-hidden="true" /> : <LockKeyhole aria-hidden="true" />}
-            {active ? "Live now" : "Coming soon"}
+            {statusLabel ?? (active ? "Live now" : "Coming soon")}
           </div>
           <h2>{title}</h2>
           <p>{subtitle}</p>
+
+          {meta.length > 0 && (
+            <span className="game-card__meta" aria-label={meta.join(", ")}>
+              {meta.map((item) => (
+                <i key={item}>{item}</i>
+              ))}
+            </span>
+          )}
 
           <span className="game-card__cta">
             {opening ? (
@@ -154,7 +156,7 @@ export function GameCard({
       href={href}
       aria-label={`Open ${title}`}
       className="game-card-link"
-      onClick={handleOpen}
+      onNavigate={() => setOpening(true)}
     >
       {content}
     </Link>

@@ -168,12 +168,15 @@ export function GreedyGameScreen() {
     snapshot,
     loading,
     refreshing,
-    placingBet,
+    pendingOptionIds,
+    pendingOptionAmounts,
+    pendingBetTotal,
     connected,
     serverOffsetMs,
     fatalError,
     notice,
     resultModalOpen,
+    resultModalDisplayMs,
     setResultModalOpen,
     roundBetTotal,
     optionBetTotals,
@@ -181,22 +184,62 @@ export function GreedyGameScreen() {
     placeBet,
   } = useGreedyGame();
 
-  const chips =
-    snapshot?.round?.chip_values ?? snapshot?.active_config?.chip_values ?? [];
-  const options =
-    snapshot?.round?.options ?? snapshot?.active_config?.options ?? [];
+  const chips = useMemo(
+    () => (snapshot?.round?.chip_values ?? snapshot?.active_config?.chip_values ?? [])
+      .filter((chip) => chip.is_enabled !== false),
+    [snapshot?.active_config?.chip_values, snapshot?.round?.chip_values],
+  );
+  const options = useMemo(
+    () => (snapshot?.round?.options ?? snapshot?.active_config?.options ?? [])
+      .filter((option) => option.is_enabled !== false),
+    [snapshot?.active_config?.options, snapshot?.round?.options],
+  );
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
   const helpCloseRef = useRef<HTMLButtonElement>(null);
+  const disabledChipAmounts = useMemo(() => {
+    const disabled = new Set<string>();
+    if (!snapshot?.round) return disabled;
+    const balance = BigInt(snapshot.wallet.balance) - pendingBetTotal;
+    const exposure = BigInt(roundBetTotal) + pendingBetTotal;
+    const minBet = BigInt(snapshot.round.min_bet);
+    const maxSingleBet = BigInt(snapshot.round.max_single_bet);
+    const maxRoundBet = BigInt(snapshot.round.max_round_bet);
+    for (const chip of chips) {
+      const amount = BigInt(chip.amount);
+      if (
+        amount < minBet
+        || amount > maxSingleBet
+        || amount > balance
+        || exposure + amount > maxRoundBet
+      ) {
+        disabled.add(chip.amount);
+      }
+    }
+    return disabled;
+  }, [chips, pendingBetTotal, roundBetTotal, snapshot]);
+
+  const optimisticWalletBalance = snapshot
+    ? (BigInt(snapshot.wallet.balance) > pendingBetTotal
+        ? BigInt(snapshot.wallet.balance) - pendingBetTotal
+        : 0n)
+    : 0n;
+  const optimisticRoundBetTotal = BigInt(roundBetTotal) + pendingBetTotal;
   const effectiveSelectedChip = chips.some(
-    (chip) => chip.amount === selectedChip,
+    (chip) => chip.amount === selectedChip && !disabledChipAmounts.has(chip.amount),
   )
     ? selectedChip
-    : (chips[0]?.amount ?? "");
+    : (chips.find((chip) => !disabledChipAmounts.has(chip.amount))?.amount ?? "");
 
   const isDrawing = snapshot?.round?.status === "drawing";
   const drawingMs = useCountdown(
     isDrawing ? snapshot?.round?.result_reveal_at : null,
+    serverOffsetMs,
+  );
+  const bettingRemainingMs = useCountdown(
+    snapshot?.round?.status === "betting_open"
+      ? snapshot.round.betting_ends_at
+      : null,
     serverOffsetMs,
   );
   const drawingFocusIndex =
@@ -205,7 +248,9 @@ export function GreedyGameScreen() {
       : -1;
   const winnerId = snapshot?.round?.result?.winning_option.id ?? null;
   const canBet =
+    snapshot?.game.status === "active" &&
     snapshot?.round?.status === "betting_open" &&
+    bettingRemainingMs > 0 &&
     Boolean(effectiveSelectedChip);
 
   const roundLabel = useMemo(() => {
@@ -375,11 +420,14 @@ export function GreedyGameScreen() {
               option={option}
               left={position.left}
               top={position.top}
-              myBet={(optionBetTotals.get(option.id) ?? 0n).toString()}
+              myBet={(
+                (optionBetTotals.get(option.id) ?? 0n)
+                + (pendingOptionAmounts.get(option.id) ?? 0n)
+              ).toString()}
               winner={winnerId === option.id}
               drawingHighlighted={drawingFocusIndex === index}
               disabled={!canBet}
-              busy={placingBet}
+              busy={pendingOptionIds.has(option.id)}
               onPress={() => void placeBet(option, effectiveSelectedChip)}
             />
           );
@@ -391,10 +439,11 @@ export function GreedyGameScreen() {
           chips={chips}
           selected={effectiveSelectedChip}
           onChange={setSelectedChip}
+          disabledAmounts={disabledChipAmounts}
           disabled={
             !snapshot.round ||
             snapshot.round.status !== "betting_open" ||
-            placingBet
+            bettingRemainingMs <= 0
           }
         />
 
@@ -422,14 +471,14 @@ export function GreedyGameScreen() {
             <span>Coins left</span>
             <strong>
               <b aria-hidden="true">●</b>
-              {formatInteger(snapshot.wallet.balance)}
+              {formatInteger(optimisticWalletBalance.toString())}
             </strong>
           </div>
           <div className="dashboard-metric">
             <span>Round selection</span>
             <strong>
               <b aria-hidden="true">●</b>
-              {formatInteger(roundBetTotal)}
+              {formatInteger(optimisticRoundBetTotal.toString())}
             </strong>
           </div>
         </div>
@@ -508,6 +557,7 @@ export function GreedyGameScreen() {
       <ResultModal
         snapshot={snapshot}
         open={resultModalOpen}
+        displayDurationMs={resultModalDisplayMs}
         onClose={() => setResultModalOpen(false)}
       />
     </main>

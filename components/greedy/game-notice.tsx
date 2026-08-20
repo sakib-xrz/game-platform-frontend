@@ -7,7 +7,13 @@ type NoticeType = {
   message: string;
 } | null;
 
-export function GameNotice({ notice }: { notice: NoticeType }) {
+export function GameNotice({
+  notice,
+  className,
+}: {
+  notice: NoticeType;
+  className?: string;
+}) {
   if (!notice) return null;
   return (
     <div
@@ -18,6 +24,7 @@ export function GameNotice({ notice }: { notice: NoticeType }) {
         notice.kind === "success" && "border-emerald-200 bg-emerald-600 text-white",
         notice.kind === "error" && "border-red-200 bg-red-600 text-white",
         notice.kind === "info" && "border-blue-200 bg-blue-600 text-white",
+        className,
       )}
     >
       {notice.message}

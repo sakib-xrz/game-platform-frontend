@@ -54,6 +54,7 @@ export function BetOptionNode({
         ? "currently highlighted during the draw"
         : null,
     disabled ? "betting unavailable" : null,
+    busy ? "bet confirmation in progress" : null,
   ]
     .filter(Boolean)
     .join("; ");

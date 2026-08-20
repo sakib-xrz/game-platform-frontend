@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
   CircleHelp,
@@ -10,6 +11,7 @@ import {
   VolumeX,
   X,
 } from "lucide-react";
+import { useCountdown } from "@/hooks/use-countdown";
 import { useTeenPattiGame } from "@/hooks/use-teen-patti-game";
 import { formatInteger } from "@/lib/format";
 import { GameNotice } from "@/components/greedy/game-notice";
@@ -22,6 +24,18 @@ import { GameLoadingScreen } from "@/components/game-loading-screen";
 import type { PublicDeck } from "@/types/teen-patti";
 
 const CHIP_FLY_COLORS = ["#25c8ed", "#50b449", "#438cdb", "#7d51e0", "#f2a03c", "#de7650"];
+
+const HISTORY_AVATAR_BY_TONE: Record<string, string> = {
+  green: "/assets/teen-patti/avatar-emerald.png",
+  blue: "/assets/teen-patti/avatar-sapphire.png",
+  pink: "/assets/teen-patti/avatar-ruby.png",
+};
+
+const TONE_BY_CODE: Record<string, string> = {
+  DECK_A: "green",
+  DECK_B: "blue",
+  DECK_C: "pink",
+};
 
 type RepeatBet = {
   optionCode: string;
@@ -39,6 +53,8 @@ function resolveDeckPhase(status: string | undefined, hasResult: boolean): DeckV
 }
 
 function toneForOption(optionCode: string | undefined, decks: PublicDeck[]): string {
+  const stableTone = optionCode ? TONE_BY_CODE[optionCode.toUpperCase()] : undefined;
+  if (stableTone) return stableTone;
   const index = decks.findIndex((deck) => deck.code === optionCode);
   return ["green", "blue", "pink"][index] ?? "empty";
 }
@@ -48,7 +64,9 @@ export function TeenPattiGameScreen() {
     snapshot,
     loading,
     refreshing,
-    placingBet,
+    pendingOptionIds,
+    pendingOptionAmounts,
+    pendingBetTotal,
     connected,
     serverOffsetMs,
     fatalError,
@@ -63,32 +81,72 @@ export function TeenPattiGameScreen() {
   } = useTeenPattiGame();
 
   const chips = useMemo(
-    () => snapshot?.round?.chip_values ?? snapshot?.active_config?.chip_values ?? [],
+    () => (snapshot?.round?.chip_values ?? snapshot?.active_config?.chip_values ?? [])
+      .filter((chip) => chip.is_enabled !== false),
     [snapshot?.active_config?.chip_values, snapshot?.round?.chip_values],
   );
   const decks = useMemo(
-    () => snapshot?.round?.options ?? snapshot?.active_config?.options ?? [],
+    () => (snapshot?.round?.options ?? snapshot?.active_config?.options ?? [])
+      .filter((deck) => deck.is_enabled !== false),
     [snapshot?.active_config?.options, snapshot?.round?.options],
   );
 
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
-  const [flyChip, setFlyChip] = useState<FlyChip | null>(null);
+  const [flyChips, setFlyChips] = useState<FlyChip[]>([]);
   const [repeatBet, setRepeatBet] = useState<RepeatBet | null>(null);
 
   const helpCloseRef = useRef<HTMLButtonElement>(null);
   const flyIdRef = useRef(0);
   const chipTrayRef = useRef<HTMLDivElement>(null);
 
-  const effectiveSelectedChip = chips.some((chip) => chip.amount === selectedChip)
-    ? selectedChip
-    : (chips[0]?.amount ?? "");
-
   const round = snapshot?.round ?? null;
+  const disabledChipAmounts = useMemo(() => {
+    const disabled = new Set<string>();
+    if (!snapshot || !round) return disabled;
+    const balance = BigInt(snapshot.wallet.balance) - pendingBetTotal;
+    const exposure = BigInt(roundBetTotal) + pendingBetTotal;
+    const minBet = BigInt(round.min_bet);
+    const maxSingleBet = BigInt(round.max_single_bet);
+    const maxRoundBet = BigInt(round.max_round_bet);
+    for (const chip of chips) {
+      const amount = BigInt(chip.amount);
+      if (
+        amount < minBet
+        || amount > maxSingleBet
+        || amount > balance
+        || exposure + amount > maxRoundBet
+      ) {
+        disabled.add(chip.amount);
+      }
+    }
+    return disabled;
+  }, [chips, pendingBetTotal, round, roundBetTotal, snapshot]);
+
+  const optimisticWalletBalance = snapshot
+    ? (BigInt(snapshot.wallet.balance) > pendingBetTotal
+        ? BigInt(snapshot.wallet.balance) - pendingBetTotal
+        : 0n)
+    : 0n;
+  const optimisticRoundBetTotal = BigInt(roundBetTotal) + pendingBetTotal;
+
+  const effectiveSelectedChip = chips.some(
+    (chip) => chip.amount === selectedChip && !disabledChipAmounts.has(chip.amount),
+  )
+    ? selectedChip
+    : (chips.find((chip) => !disabledChipAmounts.has(chip.amount))?.amount ?? "");
+
   const isBetting = round?.status === "betting_open";
+  const bettingRemainingMs = useCountdown(
+    isBetting ? round?.betting_ends_at : null,
+    serverOffsetMs,
+  );
   const winnerId = round?.result?.winning_option.id ?? null;
-  const canBet = isBetting && Boolean(effectiveSelectedChip);
-  const rakePercent = ((snapshot?.active_config.rake_bps ?? 0) / 100).toFixed(1);
+  const canBet = snapshot?.game.status === "active"
+    && isBetting
+    && bettingRemainingMs > 0
+    && Boolean(effectiveSelectedChip);
+  const rakePercent = ((round?.rake_bps ?? snapshot?.active_config.rake_bps ?? 0) / 100).toFixed(1);
   const hasResult = Boolean(round?.result?.hands?.length);
 
   useEffect(() => {
@@ -115,6 +173,9 @@ export function TeenPattiGameScreen() {
   const handleChipSelect = useCallback((amount: string) => {
     setSelectedChip(amount);
   }, []);
+  const handleFlyDone = useCallback((chipId: number) => {
+    setFlyChips((current) => current.filter((chip) => chip.id !== chipId));
+  }, []);
 
   const flyBet = useCallback((deck: PublicDeck, amount: string) => {
     const trayEl = chipTrayRef.current;
@@ -130,7 +191,7 @@ export function TeenPattiGameScreen() {
     const chipIndex = Math.max(0, chips.findIndex((chip) => chip.amount === amount));
     const color = CHIP_FLY_COLORS[chipIndex % CHIP_FLY_COLORS.length];
 
-    setFlyChip({
+    const nextChip: FlyChip = {
       id: ++flyIdRef.current,
       from: {
         x: sourceRect.left + sourceRect.width / 2,
@@ -142,20 +203,25 @@ export function TeenPattiGameScreen() {
       },
       color,
       amount: formatInteger(amount),
-    });
+    };
+    setFlyChips((current) => [...current.slice(-5), nextChip]);
   }, [chips]);
 
   const submitBet = useCallback(
     async (deck: PublicDeck, amount: string) => {
-      if (!canBet || !amount || placingBet) return;
-      flyBet(deck, amount);
-      const accepted = await placeBet(deck, amount);
+      if (
+        !canBet
+        || !amount
+        || pendingOptionIds.has(deck.id)
+        || disabledChipAmounts.has(amount)
+      ) return;
+      const accepted = await placeBet(deck, amount, () => flyBet(deck, amount));
       if (!accepted) return;
 
       const nextRepeatBet = { optionCode: deck.code, amount };
       setRepeatBet(nextRepeatBet);
     },
-    [canBet, flyBet, placeBet, placingBet],
+    [canBet, disabledChipAmounts, flyBet, pendingOptionIds, placeBet],
   );
 
   const handleDeckPress = useCallback(
@@ -166,12 +232,12 @@ export function TeenPattiGameScreen() {
   );
 
   const handleRepeat = useCallback(() => {
-    if (!repeatBet) return;
+    if (!repeatBet || disabledChipAmounts.has(repeatBet.amount)) return;
     const deck = decks.find((item) => item.code === repeatBet.optionCode);
     if (!deck) return;
     setSelectedChip(repeatBet.amount);
     void submitBet(deck, repeatBet.amount);
-  }, [decks, repeatBet, submitBet]);
+  }, [decks, disabledChipAmounts, repeatBet, submitBet]);
 
   const roundLabel = useMemo(() => {
     const roundNumber = snapshot?.round?.round_number;
@@ -211,17 +277,27 @@ export function TeenPattiGameScreen() {
   const deckPhase = resolveDeckPhase(round?.status, hasResult);
   const runtimePaused = snapshot.runtime.status !== "running";
   const historySlots = Array.from({ length: 5 }, (_, index) => snapshot.recent_history[index] ?? null);
+  const repeatDeck = repeatBet
+    ? decks.find((deck) => deck.code === repeatBet.optionCode)
+    : undefined;
   const canRepeat = Boolean(
     canBet
-      && !placingBet
       && repeatBet
-      && decks.some((deck) => deck.code === repeatBet.optionCode),
+      && repeatDeck
+      && !disabledChipAmounts.has(repeatBet.amount)
+      && !pendingOptionIds.has(repeatDeck.id),
   );
 
   return (
     <main className="mobile-canvas greedy-shell tp-shell">
-      <GameNotice notice={notice} />
-      <BetFlyLayer chip={flyChip} onDone={() => setFlyChip(null)} />
+      <GameNotice notice={notice} className="tp-game-notice" />
+      {flyChips.map((chip) => (
+        <BetFlyLayer
+          key={chip.id}
+          chip={chip}
+          onDone={handleFlyDone}
+        />
+      ))}
 
       <section className="tp-table" aria-label="Teen Patti betting board">
         <div className="tp-felt" aria-hidden="true">
@@ -229,49 +305,90 @@ export function TeenPattiGameScreen() {
           <span className="tp-felt__grain" />
         </div>
 
-        <span className="tp-deco tp-deco--gems" aria-hidden="true" />
-        <span className="tp-deco tp-deco--teapot" aria-hidden="true" />
+        <span className="tp-deco tp-deco--left" aria-hidden="true">♣</span>
+        <span className="tp-deco tp-deco--right" aria-hidden="true">♦</span>
 
         <header className="tp-topbar">
           <Link href="/" className="tp-back" aria-label="Back to games">
             <ChevronLeft />
           </Link>
-          <h1>TeenPatti</h1>
+
+          <div className="tp-brand" aria-label="Teen Patti Royal Table">
+            <span className="tp-brand__suits" aria-hidden="true">
+              <i>♠</i><i>♥</i><i>♦</i><i>♣</i>
+            </span>
+            <h1>Teen Patti</h1>
+            <small>Royal table</small>
+          </div>
+
           <button
             type="button"
             className="tp-round-badge"
             onClick={() => void recover()}
             aria-label={`${roundLabel}. Refresh game state`}
           >
-            <i className={connected ? "is-online" : ""} aria-hidden="true" />
+            <span className="tp-round-badge__status">
+              <i className={connected ? "is-online" : ""} aria-hidden="true" />
+              <b>{connected ? "Live" : "Linking"}</b>
+            </span>
             <span>{roundLabel}</span>
-            <RefreshCw className={refreshing ? "animate-spin" : ""} />
+            <RefreshCw className={refreshing ? "animate-spin" : ""} aria-hidden="true" />
           </button>
         </header>
 
         <div className="tp-status-rail">
           <div
-            className="tp-vip-badge"
+            className="tp-player-profile"
             aria-label={connected ? "Connected to live game" : "Reconnecting to live game"}
           >
-            <strong>YOU</strong>
-            <em>{connected ? "LIVE" : "…"}</em>
+            <span className="tp-player-profile__avatar">
+              <Image
+                src="/assets/teen-patti/avatar-sapphire.png"
+                alt=""
+                aria-hidden="true"
+                width={384}
+                height={384}
+                sizes="42px"
+                priority
+              />
+              <i className={connected ? "is-online" : ""} aria-hidden="true" />
+            </span>
+            <span className="tp-player-profile__copy">
+              <small>Player</small>
+              <strong>You</strong>
+            </span>
           </div>
 
-          <div className="tp-history" aria-label="Recent winning hands">
-            {historySlots.map((item, index) => {
-              const option = item?.result?.winning_option;
-              const tone = toneForOption(option?.code, decks);
-              return (
-                <span
-                  key={item?.id ?? `empty-${index}`}
-                  className={`tp-history__seat tp-history__seat--${tone}`}
-                  title={option?.name ?? "Waiting for result"}
-                >
-                  <span className="tp-history__avatar" aria-hidden="true" />
-                </span>
-              );
-            })}
+          <div className="tp-history-panel">
+            <span className="tp-history-panel__label">Recent winners</span>
+            <div className="tp-history" aria-label="Recent winning hands">
+              {historySlots.map((item, index) => {
+                const option = item?.result?.winning_option;
+                const tone = toneForOption(option?.code, decks);
+                const avatarSrc = HISTORY_AVATAR_BY_TONE[tone];
+                return (
+                  <span
+                    key={item?.id ?? `empty-${index}`}
+                    className={`tp-history__seat tp-history__seat--${tone}`}
+                    title={option?.name ?? "Waiting for result"}
+                  >
+                    {avatarSrc ? (
+                      <Image
+                        src={avatarSrc}
+                        alt=""
+                        aria-hidden="true"
+                        width={384}
+                        height={384}
+                        sizes="30px"
+                        className="tp-history__avatar"
+                      />
+                    ) : (
+                      <span className="tp-history__empty" aria-hidden="true">♠</span>
+                    )}
+                  </span>
+                );
+              })}
+            </div>
           </div>
 
           <nav className="tp-controls" aria-label="Game controls">
@@ -298,72 +415,107 @@ export function TeenPattiGameScreen() {
           </nav>
         </div>
 
-        <div className="tp-phase-dock">
-          <TeenPattiPhaseRing
-            round={round}
-            config={snapshot.active_config}
-            serverOffsetMs={serverOffsetMs}
-          />
-          <span className="tp-rake">Rake {rakePercent}%</span>
-        </div>
+        <div className="tp-arena">
+          <span className="tp-arena__ornament tp-arena__ornament--left" aria-hidden="true" />
+          <span className="tp-arena__ornament tp-arena__ornament--right" aria-hidden="true" />
 
-        <div className="tp-decks">
-          {decks.slice(0, 3).map((deck, deckIndex) => {
-            const hand = round?.result?.hands?.find((item) => item.option_id === deck.id);
-            return (
-              <DeckColumn
-                key={deck.id}
-                deck={deck}
-                deckIndex={deckIndex}
-                stake={(optionBetTotals.get(deck.id) ?? 0n).toString()}
-                potTotal={(optionPotTotals.get(deck.id) ?? 0n).toString()}
-                winner={winnerId === deck.id}
-                disabled={!canBet}
-                busy={placingBet}
-                hand={hand}
-                phase={deckPhase}
-                onPress={() => handleDeckPress(deck)}
-              />
-            );
-          })}
+          <div className="tp-phase-dock">
+            <TeenPattiPhaseRing
+              round={round}
+              config={round ?? snapshot.active_config}
+              serverOffsetMs={serverOffsetMs}
+            />
+            <span className="tp-rake">House rake {rakePercent}%</span>
+          </div>
+
+          <div className="tp-decks">
+            {decks.slice(0, 3).map((deck, deckIndex) => {
+              const hand = round?.result?.hands?.find((item) => item.option_id === deck.id);
+              return (
+                <DeckColumn
+                  key={deck.id}
+                  deck={deck}
+                  deckIndex={deckIndex}
+                  stake={(
+                    (optionBetTotals.get(deck.id) ?? 0n)
+                    + (pendingOptionAmounts.get(deck.id) ?? 0n)
+                  ).toString()}
+                  potTotal={(optionPotTotals.get(deck.id) ?? 0n).toString()}
+                  winner={winnerId === deck.id}
+                  disabled={!canBet}
+                  busy={pendingOptionIds.has(deck.id)}
+                  hand={hand}
+                  phase={deckPhase}
+                  onPress={() => handleDeckPress(deck)}
+                />
+              );
+            })}
+          </div>
+
+          <div className="tp-arena__rule" aria-hidden="true">
+            <span>♠</span>
+            <b>Three cards. Highest hand wins.</b>
+            <span>♥</span>
+          </div>
         </div>
 
         <div className="tp-bet-console">
-          <div className="tp-wallet-pill" aria-label={`${formatInteger(snapshot.wallet.balance)} coins`}>
-            <span aria-hidden="true">●</span>
-            <strong>{formatInteger(snapshot.wallet.balance)}</strong>
+          <div className="tp-bet-console__status">
+            <div
+              className="tp-wallet-pill"
+              aria-label={`${formatInteger(optimisticWalletBalance.toString())} ${snapshot.wallet.currency.name}`}
+            >
+              <span className="tp-wallet-pill__coin" aria-hidden="true">
+                {snapshot.wallet.currency.symbol ?? "●"}
+              </span>
+              <span className="tp-wallet-pill__copy">
+                <small>Balance</small>
+                <strong>{formatInteger(optimisticWalletBalance.toString())}</strong>
+              </span>
+            </div>
+
+            <p className="tp-hint" aria-live="polite">
+              <span>
+                {canBet
+                  ? "Choose a chip, then tap a hand"
+                  : snapshot.game.status !== "active"
+                    ? "This table is temporarily unavailable"
+                    : isBetting
+                    ? bettingRemainingMs <= 0
+                      ? "Betting is closing"
+                      : "No chip is available within your balance and limits"
+                  : deckPhase === "dealing"
+                    ? "Cards are being dealt"
+                    : deckPhase === "winner"
+                      ? "Highest hand wins"
+                      : "Waiting for the next round"}
+              </span>
+              <strong>Bet {formatInteger(optimisticRoundBetTotal.toString())}</strong>
+            </p>
+
+            <button
+              type="button"
+              className="tp-repeat"
+              disabled={!canRepeat}
+              onClick={handleRepeat}
+            >
+              <RefreshCw aria-hidden="true" />
+              <span>Repeat</span>
+            </button>
           </div>
 
-          <TeenPattiChipTray
-            ref={chipTrayRef}
-            chips={chips}
-            selected={effectiveSelectedChip}
-            onChange={handleChipSelect}
-            disabled={!round || round.status !== "betting_open" || placingBet}
-          />
-
-          <button
-            type="button"
-            className="tp-repeat"
-            disabled={!canRepeat}
-            onClick={handleRepeat}
-          >
-            Repeat
-          </button>
+          <div className="tp-bet-console__chips">
+            <span className="tp-bet-console__label">Select chip</span>
+            <TeenPattiChipTray
+              ref={chipTrayRef}
+              chips={chips}
+              selected={effectiveSelectedChip}
+              onChange={handleChipSelect}
+              disabled={!isBetting || bettingRemainingMs <= 0}
+              disabledAmounts={disabledChipAmounts}
+            />
+          </div>
         </div>
-
-        <p className="tp-hint" aria-live="polite">
-          <span>
-            {canBet
-              ? "Choose a chip, then tap any hand"
-              : deckPhase === "dealing"
-                ? "Cards are being dealt"
-                : deckPhase === "winner"
-                  ? "Highest hand wins"
-                  : "Waiting for the next round"}
-          </span>
-          <strong>Round bet {formatInteger(roundBetTotal)}</strong>
-        </p>
 
         {runtimePaused && !round && (
           <div className="tp-paused-overlay" role="status">
@@ -375,7 +527,7 @@ export function TeenPattiGameScreen() {
 
       {helpOpen && (
         <div
-          className="game-help-backdrop"
+          className="game-help-backdrop tp-help-backdrop"
           role="dialog"
           aria-modal="true"
           aria-labelledby="teen-patti-help-title"
@@ -383,7 +535,7 @@ export function TeenPattiGameScreen() {
             if (event.target === event.currentTarget) setHelpOpen(false);
           }}
         >
-          <div className="game-help-card">
+          <div className="game-help-card tp-help-card">
             <button
               ref={helpCloseRef}
               type="button"
@@ -392,8 +544,8 @@ export function TeenPattiGameScreen() {
             >
               <X />
             </button>
-            <span className="game-help-card__art" aria-hidden="true">
-              ♠
+            <span className="game-help-card__art tp-help-card__art" aria-hidden="true">
+              <i>♠</i><i>♥</i><i>♦</i>
             </span>
             <h2 id="teen-patti-help-title">How to play</h2>
             <ol>

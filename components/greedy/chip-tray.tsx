@@ -10,11 +10,13 @@ export function ChipTray({
   selected,
   onChange,
   disabled,
+  disabledAmounts,
 }: {
   chips: ChipValue[];
   selected: string;
   onChange: (amount: string) => void;
   disabled: boolean;
+  disabledAmounts?: ReadonlySet<string>;
 }) {
   const chipButtons = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -22,12 +24,26 @@ export function ChipTray({
     if (disabled || !chips.length) return;
 
     let nextIndex = index;
-    if (key === "ArrowRight" || key === "ArrowDown") nextIndex = (index + 1) % chips.length;
-    else if (key === "ArrowLeft" || key === "ArrowUp") nextIndex = (index - 1 + chips.length) % chips.length;
-    else if (key === "Home") nextIndex = 0;
-    else if (key === "End") nextIndex = chips.length - 1;
-    else return;
+    const direction = key === "ArrowRight" || key === "ArrowDown"
+      ? 1
+      : key === "ArrowLeft" || key === "ArrowUp"
+        ? -1
+        : 0;
+    if (key === "Home") {
+      nextIndex = chips.findIndex((chip) => !disabledAmounts?.has(chip.amount));
+    } else if (key === "End") {
+      nextIndex = chips.findLastIndex((chip) => !disabledAmounts?.has(chip.amount));
+    } else if (direction) {
+      for (let step = 1; step <= chips.length; step += 1) {
+        const candidate = (index + direction * step + chips.length) % chips.length;
+        if (!disabledAmounts?.has(chips[candidate].amount)) {
+          nextIndex = candidate;
+          break;
+        }
+      }
+    } else return;
 
+    if (nextIndex < 0 || disabledAmounts?.has(chips[nextIndex].amount)) return;
     onChange(chips[nextIndex].amount);
     chipButtons.current[nextIndex]?.focus();
   }
@@ -36,6 +52,7 @@ export function ChipTray({
     <div className="machine-chip-strip" role="radiogroup" aria-label="Choose coin value">
       {chips.map((chip, index) => {
         const active = chip.amount === selected;
+        const chipDisabled = disabled || Boolean(disabledAmounts?.has(chip.amount));
         return (
           <button
             type="button"
@@ -50,12 +67,12 @@ export function ChipTray({
                 selectByKeyboard(index, event.key);
               }
             }}
-            disabled={disabled}
+            disabled={chipDisabled}
             className={clsx("machine-chip", active && "machine-chip--active")}
             role="radio"
             aria-checked={active}
             tabIndex={active ? 0 : -1}
-            aria-label={`${formatInteger(chip.amount)} coin chip`}
+            aria-label={`${formatInteger(chip.amount)} coin chip${chipDisabled && !disabled ? ", unavailable for this bet" : ""}`}
           >
             <span>{formatInteger(chip.amount)}</span>
           </button>

@@ -7,6 +7,7 @@ import type {
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1").replace(/\/$/, "");
 const DEV_USER_ID = process.env.NEXT_PUBLIC_DEV_USER_ID?.trim();
+const BET_REQUEST_TIMEOUT_MS = 12_000;
 
 type ApiEnvelope<T> = {
   statusCode?: number;
@@ -69,7 +70,7 @@ async function request<T>(path: string, init: RequestInit = {}, timeoutMs = 8_00
     return body.data;
   } catch (error) {
     if (error instanceof ApiError) throw error;
-    if (error instanceof DOMException && error.name === "AbortError") {
+    if (controller.signal.aborted || (error instanceof DOMException && error.name === "AbortError")) {
       throw new ApiError("Request timed out. Check your connection and try again.", 408);
     }
     throw new ApiError(error instanceof Error ? error.message : "Network request failed", 0);
@@ -86,7 +87,7 @@ export const greedyApi = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-    }),
+    }, BET_REQUEST_TIMEOUT_MS),
 };
 
 export const teenPattiApi = {
@@ -97,7 +98,7 @@ export const teenPattiApi = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-    }),
+    }, BET_REQUEST_TIMEOUT_MS),
 };
 
 export { API_BASE_URL, DEV_USER_ID };

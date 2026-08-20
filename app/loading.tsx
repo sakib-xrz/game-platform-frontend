@@ -8,17 +8,32 @@ export default function GameSelectionLoading() {
     >
       <span className="game-select-page__glow game-select-page__glow--one" aria-hidden="true" />
       <span className="game-select-page__glow game-select-page__glow--two" aria-hidden="true" />
+      <span className="game-select-page__grain" aria-hidden="true" />
 
       <section className="game-select">
-        <div className="game-select__header">
-          <div className="selection-skeleton game-select__brand-skeleton" aria-hidden="true" />
-          <div className="min-w-0 flex-1">
-            <div className="selection-skeleton h-3 w-32 rounded-full" />
-            <div className="selection-skeleton mt-4 h-10 w-56 max-w-full rounded-2xl" />
+        <header className="game-select__topbar" aria-hidden="true">
+          <div className="game-select__identity">
+            <div className="selection-skeleton game-select__brand-skeleton" />
+            <div className="game-select__identity-skeleton">
+              <div className="selection-skeleton" />
+              <div className="selection-skeleton" />
+            </div>
           </div>
+          <div className="selection-skeleton game-select__live-skeleton" />
+        </header>
+
+        <div className="game-select__hero-skeleton" aria-hidden="true">
+          <div className="selection-skeleton" />
+          <div className="selection-skeleton" />
+          <div className="selection-skeleton" />
         </div>
 
         <div className="selection-skeleton game-select__intro-skeleton" aria-hidden="true" />
+
+        <div className="game-select__section-heading" aria-hidden="true">
+          <div className="selection-skeleton game-select__section-title-skeleton" />
+          <div className="selection-skeleton game-select__section-meta-skeleton" />
+        </div>
 
         <div className="game-select__cards" aria-hidden="true">
           {Array.from({ length: 3 }, (_, index) => (

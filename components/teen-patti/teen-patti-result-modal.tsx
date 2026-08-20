@@ -19,23 +19,34 @@ export function TeenPattiResultModal({
 }) {
   const round = snapshot.round;
   const result = round?.result;
+  const resultRoundId = result?.round_id;
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const onCloseRef = useRef(onClose);
 
   useEffect(() => {
-    if (!open || !result) return;
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!open || !resultRoundId) return;
     const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     closeButtonRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") onCloseRef.current();
+      if (event.key === "Tab") {
+        event.preventDefault();
+        closeButtonRef.current?.focus();
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousOverflow;
       previouslyFocused?.focus();
     };
-  }, [open, result, onClose]);
+  }, [open, resultRoundId]);
 
   if (!open || !round || !result) return null;
 
@@ -47,6 +58,9 @@ export function TeenPattiResultModal({
   const winnerId = result.winning_option.id;
   const winningBet = snapshot.my_bets.some((bet) => bet.option.id === winnerId);
   const winningHand = result.hands?.find((hand) => hand.option_id === winnerId);
+  const payoutPending = snapshot.my_bets.some((bet) => !bet.settlement)
+    && (round.status === "result_revealed" || round.status === "settling");
+  const currencySymbol = snapshot.wallet.currency.symbol ?? "●";
 
   const won = stake > 0n && winningBet;
   const kicker = won
@@ -66,6 +80,7 @@ export function TeenPattiResultModal({
       }}
     >
       <section className={clsx("tp-result-sheet", won && "tp-result-sheet--win")}>
+        <span className="tp-result-sheet__ornament" aria-hidden="true" />
         <button
           ref={closeButtonRef}
           type="button"
@@ -76,6 +91,11 @@ export function TeenPattiResultModal({
           <X aria-hidden="true" />
         </button>
 
+        <div className="tp-result-emblem" aria-hidden="true">
+          <span>♠</span>
+          <b>{won ? "♛" : "♦"}</b>
+          <span>♥</span>
+        </div>
         <p className="tp-result-kicker" id="teen-patti-result-title">
           Round {round.round_number} · {won ? "You won" : "Result"}
         </p>
@@ -115,15 +135,21 @@ export function TeenPattiResultModal({
           <div>
             <span>Stake</span>
             <strong>
-              <b aria-hidden="true">●</b>
+              <b aria-hidden="true">{currencySymbol}</b>
               {formatInteger(stake.toString())}
             </strong>
           </div>
           <div className={clsx(won && "tp-result-summary__win")}>
             <span>Payout</span>
-            <strong>
-              <b aria-hidden="true">●</b>
-              {formatInteger(payout.toString())}
+            <strong aria-live="polite">
+              {payoutPending ? (
+                <em className="tp-result-summary__pending">Settling…</em>
+              ) : (
+                <>
+                  <b aria-hidden="true">{currencySymbol}</b>
+                  {formatInteger(payout.toString())}
+                </>
+              )}
             </strong>
           </div>
         </div>

@@ -24,6 +24,16 @@ export type PublicOption = {
   is_enabled?: boolean;
 };
 
+export type WinningOption = Pick<
+  PublicOption,
+  | "id"
+  | "code"
+  | "name"
+  | "image_url"
+  | "payout_numerator"
+  | "payout_denominator"
+>;
+
 export type ChipValue = {
   id: string;
   amount: string;
@@ -56,8 +66,16 @@ export type RoundResult = {
 
 export type SnapshotRound = {
   id: string;
+  config_version_id: string;
   round_number: string;
   status: RoundStatus;
+  betting_duration_ms: number;
+  lock_duration_ms: number;
+  drawing_duration_ms: number;
+  result_duration_ms: number;
+  min_bet: string;
+  max_single_bet: string;
+  max_round_bet: string;
   betting_started_at: string | null;
   betting_ends_at: string | null;
   drawing_started_at: string | null;
@@ -71,7 +89,7 @@ export type WalletCurrency = {
   id: string;
   code: string;
   name: string;
-  symbol: string;
+  symbol: string | null;
   is_active: boolean;
 };
 
@@ -119,7 +137,7 @@ export type GreedySnapshot = {
   };
   runtime: {
     status: RuntimeStatus;
-    revision: number;
+    revision: string;
   };
   active_config: GreedyConfig;
   round: SnapshotRound | null;
@@ -140,9 +158,13 @@ export type BetResponse = {
   round_id: string;
   option_id: string;
   amount: string;
+  client_request_id: string;
   wallet_balance: string;
+  wallet_version: number;
   accepted_at: string;
 };
+
+export type BetAcceptedEvent = BetResponse & { event_id: string };
 
 export type SocketEnvelope = { event_id?: string } & Record<string, unknown>;
 
@@ -172,7 +194,7 @@ export type RoundDrawingEvent = {
 export type RoundResultEvent = {
   event_id: string;
   round_id: string;
-  winning_option: PublicOption;
+  winning_option: WinningOption;
   revealed_at: string;
 };
 
@@ -180,6 +202,7 @@ export type WalletBalanceEvent = {
   event_id: string;
   wallet_id: string;
   balance: string;
+  wallet_version: number;
   reason: "greedy_bet" | "greedy_win" | "greedy_refund" | "admin_adjustment" | string;
   round_id?: string;
   payout?: string;

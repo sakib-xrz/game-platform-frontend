@@ -16,7 +16,13 @@ type FlyChip = {
  * chosen deck. Purely decorative — bet acceptance still flows through the
  * backend confirmation.
  */
-export function BetFlyLayer({ chip, onDone }: { chip: FlyChip | null; onDone: () => void }) {
+export function BetFlyLayer({
+  chip,
+  onDone,
+}: {
+  chip: FlyChip | null;
+  onDone: (chipId: number) => void;
+}) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -24,7 +30,7 @@ export function BetFlyLayer({ chip, onDone }: { chip: FlyChip | null; onDone: ()
     const start = window.requestAnimationFrame(() => setVisible(true));
     const finish = window.setTimeout(() => {
       setVisible(false);
-      onDone();
+      onDone(chip.id);
     }, 620);
     return () => {
       window.cancelAnimationFrame(start);

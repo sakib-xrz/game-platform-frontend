@@ -1,6 +1,19 @@
+import Image from "next/image";
+
 type GameLoadingScreenProps = {
   game: "greedy" | "teen-patti";
 };
+
+const GREEDY_LOADER_ART = [
+  { src: "/assets/greedy/falcon.png", name: "Falcon" },
+  { src: "/assets/greedy/tiger.png", name: "Tiger" },
+  { src: "/assets/greedy/crown.png", name: "Crown" },
+  { src: "/assets/greedy/diamond.png", name: "Diamond" },
+  { src: "/assets/greedy/panda.png", name: "Panda" },
+  { src: "/assets/greedy/shark.png", name: "Shark" },
+  { src: "/assets/greedy/dragon.png", name: "Dragon" },
+  { src: "/assets/greedy/lion.png", name: "Lion" },
+] as const;
 
 export function GameLoadingScreen({ game }: GameLoadingScreenProps) {
   if (game === "teen-patti") {
@@ -76,33 +89,80 @@ export function GameLoadingScreen({ game }: GameLoadingScreenProps) {
       aria-label="Loading Greedy"
     >
       <section className="greedy-loader-machine" aria-hidden="true">
+        <span className="greedy-loader-machine__sun" />
         <header className="greedy-loader-toolbar">
-          {Array.from({ length: 4 }, (_, index) => (
-            <i key={index} />
-          ))}
-          <strong>GREEDY</strong>
+          <div className="greedy-loader-toolbar__controls">
+            {Array.from({ length: 3 }, (_, index) => (
+              <i key={index} />
+            ))}
+          </div>
+          <strong><i /> LIVE TABLE</strong>
         </header>
 
         <div className="greedy-loader-orbit">
-          {Array.from({ length: 8 }, (_, index) => (
-            <i key={index} />
+          <span className="greedy-loader-orbit__track" />
+          {GREEDY_LOADER_ART.map((option, index) => (
+            <span className={`greedy-loader-option greedy-loader-option--${index + 1}`} key={option.src}>
+              <i />
+              <Image
+                src={option.src}
+                alt=""
+                width={68}
+                height={68}
+                sizes="68px"
+                draggable={false}
+              />
+            </span>
           ))}
-          <span>
+          <span className="greedy-loader-hub">
+            <Image
+              src="/assets/greedy/center-platter.png"
+              alt=""
+              fill
+              sizes="124px"
+              priority
+              draggable={false}
+            />
             <b className="game-loader__spinner" />
-            <small>Joining round</small>
           </span>
         </div>
 
+        <div className="greedy-loader-message">
+          <strong>Warming up the wheel</strong>
+          <span><i /><i /><i /></span>
+          <small>Syncing the live round</small>
+        </div>
+
         <div className="greedy-loader-console">
-          {Array.from({ length: 5 }, (_, index) => (
-            <i key={index} />
-          ))}
+          <span className="greedy-loader-console__label" />
+          <div>
+            {[10, 50, 100, 500, 1000].map((chip, index) => (
+              <i key={chip} style={{ "--loader-delay": `${index * 90}ms` } as React.CSSProperties}>
+                <b>{chip === 1000 ? "1K" : chip}</b>
+              </i>
+            ))}
+          </div>
         </div>
       </section>
       <section className="greedy-loader-dashboard" aria-hidden="true">
-        <i />
-        <span />
-        <span />
+        <div className="greedy-loader-dashboard__top">
+          <i />
+          <span><b /> <b /></span>
+          <em />
+        </div>
+        <div className="greedy-loader-dashboard__history">
+          <span />
+          <div>
+            {GREEDY_LOADER_ART.slice(0, 5).map((option, index) => (
+              <i key={option.src} style={{ "--loader-delay": `${index * 80}ms` } as React.CSSProperties} />
+            ))}
+          </div>
+        </div>
+        <div className="greedy-loader-dashboard__footer">
+          <i />
+          <span><b /><b /></span>
+          <em />
+        </div>
       </section>
       <span className="sr-only">Loading Greedy and syncing the live round.</span>
     </main>

@@ -12,10 +12,24 @@ type ModalClock = {
   now: number;
 };
 
-export function ResultModal({ snapshot, open, onClose }: { snapshot: GreedySnapshot; open: boolean; onClose: () => void }) {
+export function ResultModal({
+  snapshot,
+  open,
+  displayDurationMs,
+  onClose,
+}: {
+  snapshot: GreedySnapshot;
+  open: boolean;
+  displayDurationMs: number;
+  onClose: () => void;
+}) {
   const round = snapshot.round;
   const result = round?.result;
-  const displayMs = Math.max(2_500, Math.min(snapshot.active_config.result_duration_ms || 3_500, 7_000));
+  const resultRoundId = result?.round_id;
+  const displayMs = Math.max(
+    800,
+    Math.min(displayDurationMs, 7_000),
+  );
   const [clock, setClock] = useState<ModalClock>({ roundId: "", deadline: 0, now: 0 });
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const onCloseRef = useRef(onClose);
@@ -25,7 +39,7 @@ export function ResultModal({ snapshot, open, onClose }: { snapshot: GreedySnaps
   }, [onClose]);
 
   useEffect(() => {
-    if (!open || !result) return;
+    if (!open || !resultRoundId) return;
 
     const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
@@ -47,7 +61,7 @@ export function ResultModal({ snapshot, open, onClose }: { snapshot: GreedySnaps
       document.body.style.overflow = previousOverflow;
       previouslyFocused?.focus();
     };
-  }, [open, result]);
+  }, [open, resultRoundId]);
 
   useEffect(() => {
     if (!open || !round?.id) return;
@@ -77,6 +91,9 @@ export function ResultModal({ snapshot, open, onClose }: { snapshot: GreedySnaps
     : Math.ceil(displayMs / 1000);
   const winner = result.winning_option;
   const winningBet = snapshot.my_bets.some((bet) => bet.option.id === winner.id);
+  const payoutPending = snapshot.my_bets.some((bet) => !bet.settlement)
+    && (round.status === "result_revealed" || round.status === "settling");
+  const payoutLabel = payoutPending ? "Settling…" : formatInteger(totals.payout);
   const outcome = totals.stake === 0n ? "No selection this round" : winningBet ? "You picked the winner!" : "Better luck next round";
 
   return (
@@ -116,7 +133,7 @@ export function ResultModal({ snapshot, open, onClose }: { snapshot: GreedySnaps
           </p>
           <p className="result-card__line">
             This round&apos;s winnings: <span className="game-gem" aria-hidden="true">◆</span>
-            <strong>{formatInteger(totals.payout)}</strong>
+            <strong aria-live="polite">{payoutLabel}</strong>
           </p>
           <p className="result-card__line">
             Your selection this round: <span className="game-coin game-coin--inline" aria-hidden="true" /> <strong>{formatInteger(totals.stake)}</strong>
@@ -131,7 +148,7 @@ export function ResultModal({ snapshot, open, onClose }: { snapshot: GreedySnaps
             </div>
             <div>
               <strong>{outcome}</strong>
-              <span><span className="game-gem" aria-hidden="true">◆</span>{formatInteger(totals.payout)}</span>
+              <span><span className="game-gem" aria-hidden="true">◆</span>{payoutLabel}</span>
             </div>
           </div>
 
