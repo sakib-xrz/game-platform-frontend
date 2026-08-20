@@ -1,7 +1,11 @@
 "use client";
 
 import clsx from "clsx";
-import type { GameNotice as NoticeType } from "@/hooks/use-greedy-game";
+type NoticeType = {
+  id: number;
+  kind: "success" | "error" | "info";
+  message: string;
+} | null;
 
 export function GameNotice({ notice }: { notice: NoticeType }) {
   if (!notice) return null;

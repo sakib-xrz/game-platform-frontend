@@ -1,4 +1,9 @@
 import type { BetRequest, BetResponse, GreedySnapshot } from "@/types/greedy";
+import type {
+  BetRequest as TeenPattiBetRequest,
+  BetResponse as TeenPattiBetResponse,
+  TeenPattiSnapshot,
+} from "@/types/teen-patti";
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1").replace(/\/$/, "");
 const DEV_USER_ID = process.env.NEXT_PUBLIC_DEV_USER_ID?.trim();
@@ -78,6 +83,17 @@ export const greedyApi = {
 
   placeBet: (payload: BetRequest) =>
     request<BetResponse>("/games/greedy/bets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }),
+};
+
+export const teenPattiApi = {
+  getSnapshot: () => request<TeenPattiSnapshot>("/games/teen-patti/snapshot"),
+
+  placeBet: (payload: TeenPattiBetRequest) =>
+    request<TeenPattiBetResponse>("/games/teen-patti/bets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
