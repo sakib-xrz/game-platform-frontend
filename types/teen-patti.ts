@@ -63,6 +63,11 @@ export type RoundResult = {
   winning_option: PublicDeck;
 };
 
+export type OptionPotTotal = {
+  option_id: string;
+  total_amount: string;
+};
+
 export type SnapshotRound = {
   id: string;
   round_number: string;
@@ -74,6 +79,7 @@ export type SnapshotRound = {
   options: PublicDeck[];
   chip_values: ChipValue[];
   rake_bps?: number;
+  option_pot_totals?: OptionPotTotal[];
   result: RoundResult | null;
 };
 

@@ -199,6 +199,97 @@
   padding-top: 12px;
 }
 
+.tp-vip-badge {
+  position: relative;
+  display: grid;
+  width: 38px;
+  justify-items: center;
+  align-self: center;
+  filter: drop-shadow(0 2px 2px rgba(76, 31, 21, .28));
+}
+
+.tp-vip-badge__crown {
+  position: absolute;
+  top: -9px;
+  z-index: 2;
+  font-size: 11px;
+  color: #ffd866;
+  text-shadow: 0 1px 0 #8a5a10;
+}
+
+.tp-vip-badge strong {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 2px solid #d7a25d;
+  border-radius: 9px 9px 5px 5px;
+  background: linear-gradient(180deg, #34a8e7, #0876c2);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 1000;
+  letter-spacing: .04em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+
+.tp-vip-badge em {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #ff6b5a, #e0332f);
+  color: #fff;
+  font-size: 6px;
+  font-style: normal;
+  font-weight: 1000;
+  letter-spacing: .04em;
+  box-shadow: 0 1px 2px rgba(72, 30, 20, .35);
+}
+
+.tp-deco {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.tp-deco--gems {
+  top: 62px;
+  left: 8px;
+  width: 34px;
+  height: 34px;
+  background:
+    radial-gradient(circle at 30% 30%, #9ef0ff 0 4px, transparent 4px),
+    radial-gradient(circle at 68% 24%, #ffb8f0 0 5px, transparent 5px),
+    radial-gradient(circle at 52% 68%, #b8ff9e 0 4px, transparent 4px),
+    radial-gradient(circle at 22% 62%, #ffe08a 0 3px, transparent 3px);
+  filter: drop-shadow(0 2px 2px rgba(76, 31, 21, .22));
+}
+
+.tp-deco--teapot {
+  top: 58px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50% 50% 42% 42%;
+  background:
+    radial-gradient(circle at 50% 28%, #fff8ef 0 6px, transparent 6px),
+    linear-gradient(180deg, #f8e8d8, #d4b89a);
+  box-shadow: inset 0 -3px 0 rgba(120, 80, 50, .25), 0 2px 3px rgba(76, 31, 21, .2);
+}
+
+.tp-deco--teapot::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: -5px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid #d4b89a;
+  border-left: 0;
+  border-radius: 0 50% 50% 0;
+}
+
 .tp-player-marker {
   display: grid;
   justify-items: center;
@@ -248,12 +339,41 @@
   flex: 0 0 31px;
   place-items: center;
   border: 2px solid #d49a5b;
-  border-radius: 12px 12px 8px 8px;
+  border-radius: 50%;
   background: linear-gradient(180deg, #fffef6, #e5ded0);
   color: #aaa79f;
   box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, .8),
     0 3px 0 rgba(105, 46, 27, .24);
+}
+
+.tp-history__avatar {
+  display: block;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .75), transparent 42%),
+    linear-gradient(180deg, #d8d4ce, #b8b2aa);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .45);
+}
+
+.tp-history__seat--green .tp-history__avatar {
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .75), transparent 42%),
+    linear-gradient(180deg, #6fd88e, #2a9e4f);
+}
+
+.tp-history__seat--blue .tp-history__avatar {
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .75), transparent 42%),
+    linear-gradient(180deg, #7ecbf5, #278ed8);
+}
+
+.tp-history__seat--pink .tp-history__avatar {
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .75), transparent 42%),
+    linear-gradient(180deg, #f58ab0, #df4770);
 }
 
 .tp-history__seat svg {
@@ -474,7 +594,7 @@
   height: 145px;
   flex-direction: column;
   align-items: center;
-  padding: 15px 5px 7px;
+  padding: 20px 5px 7px;
   overflow: visible;
   border: 5px solid #d8a064;
   border-radius: 20px 20px 8px 8px;
@@ -528,6 +648,35 @@
   border-color: #fff0a4;
   filter: drop-shadow(0 0 3px #ffcd45);
   animation: tpBulbBlink 580ms ease-in-out infinite alternate;
+}
+
+.tp-deck__pot-banner {
+  position: absolute;
+  z-index: 6;
+  top: -11px;
+  left: 50%;
+  display: flex;
+  min-width: 54px;
+  min-height: 16px;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  transform: translateX(-50%);
+  border: 1px solid #f09974;
+  border-radius: 3px;
+  background:
+    linear-gradient(135deg, transparent 4px, #de4d36 4px) left,
+    linear-gradient(-135deg, transparent 4px, #de4d36 4px) right;
+  background-repeat: no-repeat;
+  background-size: 54% 100%;
+  color: #fff6d7;
+  font-size: 7px;
+  font-weight: 950;
+  letter-spacing: .02em;
+  line-height: 1;
+  text-shadow: 0 1px 0 rgba(94, 29, 24, .45);
+  box-shadow: 0 2px 2px rgba(62, 25, 20, .18);
+  white-space: nowrap;
 }
 
 .tp-deck__header {

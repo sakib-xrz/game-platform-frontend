@@ -22,6 +22,7 @@ import { ChipTray } from "@/components/greedy/chip-tray";
 import { RecentResults } from "@/components/greedy/recent-results";
 import { ResultModal } from "@/components/greedy/result-modal";
 import { GameNotice } from "@/components/greedy/game-notice";
+import { GameLoadingScreen } from "@/components/game-loading-screen";
 
 // A 129px orbit keeps every node circular and evenly spaced while reserving
 // a 9px visual safety gap below the toolbar and round banner at 414px.
@@ -46,19 +47,6 @@ const SPOKE_POINTS = [
   [78, 232],
   [115.783, 140.783],
 ] as const;
-
-function GreedyLoading() {
-  return (
-    <main className="mobile-canvas greedy-shell greedy-fullscreen game-dot-bg">
-      <div className="greedy-machine animate-pulse opacity-55">
-        <div className="absolute left-[2.5%] top-[1.5%] h-[7%] w-[46%] rounded-xl bg-white/60" />
-        <div className="absolute left-1/2 top-[41.5%] h-[31cqw] w-[31cqw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-400/70" />
-        <div className="absolute bottom-0 left-[3%] h-[25%] w-[94%] rounded-t-[10%] bg-sky-400/70" />
-      </div>
-      <div className="h-48 animate-pulse bg-red-500/70" />
-    </main>
-  );
-}
 
 function MachineIllustration() {
   return (
@@ -252,7 +240,7 @@ export function GreedyGameScreen() {
     };
   }, [helpOpen]);
 
-  if (loading && !snapshot) return <GreedyLoading />;
+  if (loading && !snapshot) return <GameLoadingScreen game="greedy" />;
 
   if (!snapshot && fatalError) {
     return (
@@ -285,7 +273,7 @@ export function GreedyGameScreen() {
     );
   }
 
-  if (!snapshot) return <GreedyLoading />;
+  if (!snapshot) return <GameLoadingScreen game="greedy" />;
 
   const latestRound = snapshot.recent_history.find(
     (item) => item.result?.winning_option,

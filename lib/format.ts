@@ -7,6 +7,33 @@ export const formatInteger = (value: string | number | bigint | null | undefined
   }
 };
 
+/** Compact coin display for tight UI labels (e.g. POT: 10.7K). */
+export const formatCompactAmount = (value: string | number | bigint | null | undefined): string => {
+  if (value === null || value === undefined || value === "") return "0";
+  try {
+    const amount = BigInt(value);
+    if (amount === 0n) return "0";
+    if (amount >= 1_000_000_000n) {
+      const whole = amount / 1_000_000_000n;
+      const frac = (amount % 1_000_000_000n) / 100_000_000n;
+      return frac > 0n ? `${whole}.${frac}B` : `${whole}B`;
+    }
+    if (amount >= 1_000_000n) {
+      const whole = amount / 1_000_000n;
+      const frac = (amount % 1_000_000n) / 100_000n;
+      return frac > 0n ? `${whole}.${frac}M` : `${whole}M`;
+    }
+    if (amount >= 1_000n) {
+      const whole = amount / 1_000n;
+      const frac = (amount % 1_000n) / 100n;
+      return frac > 0n ? `${whole}.${frac}K` : `${whole}K`;
+    }
+    return amount.toLocaleString("en-US");
+  } catch {
+    return String(value);
+  }
+};
+
 export const addIntegerStrings = (...values: Array<string | null | undefined>): string => {
   return values.reduce<bigint>((total, value) => {
     try {

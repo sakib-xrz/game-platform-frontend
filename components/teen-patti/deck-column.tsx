@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import Image from "next/image";
-import { formatInteger } from "@/lib/format";
+import { formatCompactAmount, formatInteger } from "@/lib/format";
 import { handCategoryLabel } from "@/lib/playing-cards";
 import { PlayingCard } from "@/components/teen-patti/playing-card";
 import type { DealtHand, PublicDeck } from "@/types/teen-patti";
@@ -19,6 +19,7 @@ export function DeckColumn({
   deck,
   deckIndex,
   stake,
+  potTotal,
   winner,
   disabled,
   busy,
@@ -29,6 +30,7 @@ export function DeckColumn({
   deck: PublicDeck;
   deckIndex: number;
   stake: string;
+  potTotal?: string;
   winner: boolean;
   disabled: boolean;
   busy: boolean;
@@ -78,8 +80,12 @@ export function DeckColumn({
       </span>
 
       <span className="tp-deck__cabinet">
+        <span className="tp-deck__pot-banner" aria-hidden="true">
+          POT: {formatCompactAmount(potTotal ?? "0")}
+        </span>
+
         <span className="tp-deck__header">
-          <small>{hasStake ? `BET: ${formatInteger(stake)}` : "BET: 0"}</small>
+          <small>You: {formatCompactAmount(stake)}</small>
           <strong>{deck.name}</strong>
         </span>
 

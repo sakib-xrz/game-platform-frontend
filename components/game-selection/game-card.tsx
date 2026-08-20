@@ -1,5 +1,14 @@
+"use client";
+
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, LockKeyhole, Sparkles } from "lucide-react";
+import { useState, type MouseEvent } from "react";
+
+type GameCardImage = {
+  src: string;
+  alt?: string;
+};
 
 export type GameCardProps = {
   title: string;
@@ -7,60 +16,149 @@ export type GameCardProps = {
   href?: string;
   active?: boolean;
   accent: string;
-  art: string[];
+  art?: string[];
+  artImages?: GameCardImage[];
+  centerImage?: GameCardImage;
+  heroImage?: GameCardImage;
+  priority?: boolean;
 };
 
-export function GameCard({ title, subtitle, href, active = false, accent, art }: GameCardProps) {
+const ORBIT_POSITIONS = [
+  "game-card__orbit-item--top",
+  "game-card__orbit-item--right",
+  "game-card__orbit-item--bottom",
+  "game-card__orbit-item--left",
+] as const;
+
+export function GameCard({
+  title,
+  subtitle,
+  href,
+  active = false,
+  accent,
+  art = [],
+  artImages = [],
+  centerImage,
+  heroImage,
+  priority = false,
+}: GameCardProps) {
+  const [opening, setOpening] = useState(false);
+  const orbitItems = artImages.length > 0 ? artImages : art;
+
+  function handleOpen(event: MouseEvent<HTMLAnchorElement>) {
+    if (
+      event.button !== 0
+      || event.metaKey
+      || event.ctrlKey
+      || event.shiftKey
+      || event.altKey
+    ) {
+      return;
+    }
+    setOpening(true);
+  }
+
   const content = (
     <div
-      className="arcade-card-glow relative min-h-[176px] overflow-hidden rounded-[30px] border border-white/45 p-5"
-      style={{ background: accent }}
+      className={`game-card arcade-card-glow ${active ? "game-card--active" : "game-card--locked"}`}
+      style={{ "--game-card-accent": accent } as React.CSSProperties}
+      aria-busy={opening || undefined}
     >
-      <div className="absolute -right-12 -top-14 h-44 w-44 rounded-full bg-white/15 blur-2xl" />
-      <div className="absolute -bottom-14 -left-10 h-40 w-40 rounded-full bg-black/10 blur-2xl" />
+      <span className="game-card__shine" aria-hidden="true" />
+      <span className="game-card__shade" aria-hidden="true" />
 
-      <div className="relative z-10 flex h-full items-stretch justify-between gap-4">
-        <div className="flex min-w-0 flex-1 flex-col justify-between">
-          <div>
-            <div className="mb-2 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[.16em] text-white/80">
-              {active ? <Sparkles size={14} /> : <LockKeyhole size={13} />}
-              {active ? "Live now" : "Coming soon"}
-            </div>
-            <h2 className="text-[28px] font-black leading-none tracking-[-.04em] text-white">{title}</h2>
-            <p className="mt-2 max-w-[190px] text-sm font-semibold leading-5 text-white/80">{subtitle}</p>
-          </div>
+      {heroImage && (
+        <div className="game-card__hero" aria-hidden="true">
+          <Image
+            src={heroImage.src}
+            alt=""
+            fill
+            sizes="(max-width: 480px) 62vw, 280px"
+            priority={priority}
+            draggable={false}
+          />
+          <span />
+        </div>
+      )}
 
-          <div className="mt-5 inline-flex w-fit items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-black text-slate-900 shadow-lg shadow-black/10">
-            {active ? "Play now" : "Locked"}
-            {active && <ArrowRight size={16} strokeWidth={3} />}
+      <div className="game-card__content">
+        <div className="game-card__copy">
+          <div className="game-card__status">
+            {active ? <Sparkles aria-hidden="true" /> : <LockKeyhole aria-hidden="true" />}
+            {active ? "Live now" : "Coming soon"}
           </div>
+          <h2>{title}</h2>
+          <p>{subtitle}</p>
+
+          <span className="game-card__cta">
+            {opening ? (
+              <>
+                <i className="game-card__spinner" aria-hidden="true" />
+                Opening…
+              </>
+            ) : (
+              <>
+                {active ? "Play now" : "Locked"}
+                {active && <ArrowRight aria-hidden="true" />}
+              </>
+            )}
+          </span>
         </div>
 
-        <div className="relative grid w-[116px] shrink-0 place-items-center">
-          <div className="absolute h-[104px] w-[104px] rounded-full border-[8px] border-white/25 bg-white/15" />
-          <div className="absolute h-[70px] w-[70px] rounded-full border border-white/40 bg-white/15 backdrop-blur-sm" />
-          {art.slice(0, 4).map((icon, index) => {
-            const positions = ["top-0 left-[43px]", "right-0 top-[44px]", "bottom-0 left-[43px]", "left-0 top-[44px]"];
-            return (
-              <span
-                key={`${icon}-${index}`}
-                className={`absolute ${positions[index]} grid h-8 w-8 place-items-center rounded-full border border-white/60 bg-white text-lg shadow-md`}
-              >
-                {icon}
+        {!heroImage && (
+          <div className="game-card__orbit" aria-hidden="true">
+            <span className="game-card__orbit-ring" />
+            {orbitItems.slice(0, 4).map((item, index) => {
+              const image = typeof item === "string" ? null : item;
+              const icon = typeof item === "string" ? item : null;
+              return (
+                <span
+                  key={image ? image.src : `${item}-${index}`}
+                  className={`game-card__orbit-item ${ORBIT_POSITIONS[index]}`}
+                >
+                  {image ? (
+                    <Image
+                      src={image.src}
+                      alt=""
+                      fill
+                      sizes="38px"
+                      draggable={false}
+                    />
+                  ) : icon}
+                </span>
+              );
+            })}
+            {centerImage ? (
+              <span className="game-card__orbit-center game-card__orbit-center--image">
+                <Image
+                  src={centerImage.src}
+                  alt=""
+                  fill
+                  sizes="70px"
+                  priority={priority}
+                  draggable={false}
+                />
               </span>
-            );
-          })}
-          <span className="relative z-10 text-4xl">🎯</span>
-        </div>
+            ) : (
+              <span className="game-card__orbit-center">🎯</span>
+            )}
+          </div>
+        )}
       </div>
+      {opening && <span className="sr-only">Opening {title}</span>}
     </div>
   );
 
   return active && href ? (
-    <Link href={href} aria-label={`Open ${title}`} className="block active:scale-[.99] transition-transform">
+    <Link
+      href={href}
+      aria-label={`Open ${title}`}
+      className="game-card-link"
+      onClick={handleOpen}
+    >
       {content}
     </Link>
   ) : (
-    <div aria-disabled="true" className="opacity-70 grayscale-[.12]">{content}</div>
+    <div aria-disabled="true" className="game-card-link">{content}</div>
   );
 }

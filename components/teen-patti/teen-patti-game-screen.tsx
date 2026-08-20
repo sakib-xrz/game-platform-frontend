@@ -3,9 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  Armchair,
-  ChevronLeft,
   CircleHelp,
+  ChevronLeft,
   RefreshCw,
   UsersRound,
   VolumeX,
@@ -18,6 +17,8 @@ import { BetFlyLayer, type FlyChip } from "@/components/teen-patti/bet-fly-layer
 import { DeckColumn, type DeckVisualPhase } from "@/components/teen-patti/deck-column";
 import { TeenPattiChipTray } from "@/components/teen-patti/teen-patti-chip-tray";
 import { TeenPattiPhaseRing } from "@/components/teen-patti/teen-patti-phase-ring";
+import { TeenPattiResultModal } from "@/components/teen-patti/teen-patti-result-modal";
+import { GameLoadingScreen } from "@/components/game-loading-screen";
 import type { PublicDeck } from "@/types/teen-patti";
 
 const CHIP_FLY_COLORS = ["#25c8ed", "#50b449", "#438cdb", "#7d51e0", "#f2a03c", "#de7650"];
@@ -26,22 +27,6 @@ type RepeatBet = {
   optionCode: string;
   amount: string;
 };
-
-function TeenPattiLoading() {
-  return (
-    <main className="mobile-canvas greedy-shell tp-shell">
-      <div className="tp-table tp-table--loading" aria-hidden="true">
-        <div className="tp-skeleton tp-skeleton--bar" />
-        <div className="tp-skeleton tp-skeleton--stage" />
-        <div className="tp-skeleton-decks">
-          <div className="tp-skeleton tp-skeleton--deck" />
-          <div className="tp-skeleton tp-skeleton--deck" />
-          <div className="tp-skeleton tp-skeleton--deck" />
-        </div>
-      </div>
-    </main>
-  );
-}
 
 function resolveDeckPhase(status: string | undefined, hasResult: boolean): DeckVisualPhase {
   if (hasResult) {
@@ -68,8 +53,11 @@ export function TeenPattiGameScreen() {
     serverOffsetMs,
     fatalError,
     notice,
+    resultModalOpen,
+    setResultModalOpen,
     roundBetTotal,
     optionBetTotals,
+    optionPotTotals,
     recover,
     placeBet,
   } = useTeenPattiGame();
@@ -106,15 +94,20 @@ export function TeenPattiGameScreen() {
   useEffect(() => {
     if (!helpOpen) return;
     const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     helpCloseRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setHelpOpen(false);
+      if (event.key === "Tab") {
+        event.preventDefault();
+        helpCloseRef.current?.focus();
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousOverflow;
       previouslyFocused?.focus();
     };
   }, [helpOpen]);
@@ -185,7 +178,7 @@ export function TeenPattiGameScreen() {
     return roundNumber ? `Round ${roundNumber}` : "Teen Patti";
   }, [snapshot?.round?.round_number]);
 
-  if (loading && !snapshot) return <TeenPattiLoading />;
+  if (loading && !snapshot) return <GameLoadingScreen game="teen-patti" />;
 
   if (!snapshot && fatalError) {
     return (
@@ -213,7 +206,7 @@ export function TeenPattiGameScreen() {
     );
   }
 
-  if (!snapshot) return <TeenPattiLoading />;
+  if (!snapshot) return <GameLoadingScreen game="teen-patti" />;
 
   const deckPhase = resolveDeckPhase(round?.status, hasResult);
   const runtimePaused = snapshot.runtime.status !== "running";
@@ -236,6 +229,9 @@ export function TeenPattiGameScreen() {
           <span className="tp-felt__grain" />
         </div>
 
+        <span className="tp-deco tp-deco--gems" aria-hidden="true" />
+        <span className="tp-deco tp-deco--teapot" aria-hidden="true" />
+
         <header className="tp-topbar">
           <Link href="/" className="tp-back" aria-label="Back to games">
             <ChevronLeft />
@@ -254,9 +250,12 @@ export function TeenPattiGameScreen() {
         </header>
 
         <div className="tp-status-rail">
-          <div className="tp-player-marker" aria-label={connected ? "Connected" : "Reconnecting"}>
-            <Armchair aria-hidden="true" />
-            <span>You</span>
+          <div
+            className="tp-vip-badge"
+            aria-label={connected ? "Connected to live game" : "Reconnecting to live game"}
+          >
+            <strong>YOU</strong>
+            <em>{connected ? "LIVE" : "…"}</em>
           </div>
 
           <div className="tp-history" aria-label="Recent winning hands">
@@ -269,14 +268,20 @@ export function TeenPattiGameScreen() {
                   className={`tp-history__seat tp-history__seat--${tone}`}
                   title={option?.name ?? "Waiting for result"}
                 >
-                  <Armchair aria-hidden="true" />
+                  <span className="tp-history__avatar" aria-hidden="true" />
                 </span>
               );
             })}
           </div>
 
           <nav className="tp-controls" aria-label="Game controls">
-            <button type="button" className="tp-control" aria-label="Players">
+            <button
+              type="button"
+              className="tp-control"
+              aria-label="Live player count is unavailable"
+              title="Live player count is unavailable"
+              disabled
+            >
               <UsersRound />
             </button>
             <button type="button" className="tp-control" aria-label="Sound is unavailable" disabled>
@@ -311,6 +316,7 @@ export function TeenPattiGameScreen() {
                 deck={deck}
                 deckIndex={deckIndex}
                 stake={(optionBetTotals.get(deck.id) ?? 0n).toString()}
+                potTotal={(optionPotTotals.get(deck.id) ?? 0n).toString()}
                 winner={winnerId === deck.id}
                 disabled={!canBet}
                 busy={placingBet}
@@ -400,6 +406,11 @@ export function TeenPattiGameScreen() {
         </div>
       )}
 
+      <TeenPattiResultModal
+        snapshot={snapshot}
+        open={resultModalOpen}
+        onClose={() => setResultModalOpen(false)}
+      />
     </main>
   );
 }

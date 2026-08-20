@@ -193,9 +193,28 @@ export function useTeenPattiGame() {
           option,
           settlement: null,
         };
+        const currentPotTotals = existing.round.option_pot_totals ?? [];
+        const hasOptionTotal = currentPotTotals.some((row) => row.option_id === response.option_id);
+        const optimisticPotTotals = hasOptionTotal
+          ? currentPotTotals.map((row) => (
+              row.option_id === response.option_id
+                ? {
+                    ...row,
+                    total_amount: (BigInt(row.total_amount) + BigInt(response.amount)).toString(),
+                  }
+                : row
+            ))
+          : [
+              ...currentPotTotals,
+              { option_id: response.option_id, total_amount: response.amount },
+            ];
         const updated = {
           ...existing,
           wallet: { ...existing.wallet, balance: response.wallet_balance },
+          round: {
+            ...existing.round,
+            option_pot_totals: optimisticPotTotals,
+          },
           my_bets: [...existing.my_bets, optimisticBet],
         };
         snapshotRef.current = updated;
@@ -346,6 +365,14 @@ export function useTeenPattiGame() {
     return totals;
   }, [snapshot?.my_bets]);
 
+  const optionPotTotals = useMemo(() => {
+    const totals = new Map<string, bigint>();
+    for (const row of snapshot?.round?.option_pot_totals ?? []) {
+      totals.set(row.option_id, BigInt(row.total_amount));
+    }
+    return totals;
+  }, [snapshot?.round?.option_pot_totals]);
+
   return {
     snapshot,
     loading,
@@ -359,6 +386,7 @@ export function useTeenPattiGame() {
     setResultModalOpen,
     roundBetTotal,
     optionBetTotals,
+    optionPotTotals,
     recover,
     placeBet,
   };
