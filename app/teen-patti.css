@@ -631,7 +631,10 @@
 .tp-phase__ring-fill {
   stroke: currentColor;
   stroke-linecap: round;
-  transition: stroke-dasharray 240ms linear, stroke 280ms ease;
+  transition: stroke-dasharray 1s linear, stroke 280ms ease;
+}
+.tp-phase__ring-fill.is-snap {
+  transition: stroke 280ms ease;
 }
 
 .tp-phase--bet { color: #f7cf6a; }
@@ -647,6 +650,28 @@
   border: 1px solid rgba(255, 255, 255, .08);
   border-radius: 50%;
   background: radial-gradient(circle at 40% 32%, rgba(255, 255, 255, .1), transparent 65%);
+}
+
+.tp-phase__ring-dot.is-waiting {
+  animation: tpPhaseWaiting 1s ease-in-out infinite;
+}
+
+@keyframes tpPhaseWaiting {
+  0%, 100% { opacity: .35; transform: scale(.9); }
+  50% { opacity: .85; transform: scale(1.05); }
+}
+
+.tp-phase__ring-count {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: -.04em;
+  line-height: 1;
+  pointer-events: none;
 }
 
 .tp-phase__copy {
@@ -1685,6 +1710,7 @@
   .tp-loader-decks { min-height: 328px; padding-top: 63px; padding-bottom: 26px; }
   .tp-phase-dock { top: 8px; min-height: 48px; padding-top: 4px; padding-bottom: 4px; }
   .tp-phase__ring { width: 36px; height: 36px; flex-basis: 36px; }
+  .tp-phase__ring-count { font-size: 10px; }
   .tp-phase__copy strong { font-size: 14px; }
   .tp-decks { height: 218px; }
   .tp-deck { height: 216px; }
@@ -1732,6 +1758,8 @@
     height: 32px;
     flex-basis: 32px;
   }
+
+  .tp-phase__ring-count { font-size: 9px; }
 
   .tp-decks { height: 190px; }
   .tp-deck { height: 188px; }
@@ -1787,5 +1815,7 @@
   .tp-loader-seats i,
   .tp-loader-console i { animation: none !important; }
   .tp-card-flip,
-  .tp-bet-fly { transition: none !important; }
+  .tp-bet-fly,
+  .tp-phase__ring-fill { transition: none !important; }
+  .tp-phase__ring-dot.is-waiting { animation: none !important; }
 }

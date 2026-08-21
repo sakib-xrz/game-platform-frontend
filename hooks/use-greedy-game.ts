@@ -243,6 +243,16 @@ export function useGreedyGame() {
       return false;
     }
 
+    // One selection per round: block backing a different option once the user
+    // has committed (or is committing) to one this round.
+    const chosenOptionId = current.my_bets.find((bet) => bet.round_id === round.id)?.option.id
+      ?? pendingBetAmountsRef.current.keys().next().value
+      ?? null;
+    if (chosenOptionId && chosenOptionId !== option.id) {
+      pushNotice("info", "You can back only one option per round.");
+      return false;
+    }
+
     const roundExposure = current.my_bets.reduce(
       (total, bet) => total + BigInt(bet.amount),
       0n,

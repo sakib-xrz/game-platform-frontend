@@ -247,6 +247,13 @@ export function GreedyGameScreen() {
       ? Math.abs(Math.floor(drawingMs / 360)) % Math.min(options.length, 8)
       : -1;
   const winnerId = snapshot?.round?.result?.winning_option.id ?? null;
+  const lockedOptionId = useMemo(() => {
+    for (const id of pendingOptionIds) return id;
+    for (const [id, amount] of optionBetTotals) {
+      if (amount > 0n) return id;
+    }
+    return null;
+  }, [pendingOptionIds, optionBetTotals]);
   const canBet =
     snapshot?.game.status === "active" &&
     snapshot?.round?.status === "betting_open" &&
@@ -426,7 +433,7 @@ export function GreedyGameScreen() {
               ).toString()}
               winner={winnerId === option.id}
               drawingHighlighted={drawingFocusIndex === index}
-              disabled={!canBet}
+              disabled={!canBet || (lockedOptionId !== null && lockedOptionId !== option.id)}
               busy={pendingOptionIds.has(option.id)}
               onPress={() => void placeBet(option, effectiveSelectedChip)}
             />

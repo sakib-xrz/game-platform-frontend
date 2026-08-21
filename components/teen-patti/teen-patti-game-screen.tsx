@@ -142,6 +142,13 @@ export function TeenPattiGameScreen() {
     serverOffsetMs,
   );
   const winnerId = round?.result?.winning_option.id ?? null;
+  const lockedOptionId = useMemo(() => {
+    for (const id of pendingOptionIds) return id;
+    for (const [id, amount] of optionBetTotals) {
+      if (amount > 0n) return id;
+    }
+    return null;
+  }, [pendingOptionIds, optionBetTotals]);
   const canBet = snapshot?.game.status === "active"
     && isBetting
     && bettingRemainingMs > 0
@@ -424,6 +431,8 @@ export function TeenPattiGameScreen() {
               round={round}
               config={round ?? snapshot.active_config}
               serverOffsetMs={serverOffsetMs}
+              gameStatus={snapshot.game.status}
+              runtimeStatus={snapshot.runtime.status}
             />
             <span className="tp-rake">House rake {rakePercent}%</span>
           </div>
@@ -442,7 +451,7 @@ export function TeenPattiGameScreen() {
                   ).toString()}
                   potTotal={(optionPotTotals.get(deck.id) ?? 0n).toString()}
                   winner={winnerId === deck.id}
-                  disabled={!canBet}
+                  disabled={!canBet || (lockedOptionId !== null && lockedOptionId !== deck.id)}
                   busy={pendingOptionIds.has(deck.id)}
                   hand={hand}
                   phase={deckPhase}

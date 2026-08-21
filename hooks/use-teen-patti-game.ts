@@ -10,6 +10,8 @@ import type {
   DealtHand,
   PlayerBet,
   PublicDeck,
+  RoundDrawingEvent,
+  RoundLockedEvent,
   RoundResultEvent,
   TeenPattiSnapshot,
   WalletBalanceEvent,
@@ -322,6 +324,16 @@ export function useTeenPattiGame() {
       return false;
     }
 
+    // One selection per round: block backing a different hand once the user
+    // has committed (or is committing) to one this round.
+    const chosenOptionId = current.my_bets.find((bet) => bet.round_id === round.id)?.option.id
+      ?? pendingBetAmountsRef.current.keys().next().value
+      ?? null;
+    if (chosenOptionId && chosenOptionId !== option.id) {
+      pushNotice("info", "You can back only one hand per round.");
+      return false;
+    }
+
     const roundExposure = current.my_bets.reduce(
       (total, bet) => total + BigInt(bet.amount),
       0n,
@@ -485,8 +497,38 @@ export function useTeenPattiGame() {
 
     const onDisconnect = () => setConnected(false);
 
+    const patchRound = (
+      roundId: string,
+      patch: Partial<NonNullable<TeenPattiSnapshot["round"]>>,
+    ) => {
+      setSnapshot((current) => {
+        if (!current?.round || current.round.id !== roundId) return current;
+        const updated = { ...current, round: { ...current.round, ...patch } };
+        snapshotRef.current = updated;
+        return updated;
+      });
+    };
+
     const onRoundRefresh = (payload: { event_id?: string }) => {
       handleDurableEvent(payload, () => void recover("socket-round"));
+    };
+
+    const onRoundLocked = (payload: RoundLockedEvent) => {
+      handleDurableEvent(payload, () => {
+        patchRound(payload.round_id, { status: "betting_locked" });
+        void recover("socket-round");
+      });
+    };
+
+    const onRoundDrawing = (payload: RoundDrawingEvent) => {
+      handleDurableEvent(payload, () => {
+        patchRound(payload.round_id, {
+          status: "drawing",
+          drawing_started_at: payload.drawing_started_at ?? snapshotRef.current?.round?.drawing_started_at,
+          result_reveal_at: payload.result_reveal_at ?? snapshotRef.current?.round?.result_reveal_at,
+        });
+        void recover("socket-round");
+      });
     };
 
     const onPlatformGameRefresh = (payload: { event_id?: string; game_code?: string }) => {
@@ -625,8 +667,8 @@ export function useTeenPattiGame() {
       socket.on("platform.game.resumed", onPlatformGameRefresh);
       socket.on("platform.game.availability_changed", onPlatformGameRefresh);
       socket.on("teen_patti.round.opened", onRoundRefresh);
-      socket.on("teen_patti.round.locked", onRoundRefresh);
-      socket.on("teen_patti.round.drawing", onRoundRefresh);
+      socket.on("teen_patti.round.locked", onRoundLocked);
+      socket.on("teen_patti.round.drawing", onRoundDrawing);
       socket.on("teen_patti.round.result", onRoundResult);
       socket.on("teen_patti.bet.accepted", onBetAccepted);
       socket.on("teen_patti.round.settled", onRoundRefresh);
@@ -669,8 +711,8 @@ export function useTeenPattiGame() {
         socket.off("platform.game.resumed", onPlatformGameRefresh);
         socket.off("platform.game.availability_changed", onPlatformGameRefresh);
         socket.off("teen_patti.round.opened", onRoundRefresh);
-        socket.off("teen_patti.round.locked", onRoundRefresh);
-        socket.off("teen_patti.round.drawing", onRoundRefresh);
+        socket.off("teen_patti.round.locked", onRoundLocked);
+        socket.off("teen_patti.round.drawing", onRoundDrawing);
         socket.off("teen_patti.round.result", onRoundResult);
         socket.off("teen_patti.bet.accepted", onBetAccepted);
         socket.off("teen_patti.round.settled", onRoundRefresh);

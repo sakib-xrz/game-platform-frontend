@@ -166,6 +166,19 @@ export type BetResponse = {
 
 export type BetAcceptedEvent = BetResponse & { event_id: string };
 
+export type RoundLockedEvent = {
+  event_id: string;
+  round_id: string;
+  locked_at?: string;
+};
+
+export type RoundDrawingEvent = {
+  event_id: string;
+  round_id: string;
+  drawing_started_at?: string;
+  result_reveal_at?: string;
+};
+
 export type RoundResultEvent = {
   event_id: string;
   round_id: string;

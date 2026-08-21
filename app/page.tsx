@@ -9,38 +9,17 @@ export const viewport: Viewport = {
 export default function GameSelectionPage() {
   return (
     <main className="mobile-canvas game-select-page safe-top safe-bottom text-white">
-      <span className="game-select-page__glow game-select-page__glow--one" aria-hidden="true" />
-      <span className="game-select-page__glow game-select-page__glow--two" aria-hidden="true" />
+      <span
+        className="game-select-page__glow game-select-page__glow--one"
+        aria-hidden="true"
+      />
+      <span
+        className="game-select-page__glow game-select-page__glow--two"
+        aria-hidden="true"
+      />
       <span className="game-select-page__grain" aria-hidden="true" />
 
       <section className="game-select">
-        <header className="game-select__topbar">
-          <div className="game-select__identity">
-            <div className="game-select__brand" aria-hidden="true">
-              <span>G</span>
-            </div>
-            <div>
-              <strong>Greedy Games</strong>
-              <small>Live arcade</small>
-            </div>
-          </div>
-          <div className="game-select__live" aria-label="2 games available">
-            <i aria-hidden="true" />
-            <span><strong>2</strong> games</span>
-          </div>
-        </header>
-
-        <div className="game-select__hero-copy">
-          <p className="game-select__eyebrow">
-            <i aria-hidden="true" />
-            Choose your table
-          </p>
-          <h1>Ready when<br />you are.</h1>
-        </div>
-        <p className="game-select__intro">
-          Pick a live game and jump straight into the next round.
-        </p>
-
         <div className="game-select__section-heading">
           <strong>Game tables</strong>
           <span>Instant play</span>
@@ -85,11 +64,6 @@ export default function GameSelectionPage() {
             art={["🎲", "⭐", "🎮", "🏆"]}
           />
         </div>
-
-        <p className="game-select__footnote">
-          <span aria-hidden="true">✓</span>
-          Fair rounds · Secure wallet · Server-verified results
-        </p>
       </section>
     </main>
   );
