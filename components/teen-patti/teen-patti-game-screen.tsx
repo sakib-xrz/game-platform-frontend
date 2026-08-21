@@ -21,6 +21,7 @@ import { TeenPattiChipTray } from "@/components/teen-patti/teen-patti-chip-tray"
 import { TeenPattiPhaseRing } from "@/components/teen-patti/teen-patti-phase-ring";
 import { TeenPattiResultModal } from "@/components/teen-patti/teen-patti-result-modal";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
+import { useGameBoot } from "@/components/game-boot-provider";
 import type { PublicDeck } from "@/types/teen-patti";
 
 const CHIP_FLY_COLORS = ["#25c8ed", "#50b449", "#438cdb", "#7d51e0", "#f2a03c", "#de7650"];
@@ -79,6 +80,11 @@ export function TeenPattiGameScreen() {
     recover,
     placeBet,
   } = useTeenPattiGame();
+  const { bootGame, hideBoot } = useGameBoot();
+
+  useEffect(() => {
+    if (snapshot || fatalError) hideBoot();
+  }, [fatalError, hideBoot, snapshot]);
 
   const chips = useMemo(
     () => (snapshot?.round?.chip_values ?? snapshot?.active_config?.chip_values ?? [])
@@ -251,7 +257,14 @@ export function TeenPattiGameScreen() {
     return roundNumber ? `Round ${roundNumber}` : "Teen Patti";
   }, [snapshot?.round?.round_number]);
 
-  if (loading && !snapshot) return <GameLoadingScreen game="teen-patti" />;
+  if (loading && !snapshot) {
+    return (
+      <>
+        <div className="mobile-canvas game-boot-underlay" aria-hidden="true" />
+        {!bootGame ? <GameLoadingScreen game="teen-patti" overlay /> : null}
+      </>
+    );
+  }
 
   if (!snapshot && fatalError) {
     return (
@@ -279,7 +292,14 @@ export function TeenPattiGameScreen() {
     );
   }
 
-  if (!snapshot) return <GameLoadingScreen game="teen-patti" />;
+  if (!snapshot) {
+    return (
+      <>
+        <div className="mobile-canvas game-boot-underlay" aria-hidden="true" />
+        {!bootGame ? <GameLoadingScreen game="teen-patti" overlay /> : null}
+      </>
+    );
+  }
 
   const deckPhase = resolveDeckPhase(round?.status, hasResult);
   const runtimePaused = snapshot.runtime.status !== "running";

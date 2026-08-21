@@ -1,5 +1,10 @@
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 
 export default function TeenPattiRouteLoading() {
-  return <GameLoadingScreen game="teen-patti" />;
+  return (
+    <>
+      <div className="mobile-canvas game-boot-underlay" aria-hidden="true" />
+      <GameLoadingScreen game="teen-patti" overlay />
+    </>
+  );
 }

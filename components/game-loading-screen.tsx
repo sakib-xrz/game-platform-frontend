@@ -2,169 +2,106 @@ import Image from "next/image";
 
 type GameLoadingScreenProps = {
   game: "greedy" | "teen-patti";
+  /** When true, sits as a fixed bottom half over whatever is behind it. */
+  overlay?: boolean;
 };
 
-const GREEDY_LOADER_ART = [
-  { src: "/assets/greedy/falcon.png", name: "Falcon" },
-  { src: "/assets/greedy/tiger.png", name: "Tiger" },
-  { src: "/assets/greedy/crown.png", name: "Crown" },
-  { src: "/assets/greedy/diamond.png", name: "Diamond" },
-  { src: "/assets/greedy/panda.png", name: "Panda" },
-  { src: "/assets/greedy/shark.png", name: "Shark" },
-  { src: "/assets/greedy/dragon.png", name: "Dragon" },
-  { src: "/assets/greedy/lion.png", name: "Lion" },
+const GAME_META = {
+  greedy: {
+    title: "Greedy",
+    label: "Loading Greedy",
+    badge: "/assets/greedy/center-platter.png",
+  },
+  "teen-patti": {
+    title: "Teen Patti",
+    label: "Loading Teen Patti",
+    badge: "/assets/teen-patti/game-card.png",
+  },
+} as const;
+
+const SPARKLES = [
+  { top: "12%", left: "10%", size: 5, delay: "0s" },
+  { top: "20%", left: "84%", size: 7, delay: "0.35s" },
+  { top: "38%", left: "16%", size: 4, delay: "0.7s" },
+  { top: "48%", left: "90%", size: 6, delay: "0.15s" },
+  { top: "62%", left: "8%", size: 5, delay: "0.9s" },
+  { top: "72%", left: "76%", size: 7, delay: "0.45s" },
+  { top: "84%", left: "30%", size: 4, delay: "1.05s" },
+  { top: "90%", left: "58%", size: 6, delay: "0.25s" },
 ] as const;
 
-export function GameLoadingScreen({ game }: GameLoadingScreenProps) {
-  if (game === "teen-patti") {
-    return (
-      <main
-        className="mobile-canvas greedy-shell tp-shell game-loader game-loader--teen-patti"
-        role="status"
-        aria-live="polite"
-        aria-label="Loading Teen Patti"
-      >
-        <section className="tp-loader-table" aria-hidden="true">
-          <header className="tp-loader-topbar">
-            <span className="tp-loader-topbar__back">‹</span>
-            <strong>TeenPatti</strong>
-            <span className="tp-loader-topbar__badge" />
-          </header>
-
-          <div className="tp-loader-rail">
-            <span className="tp-loader-player" />
-            <div className="tp-loader-seats">
-              {Array.from({ length: 5 }, (_, index) => (
-                <i key={index} />
-              ))}
-            </div>
-            <div className="tp-loader-controls">
-              {Array.from({ length: 3 }, (_, index) => (
-                <i key={index} />
-              ))}
-            </div>
-          </div>
-
-          <div className="game-loader__message">
-            <span className="game-loader__spinner" />
-            <div>
-              <strong>Preparing the table</strong>
-              <small>Syncing the live round…</small>
-            </div>
-          </div>
-
-          <div className="tp-loader-decks">
-            {["green", "blue", "pink"].map((tone) => (
-              <div className={`tp-loader-deck tp-loader-deck--${tone}`} key={tone}>
-                <span className="tp-loader-throne" />
-                <span className="tp-loader-cabinet">
-                  <i />
-                  <b />
-                  <em />
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <div className="tp-loader-console">
-            <span />
-            <div>
-              {Array.from({ length: 4 }, (_, index) => (
-                <i key={index} />
-              ))}
-            </div>
-            <b />
-          </div>
-        </section>
-        <span className="sr-only">Loading Teen Patti and syncing the live round.</span>
-      </main>
-    );
-  }
+export function GameLoadingScreen({
+  game,
+  overlay = false,
+}: GameLoadingScreenProps) {
+  const meta = GAME_META[game];
 
   return (
-    <main
-      className="mobile-canvas greedy-shell greedy-fullscreen game-dot-bg game-loader game-loader--greedy"
+    <div
+      className={`game-boot game-boot--${game}${overlay ? " game-boot--overlay" : ""}`}
       role="status"
       aria-live="polite"
-      aria-label="Loading Greedy"
+      aria-label={meta.label}
     >
-      <section className="greedy-loader-machine" aria-hidden="true">
-        <span className="greedy-loader-machine__sun" />
-        <header className="greedy-loader-toolbar">
-          <div className="greedy-loader-toolbar__controls">
-            {Array.from({ length: 3 }, (_, index) => (
-              <i key={index} />
-            ))}
-          </div>
-          <strong><i /> LIVE TABLE</strong>
-        </header>
+      {!overlay ? <div className="game-boot__peek" aria-hidden="true" /> : null}
+      <div className="game-boot__scrim" aria-hidden="true" />
 
-        <div className="greedy-loader-orbit">
-          <span className="greedy-loader-orbit__track" />
-          {GREEDY_LOADER_ART.map((option, index) => (
-            <span className={`greedy-loader-option greedy-loader-option--${index + 1}`} key={option.src}>
-              <i />
+      <section className="game-boot__panel">
+        <div className="game-boot__aurora" aria-hidden="true" />
+        <div className="game-boot__spotlights" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+
+        <div className="game-boot__sparkles" aria-hidden="true">
+          {SPARKLES.map((sparkle, index) => (
+            <span
+              key={index}
+              className="game-boot__sparkle"
+              style={{
+                top: sparkle.top,
+                left: sparkle.left,
+                width: sparkle.size,
+                height: sparkle.size,
+                animationDelay: sparkle.delay,
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="game-boot__stage">
+          <div className="game-boot__badge" aria-hidden="true">
+            <span className="game-boot__badge-halo" />
+            <span className="game-boot__badge-ring" />
+            <span className="game-boot__badge-inner">
               <Image
-                src={option.src}
+                src={meta.badge}
                 alt=""
-                width={68}
-                height={68}
-                sizes="68px"
+                fill
+                sizes="(max-width: 480px) 36vw, 128px"
+                priority
                 draggable={false}
               />
             </span>
-          ))}
-          <span className="greedy-loader-hub">
-            <Image
-              src="/assets/greedy/center-platter.png"
-              alt=""
-              fill
-              sizes="124px"
-              priority
-              draggable={false}
-            />
-            <b className="game-loader__spinner" />
-          </span>
-        </div>
+          </div>
 
-        <div className="greedy-loader-message">
-          <strong>Warming up the wheel</strong>
-          <span><i /><i /><i /></span>
-          <small>Syncing the live round</small>
-        </div>
+          <h1 className="game-boot__title">{meta.title}</h1>
 
-        <div className="greedy-loader-console">
-          <span className="greedy-loader-console__label" />
-          <div>
-            {[10, 50, 100, 500, 1000].map((chip, index) => (
-              <i key={chip} style={{ "--loader-delay": `${index * 90}ms` } as React.CSSProperties}>
-                <b>{chip === 1000 ? "1K" : chip}</b>
-              </i>
-            ))}
+          <p className="game-boot__loading" aria-hidden="true">
+            Loading
+            <i />
+            <i />
+            <i />
+          </p>
+
+          <div className="game-boot__bar" aria-hidden="true">
+            <span className="game-boot__bar-fill" />
           </div>
         </div>
       </section>
-      <section className="greedy-loader-dashboard" aria-hidden="true">
-        <div className="greedy-loader-dashboard__top">
-          <i />
-          <span><b /> <b /></span>
-          <em />
-        </div>
-        <div className="greedy-loader-dashboard__history">
-          <span />
-          <div>
-            {GREEDY_LOADER_ART.slice(0, 5).map((option, index) => (
-              <i key={option.src} style={{ "--loader-delay": `${index * 80}ms` } as React.CSSProperties} />
-            ))}
-          </div>
-        </div>
-        <div className="greedy-loader-dashboard__footer">
-          <i />
-          <span><b /><b /></span>
-          <em />
-        </div>
-      </section>
-      <span className="sr-only">Loading Greedy and syncing the live round.</span>
-    </main>
+
+      <span className="sr-only">{meta.label}. Syncing the live round.</span>
+    </div>
   );
 }

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, LockKeyhole, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { useGameBoot, type BootGame } from "@/components/game-boot-provider";
 
 type GameCardImage = {
   src: string;
@@ -49,7 +50,15 @@ export function GameCard({
   priority = false,
 }: GameCardProps) {
   const [opening, setOpening] = useState(false);
+  const { showBoot } = useGameBoot();
   const orbitItems = artImages.length > 0 ? artImages : art;
+
+  function handleOpen() {
+    setOpening(true);
+    if (variant === "greedy" || variant === "teen-patti") {
+      showBoot(variant as BootGame);
+    }
+  }
 
   const content = (
     <div
@@ -156,7 +165,7 @@ export function GameCard({
       href={href}
       aria-label={`Open ${title}`}
       className="game-card-link"
-      onNavigate={() => setOpening(true)}
+      onNavigate={handleOpen}
     >
       {content}
     </Link>

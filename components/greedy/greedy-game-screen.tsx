@@ -23,6 +23,7 @@ import { RecentResults } from "@/components/greedy/recent-results";
 import { ResultModal } from "@/components/greedy/result-modal";
 import { GameNotice } from "@/components/greedy/game-notice";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
+import { useGameBoot } from "@/components/game-boot-provider";
 
 // A 129px orbit keeps every node circular and evenly spaced while reserving
 // a 9px visual safety gap below the toolbar and round banner at 414px.
@@ -183,6 +184,11 @@ export function GreedyGameScreen() {
     recover,
     placeBet,
   } = useGreedyGame();
+  const { bootGame, hideBoot } = useGameBoot();
+
+  useEffect(() => {
+    if (snapshot || fatalError) hideBoot();
+  }, [fatalError, hideBoot, snapshot]);
 
   const chips = useMemo(
     () => (snapshot?.round?.chip_values ?? snapshot?.active_config?.chip_values ?? [])
@@ -292,7 +298,14 @@ export function GreedyGameScreen() {
     };
   }, [helpOpen]);
 
-  if (loading && !snapshot) return <GameLoadingScreen game="greedy" />;
+  if (loading && !snapshot) {
+    return (
+      <>
+        <div className="mobile-canvas game-boot-underlay" aria-hidden="true" />
+        {!bootGame ? <GameLoadingScreen game="greedy" overlay /> : null}
+      </>
+    );
+  }
 
   if (!snapshot && fatalError) {
     return (
@@ -325,7 +338,14 @@ export function GreedyGameScreen() {
     );
   }
 
-  if (!snapshot) return <GameLoadingScreen game="greedy" />;
+  if (!snapshot) {
+    return (
+      <>
+        <div className="mobile-canvas game-boot-underlay" aria-hidden="true" />
+        {!bootGame ? <GameLoadingScreen game="greedy" overlay /> : null}
+      </>
+    );
+  }
 
   const latestRound = snapshot.recent_history.find(
     (item) => item.result?.winning_option,

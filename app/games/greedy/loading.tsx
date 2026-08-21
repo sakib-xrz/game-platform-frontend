@@ -1,5 +1,10 @@
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 
 export default function GreedyRouteLoading() {
-  return <GameLoadingScreen game="greedy" />;
+  return (
+    <>
+      <div className="mobile-canvas game-boot-underlay" aria-hidden="true" />
+      <GameLoadingScreen game="greedy" overlay />
+    </>
+  );
 }
