@@ -22,6 +22,7 @@ import { ChipTray } from "@/components/greedy/chip-tray";
 import { RecentResults } from "@/components/greedy/recent-results";
 import { ResultModal } from "@/components/greedy/result-modal";
 import { GameNotice } from "@/components/greedy/game-notice";
+import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
 
@@ -354,6 +355,7 @@ export function GreedyGameScreen() {
 
   return (
     <main className="mobile-canvas greedy-shell greedy-game-shell text-[#14243d]">
+      <DevPlayerSwitcher variant="compact" />
       <GameNotice notice={notice} />
 
       <section

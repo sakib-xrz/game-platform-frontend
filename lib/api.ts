@@ -4,9 +4,9 @@ import type {
   BetResponse as TeenPattiBetResponse,
   TeenPattiSnapshot,
 } from "@/types/teen-patti";
+import { DEV_USER_ID, getPlayerUserId } from "@/lib/player-identity";
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1").replace(/\/$/, "");
-const DEV_USER_ID = process.env.NEXT_PUBLIC_DEV_USER_ID?.trim();
 const BET_REQUEST_TIMEOUT_MS = 12_000;
 
 type ApiEnvelope<T> = {
@@ -31,7 +31,8 @@ export class ApiError extends Error {
 }
 
 function playerHeaders(): HeadersInit {
-  return DEV_USER_ID ? { "X-User-Id": DEV_USER_ID } : {};
+  const userId = getPlayerUserId();
+  return userId ? { "X-User-Id": userId } : {};
 }
 
 async function request<T>(path: string, init: RequestInit = {}, timeoutMs = 8_000): Promise<T> {

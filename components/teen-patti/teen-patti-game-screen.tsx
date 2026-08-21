@@ -20,6 +20,7 @@ import { DeckColumn, type DeckVisualPhase } from "@/components/teen-patti/deck-c
 import { TeenPattiChipTray } from "@/components/teen-patti/teen-patti-chip-tray";
 import { TeenPattiPhaseRing } from "@/components/teen-patti/teen-patti-phase-ring";
 import { TeenPattiResultModal } from "@/components/teen-patti/teen-patti-result-modal";
+import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
 import type { PublicDeck } from "@/types/teen-patti";
@@ -317,6 +318,7 @@ export function TeenPattiGameScreen() {
 
   return (
     <main className="mobile-canvas greedy-shell tp-shell">
+      <DevPlayerSwitcher variant="compact" />
       <GameNotice notice={notice} className="tp-game-notice" />
       {flyChips.map((chip) => (
         <BetFlyLayer

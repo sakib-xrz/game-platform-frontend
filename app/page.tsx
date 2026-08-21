@@ -1,4 +1,5 @@
 import type { Viewport } from "next";
+import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameCard } from "@/components/game-selection/game-card";
 
 export const viewport: Viewport = {
@@ -20,6 +21,8 @@ export default function GameSelectionPage() {
       <span className="game-select-page__grain" aria-hidden="true" />
 
       <section className="game-select">
+        <DevPlayerSwitcher variant="panel" />
+
         <div className="game-select__section-heading">
           <strong>Game tables</strong>
           <span>Instant play</span>
