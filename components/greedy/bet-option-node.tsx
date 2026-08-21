@@ -5,18 +5,9 @@ import { OptionArtwork } from "@/lib/option-art";
 import { formatInteger, formatMultiplier } from "@/lib/format";
 import type { PublicOption } from "@/types/greedy";
 
-function winTimes(numerator: string, denominator: string): string {
-  const formatted = formatMultiplier(numerator, denominator);
-  return formatted === "—" ? formatted : formatted.replace("×", "");
-}
-
-function rewardDots(numerator: string, denominator: string): number {
-  const n = Number(numerator);
-  const d = Number(denominator);
-  const payout = d > 0 ? n / d : 0;
-  if (payout >= 18) return 3;
-  if (payout >= 9) return 2;
-  return 1;
+function optionMultiplier(option: PublicOption): string {
+  if (option.payout_multiplier) return option.payout_multiplier;
+  return formatMultiplier(option.payout_numerator, option.payout_denominator);
 }
 
 export function BetOptionNode({
@@ -41,11 +32,7 @@ export function BetOptionNode({
   onPress: () => void;
 }) {
   const hasBet = BigInt(myBet || "0") > 0n;
-  const multiplier = winTimes(
-    option.payout_numerator,
-    option.payout_denominator,
-  );
-  const dots = rewardDots(option.payout_numerator, option.payout_denominator);
+  const multiplier = optionMultiplier(option);
   const accessibilityDetails = [
     hasBet ? `your bet is ${formatInteger(myBet)} coins` : null,
     winner
@@ -76,7 +63,7 @@ export function BetOptionNode({
       }}
       onClick={onPress}
       disabled={disabled || busy}
-      aria-label={`Bet on ${option.name}, win ${multiplier} times${accessibilityDetails ? `; ${accessibilityDetails}` : ""}`}
+      aria-label={`Bet on ${option.name}, ${multiplier}${accessibilityDetails ? `; ${accessibilityDetails}` : ""}`}
     >
       {winner && <span className="option-node__badge">Win</span>}
 
@@ -97,14 +84,7 @@ export function BetOptionNode({
         </span>
 
         <span className="option-node__payout-half">
-          <span className="option-node__payout">
-            win <strong>{multiplier}</strong> times
-          </span>
-          <span className="option-node__reward-dots">
-            {Array.from({ length: dots }, (_, index) => (
-              <i key={index} />
-            ))}
-          </span>
+          <span className="option-node__multiplier">{multiplier}</span>
         </span>
       </span>
     </button>

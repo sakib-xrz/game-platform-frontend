@@ -21,6 +21,8 @@ export type PublicOption = {
   display_order: number;
   payout_numerator: string;
   payout_denominator: string;
+  /** Player-facing label from the API, e.g. "8x". */
+  payout_multiplier?: string;
   is_enabled?: boolean;
 };
 
@@ -32,6 +34,7 @@ export type WinningOption = Pick<
   | "image_url"
   | "payout_numerator"
   | "payout_denominator"
+  | "payout_multiplier"
 >;
 
 export type ChipValue = {

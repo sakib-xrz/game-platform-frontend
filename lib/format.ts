@@ -59,8 +59,8 @@ export const formatMultiplier = (numerator: string, denominator: string): string
     const n = BigInt(numerator);
     const d = BigInt(denominator);
     if (d === 0n) return "—";
-    if (n % d === 0n) return `${n / d}×`;
-    return `${numerator}/${denominator}×`;
+    if (n % d === 0n) return `${n / d}x`;
+    return `${numerator}/${denominator}x`;
   } catch {
     return "—";
   }
