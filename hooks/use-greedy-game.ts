@@ -5,6 +5,7 @@ import type { Socket } from "socket.io-client";
 import { greedyApi, ApiError } from "@/lib/api";
 import { createBetRequestId } from "@/lib/request-id";
 import { getGameSocket } from "@/lib/socket";
+import { showToast, type ToastKind } from "@/lib/toast";
 import type {
   BetAcceptedEvent,
   GreedySnapshot,
@@ -51,7 +52,6 @@ export function useGreedyGame() {
   const [connected, setConnected] = useState(false);
   const [serverOffsetMs, setServerOffsetMs] = useState(0);
   const [fatalError, setFatalError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<GameNotice>(null);
   const [resultModalOpen, setResultModalOpen] = useState(false);
   const [resultModalDisplayMs, setResultModalDisplayMs] = useState(3_500);
 
@@ -62,7 +62,6 @@ export function useGreedyGame() {
   const recoveryQueuedReasonRef = useRef<string | null>(null);
   const pendingBetAmountsRef = useRef(new Map<string, PendingBet>());
   const seenEventIdsRef = useRef(new Set<string>());
-  const noticeIdRef = useRef(0);
   const resultCloseTimerRef = useRef<number | null>(null);
   const serverOffsetRef = useRef(0);
 
@@ -80,12 +79,8 @@ export function useGreedyGame() {
     );
   }, []);
 
-  const pushNotice = useCallback((kind: NonNullable<GameNotice>["kind"], message: string) => {
-    const id = ++noticeIdRef.current;
-    setNotice({ id, kind, message });
-    window.setTimeout(() => {
-      setNotice((current) => (current?.id === id ? null : current));
-    }, 2_600);
+  const pushNotice = useCallback((kind: ToastKind, message: string) => {
+    showToast(kind, message);
   }, []);
 
   const scheduleResultClose = useCallback((durationMs: number) => {

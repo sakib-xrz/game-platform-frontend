@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { GameBootProvider } from "@/components/game-boot-provider";
+import { ToastContainer } from "@/components/toast/toast-container";
 import "./globals.css";
 import "./teen-patti.css";
 
@@ -21,7 +22,10 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html lang="en">
       <body>
-        <GameBootProvider>{children}</GameBootProvider>
+        <GameBootProvider>
+          {children}
+          <ToastContainer />
+        </GameBootProvider>
       </body>
     </html>
   );

@@ -10,31 +10,86 @@ type GameLoadingScreenProps = {
 const GAME_META = {
   greedy: {
     title: "Greedy",
-    kicker: "Arcade kitchen",
     label: "Greedy is loading",
   },
   "teen-patti": {
     title: "Teen Patti",
-    kicker: "Royal table",
     label: "Teen Patti is loading",
   },
 } as const;
 
 const GREEDY_FOODS = [
-  { src: "/assets/greedy/hot-dog.png", x: "50%", y: "2%", rotate: "-8deg", delay: "-0.2s" },
-  { src: "/assets/greedy/kebab.png", x: "78%", y: "13%", rotate: "16deg", delay: "-0.7s" },
-  { src: "/assets/greedy/ham.png", x: "91%", y: "45%", rotate: "10deg", delay: "-1.1s" },
-  { src: "/assets/greedy/steak.png", x: "79%", y: "77%", rotate: "-9deg", delay: "-0.4s" },
-  { src: "/assets/greedy/carrot.png", x: "50%", y: "90%", rotate: "-12deg", delay: "-1.3s" },
-  { src: "/assets/greedy/corn.png", x: "20%", y: "77%", rotate: "-20deg", delay: "-0.9s" },
-  { src: "/assets/greedy/cabbage.png", x: "8%", y: "45%", rotate: "8deg", delay: "-0.1s" },
-  { src: "/assets/greedy/tomato.png", x: "21%", y: "13%", rotate: "-8deg", delay: "-1.5s" },
+  {
+    src: "/assets/greedy/hot-dog.png",
+    x: "50%",
+    y: "2%",
+    rotate: "-8deg",
+    delay: "-0.2s",
+  },
+  {
+    src: "/assets/greedy/kebab.png",
+    x: "78%",
+    y: "13%",
+    rotate: "16deg",
+    delay: "-0.7s",
+  },
+  {
+    src: "/assets/greedy/ham.png",
+    x: "91%",
+    y: "45%",
+    rotate: "10deg",
+    delay: "-1.1s",
+  },
+  {
+    src: "/assets/greedy/steak.png",
+    x: "79%",
+    y: "77%",
+    rotate: "-9deg",
+    delay: "-0.4s",
+  },
+  {
+    src: "/assets/greedy/carrot.png",
+    x: "50%",
+    y: "90%",
+    rotate: "-12deg",
+    delay: "-1.3s",
+  },
+  {
+    src: "/assets/greedy/corn.png",
+    x: "20%",
+    y: "77%",
+    rotate: "-20deg",
+    delay: "-0.9s",
+  },
+  {
+    src: "/assets/greedy/cabbage.png",
+    x: "8%",
+    y: "45%",
+    rotate: "8deg",
+    delay: "-0.1s",
+  },
+  {
+    src: "/assets/greedy/tomato.png",
+    x: "21%",
+    y: "13%",
+    rotate: "-8deg",
+    delay: "-1.5s",
+  },
 ] as const;
 
 const THRONES = [
-  { src: "/assets/teen-patti/throne-green.png", className: "game-boot__throne--green" },
-  { src: "/assets/teen-patti/throne-blue.png", className: "game-boot__throne--blue" },
-  { src: "/assets/teen-patti/throne-pink.png", className: "game-boot__throne--pink" },
+  {
+    src: "/assets/teen-patti/throne-green.png",
+    className: "game-boot__throne--green",
+  },
+  {
+    src: "/assets/teen-patti/throne-blue.png",
+    className: "game-boot__throne--blue",
+  },
+  {
+    src: "/assets/teen-patti/throne-pink.png",
+    className: "game-boot__throne--pink",
+  },
 ] as const;
 
 const SPARKLES = [
@@ -50,7 +105,10 @@ const SPARKLES = [
 
 function GreedyLoadingArt() {
   return (
-    <div className="game-boot__scene game-boot__scene--greedy" aria-hidden="true">
+    <div
+      className="game-boot__scene game-boot__scene--greedy"
+      aria-hidden="true"
+    >
       <span className="game-boot__wheel-shadow" />
       <span className="game-boot__wheel-rim" />
       <span className="game-boot__wheel-spokes" />
@@ -59,20 +117,16 @@ function GreedyLoadingArt() {
         <span
           key={food.src}
           className="game-boot__food"
-          style={{
-            "--food-x": food.x,
-            "--food-y": food.y,
-            "--food-rotate": food.rotate,
-            "--food-delay": food.delay,
-          } as CSSProperties}
+          style={
+            {
+              "--food-x": food.x,
+              "--food-y": food.y,
+              "--food-rotate": food.rotate,
+              "--food-delay": food.delay,
+            } as CSSProperties
+          }
         >
-          <Image
-            src={food.src}
-            alt=""
-            fill
-            sizes="72px"
-            draggable={false}
-          />
+          <Image src={food.src} alt="" fill sizes="72px" draggable={false} />
         </span>
       ))}
 
@@ -93,7 +147,10 @@ function GreedyLoadingArt() {
 
 function TeenPattiLoadingArt() {
   return (
-    <div className="game-boot__scene game-boot__scene--teen-patti" aria-hidden="true">
+    <div
+      className="game-boot__scene game-boot__scene--teen-patti"
+      aria-hidden="true"
+    >
       <span className="game-boot__royal-glow" />
       <span className="game-boot__royal-frame">
         <Image
@@ -108,7 +165,10 @@ function TeenPattiLoadingArt() {
 
       <span className="game-boot__thrones">
         {THRONES.map((throne) => (
-          <span key={throne.src} className={`game-boot__throne ${throne.className}`}>
+          <span
+            key={throne.src}
+            className={`game-boot__throne ${throne.className}`}
+          >
             <Image
               src={throne.src}
               alt=""
@@ -121,9 +181,15 @@ function TeenPattiLoadingArt() {
       </span>
 
       <span className="game-boot__card-fan">
-        <i className="game-boot__playing-card game-boot__playing-card--left">A<b>♥</b></i>
-        <i className="game-boot__playing-card game-boot__playing-card--middle">K<b>♠</b></i>
-        <i className="game-boot__playing-card game-boot__playing-card--right">Q<b>♦</b></i>
+        <i className="game-boot__playing-card game-boot__playing-card--left">
+          A<b>♥</b>
+        </i>
+        <i className="game-boot__playing-card game-boot__playing-card--middle">
+          K<b>♠</b>
+        </i>
+        <i className="game-boot__playing-card game-boot__playing-card--right">
+          Q<b>♦</b>
+        </i>
       </span>
     </div>
   );
@@ -168,7 +234,6 @@ export function GameLoadingScreen({
         </div>
 
         <div className="game-boot__stage">
-          <span className="game-boot__kicker">{meta.kicker}</span>
           {game === "greedy" ? <GreedyLoadingArt /> : <TeenPattiLoadingArt />}
 
           <h1 className="game-boot__title">{meta.title}</h1>

@@ -37,15 +37,9 @@ export default function GameSelectionPage() {
             variant="greedy"
             statusLabel="Arcade wheel"
             meta={["8 choices", "Quick play"]}
-            accent="linear-gradient(135deg,#ff5558 0%,#f44d72 52%,#f0982d 100%)"
+            accent="linear-gradient(135deg,#44091a 0%,#73132e 45%,#a61c3c 78%,#d9561c 100%)"
             priority
-            artImages={[
-              { src: "/assets/greedy/hot-dog.png", alt: "" },
-              { src: "/assets/greedy/ham.png", alt: "" },
-              { src: "/assets/greedy/carrot.png", alt: "" },
-              { src: "/assets/greedy/cabbage.png", alt: "" },
-            ]}
-            centerImage={{ src: "/assets/greedy/center-feast.png", alt: "" }}
+            heroImage={{ src: "/assets/greedy/game-card.png", alt: "" }}
           />
           <GameCard
             title="Teen Patti"

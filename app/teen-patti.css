@@ -787,16 +787,6 @@
 .tp-deck--busy { cursor: progress; }
 .tp-deck--busy .tp-deck__stake i { animation: tpSkeletonPulse 900ms ease-in-out infinite; }
 
-.tp-game-notice {
-  top: auto;
-  bottom: max(148px, calc(env(safe-area-inset-bottom) + 140px));
-  max-width: min(330px, calc(100% - 48px));
-  padding: 5px 12px;
-  border-color: rgba(255, 230, 161, .54);
-  font-size: 10px;
-  line-height: 1.1;
-  box-shadow: 0 10px 26px rgba(1, 13, 9, .34), inset 0 1px rgba(255, 255, 255, .18);
-}
 .tp-deck--loser { opacity: .48; filter: saturate(.62) grayscale(.12); }
 .tp-deck--drawing { animation: tpSeatBreathe 1.15s ease-in-out infinite; }
 .tp-deck--winner { animation: tpSeatWin 780ms cubic-bezier(.2, .8, .2, 1) both; }

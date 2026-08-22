@@ -1391,11 +1391,11 @@ a:focus-visible {
 @keyframes toastIn {
   from {
     opacity: 0;
-    transform: translate(-50%, -8px) scale(0.97);
+    transform: translateY(-8px) scale(0.97);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, 0) scale(1);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -6806,7 +6806,48 @@ a:focus-visible {
 }
 
 .game-card--greedy {
-  background: linear-gradient(135deg, #f64c55 0%, #eb446b 52%, #e98d2c 100%);
+  background: linear-gradient(
+    135deg,
+    #44091a 0%,
+    #73132e 45%,
+    #a61c3c 78%,
+    #d9561c 100%
+  );
+  border-color: rgba(255, 205, 145, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 190, 0.45),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 16px 36px rgba(0, 0, 0, 0.32);
+}
+
+.game-card--greedy .game-card__status {
+  color: #ffd27a;
+  text-shadow: 0 0 12px rgba(255, 170, 0, 0.45);
+}
+
+.game-card--greedy .game-card__status svg {
+  color: #ffbe40;
+  filter: drop-shadow(0 0 4px rgba(255, 190, 64, 0.6));
+}
+
+.game-card--greedy h2 {
+  text-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.5),
+    0 0 24px rgba(255, 60, 90, 0.3);
+}
+
+.game-card--greedy .game-card__meta i {
+  border-color: rgba(255, 200, 150, 0.28);
+  background: rgba(45, 8, 18, 0.48);
+  color: rgba(255, 240, 230, 0.92);
+}
+
+.game-card--greedy .game-card__cta {
+  background: linear-gradient(180deg, #ffffff 0%, #fff7eb 100%);
+  color: #240a12;
+  box-shadow:
+    0 5px 14px rgba(0, 0, 0, 0.28),
+    0 0 16px rgba(255, 140, 40, 0.22);
 }
 
 .game-card--teen-patti {
@@ -6986,7 +7027,7 @@ a:focus-visible {
 .game-card__hero {
   position: absolute;
   z-index: 1;
-  inset: 0 0 0 40%;
+  inset: 0 0 0 50%;
   overflow: hidden;
 }
 
@@ -6998,6 +7039,28 @@ a:focus-visible {
 .game-card__hero span {
   position: absolute;
   inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(112, 36, 27, 0.99) 0%,
+      rgba(112, 36, 27, 0.68) 22%,
+      transparent 60%
+    ),
+    linear-gradient(0deg, rgba(61, 18, 13, 0.23), transparent 55%);
+}
+
+.game-card--greedy .game-card__hero span {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(68, 9, 26, 0.99) 0%,
+      rgba(68, 9, 26, 0.7) 22%,
+      transparent 60%
+    ),
+    linear-gradient(0deg, rgba(30, 4, 11, 0.35), transparent 55%);
+}
+
+.game-card--teen-patti .game-card__hero span {
   background:
     linear-gradient(
       90deg,
@@ -7297,9 +7360,7 @@ a:focus-visible {
   min-height: 100%;
   place-items: center;
   overflow: hidden;
-  padding:
-    max(16px, env(safe-area-inset-top))
-    14px
+  padding: max(16px, env(safe-area-inset-top)) 14px
     max(18px, env(safe-area-inset-bottom));
   color: #fff8dc;
 }
@@ -7550,7 +7611,12 @@ a:focus-visible {
   z-index: 5;
   inset: 26%;
   border: clamp(5px, 1.8vw, 8px) solid #ffdb4a;
-  background: radial-gradient(circle at 44% 35%, #fffb9a, #ffb41f 55%, #e74527 56% 100%);
+  background: radial-gradient(
+    circle at 44% 35%,
+    #fffb9a,
+    #ffb41f 55%,
+    #e74527 56% 100%
+  );
   box-shadow:
     inset 0 0 0 3px #a93410,
     0 0 0 3px #7c2309,
@@ -7573,7 +7639,11 @@ a:focus-visible {
   position: absolute;
   inset: 13% 2% 5%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 211, 95, 0.44), transparent 66%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 211, 95, 0.44),
+    transparent 66%
+  );
   filter: blur(12px);
 }
 
@@ -7708,7 +7778,11 @@ a:focus-visible {
 /* Greedy — a red-and-gold arcade food wheel. */
 .game-boot--greedy .game-boot__panel {
   background:
-    radial-gradient(90% 54% at 50% 29%, rgba(239, 51, 42, 0.62), transparent 68%),
+    radial-gradient(
+      90% 54% at 50% 29%,
+      rgba(239, 51, 42, 0.62),
+      transparent 68%
+    ),
     radial-gradient(120% 82% at 50% -15%, #94131c 0%, transparent 70%),
     linear-gradient(180deg, #430008 0%, #65030c 46%, #2a0005 100%);
 }
@@ -7720,7 +7794,11 @@ a:focus-visible {
       rgba(255, 125, 65, 0.17) 0deg 10deg,
       transparent 10deg 30deg
     ),
-    radial-gradient(circle at 50% 46%, rgba(255, 190, 47, 0.18), transparent 55%);
+    radial-gradient(
+      circle at 50% 46%,
+      rgba(255, 190, 47, 0.18),
+      transparent 55%
+    );
 }
 
 .game-boot--greedy .game-boot__panel::after {
@@ -7736,7 +7814,11 @@ a:focus-visible {
 }
 
 .game-boot--greedy .game-boot__ambient span {
-  background: linear-gradient(180deg, rgba(255, 238, 164, 0.58), transparent 92%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 238, 164, 0.58),
+    transparent 92%
+  );
 }
 
 .game-boot--greedy .game-boot__kicker {
@@ -7767,24 +7849,48 @@ a:focus-visible {
 /* Teen Patti — deep felt, walnut and royal gold. */
 .game-boot--teen-patti .game-boot__panel {
   background:
-    radial-gradient(95% 58% at 50% 29%, rgba(32, 142, 89, 0.42), transparent 68%),
+    radial-gradient(
+      95% 58% at 50% 29%,
+      rgba(32, 142, 89, 0.42),
+      transparent 68%
+    ),
     radial-gradient(100% 76% at 50% -8%, #215a3d 0%, transparent 64%),
     linear-gradient(180deg, #071a12 0%, #0a2d1e 49%, #031009 100%);
 }
 
 .game-boot--teen-patti .game-boot__panel::before {
   background:
-    linear-gradient(45deg, rgba(255, 255, 255, 0.025) 25%, transparent 25% 75%, rgba(255, 255, 255, 0.025) 75%),
-    linear-gradient(-45deg, rgba(255, 255, 255, 0.02) 25%, transparent 25% 75%, rgba(255, 255, 255, 0.02) 75%);
-  background-position: 0 0, 9px 9px;
+    linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.025) 25%,
+      transparent 25% 75%,
+      rgba(255, 255, 255, 0.025) 75%
+    ),
+    linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.02) 25%,
+      transparent 25% 75%,
+      rgba(255, 255, 255, 0.02) 75%
+    );
+  background-position:
+    0 0,
+    9px 9px;
   background-size: 18px 18px;
 }
 
 .game-boot--teen-patti .game-boot__panel::after {
   border-top: 7px solid #8d4318;
   background:
-    radial-gradient(100% 44% at 50% 0%, rgba(197, 99, 27, 0.34), transparent 75%),
-    repeating-linear-gradient(105deg, rgba(255, 255, 255, 0.035) 0 2px, transparent 2px 12px),
+    radial-gradient(
+      100% 44% at 50% 0%,
+      rgba(197, 99, 27, 0.34),
+      transparent 75%
+    ),
+    repeating-linear-gradient(
+      105deg,
+      rgba(255, 255, 255, 0.035) 0 2px,
+      transparent 2px 12px
+    ),
     linear-gradient(180deg, #4d1d0b, #1e0905);
   box-shadow:
     0 -2px 0 #f0bd59,
@@ -7792,7 +7898,11 @@ a:focus-visible {
 }
 
 .game-boot--teen-patti .game-boot__ambient span {
-  background: linear-gradient(180deg, rgba(255, 216, 123, 0.44), transparent 92%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 216, 123, 0.44),
+    transparent 92%
+  );
 }
 
 .game-boot--teen-patti .game-boot__kicker {
