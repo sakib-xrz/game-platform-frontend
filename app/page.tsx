@@ -31,7 +31,7 @@ export default function GameSelectionPage() {
         <div className="game-select__cards">
           <GameCard
             title="Greedy"
-            subtitle="Choose your lucky icon and watch the wheel reveal the winner."
+            subtitle="Choose your lucky food and watch the wheel reveal the winner."
             href="/games/greedy"
             active
             variant="greedy"
@@ -40,12 +40,12 @@ export default function GameSelectionPage() {
             accent="linear-gradient(135deg,#ff5558 0%,#f44d72 52%,#f0982d 100%)"
             priority
             artImages={[
-              { src: "/assets/greedy/falcon.png", alt: "" },
-              { src: "/assets/greedy/tiger.png", alt: "" },
-              { src: "/assets/greedy/crown.png", alt: "" },
-              { src: "/assets/greedy/diamond.png", alt: "" },
+              { src: "/assets/greedy/hot-dog.png", alt: "" },
+              { src: "/assets/greedy/ham.png", alt: "" },
+              { src: "/assets/greedy/carrot.png", alt: "" },
+              { src: "/assets/greedy/cabbage.png", alt: "" },
             ]}
-            centerImage={{ src: "/assets/greedy/center-platter.png", alt: "" }}
+            centerImage={{ src: "/assets/greedy/center-feast.png", alt: "" }}
           />
           <GameCard
             title="Teen Patti"

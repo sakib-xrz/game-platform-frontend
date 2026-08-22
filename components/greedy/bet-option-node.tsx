@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { OptionArtwork } from "@/lib/option-art";
+import { getOptionDisplayName, OptionArtwork } from "@/lib/option-art";
 import { formatInteger, formatMultiplier } from "@/lib/format";
 import type { PublicOption } from "@/types/greedy";
 
@@ -33,6 +33,7 @@ export function BetOptionNode({
 }) {
   const hasBet = BigInt(myBet || "0") > 0n;
   const multiplier = optionMultiplier(option);
+  const displayName = getOptionDisplayName(option.code, option.name);
   const accessibilityDetails = [
     hasBet ? `your bet is ${formatInteger(myBet)} coins` : null,
     winner
@@ -63,7 +64,7 @@ export function BetOptionNode({
       }}
       onClick={onPress}
       disabled={disabled || busy}
-      aria-label={`Bet on ${option.name}, ${multiplier}${accessibilityDetails ? `; ${accessibilityDetails}` : ""}`}
+      aria-label={`Bet on ${displayName}, ${multiplier}${accessibilityDetails ? `; ${accessibilityDetails}` : ""}`}
     >
       {winner && <span className="option-node__badge">Win</span>}
 
@@ -72,7 +73,7 @@ export function BetOptionNode({
           <OptionArtwork
             imageUrl={option.image_url}
             code={option.code}
-            name={option.name}
+            name={displayName}
             className="option-node__art"
           />
           {hasBet && (

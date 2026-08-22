@@ -23,6 +23,8 @@ type GameBootContextValue = {
 
 const GameBootContext = createContext<GameBootContextValue | null>(null);
 
+const MIN_BOOT_VISIBILITY_MS = 1_400;
+
 function targetPath(game: BootGame) {
   return game === "greedy" ? "/games/greedy" : "/games/teen-patti";
 }
@@ -32,18 +34,50 @@ export function GameBootProvider({ children }: { children: ReactNode }) {
   const [bootGame, setBootGame] = useState<BootGame | null>(null);
   const originPathRef = useRef<string | null>(null);
   const reachedTargetRef = useRef(false);
+  const bootStartedAtRef = useRef<number | null>(null);
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const hideBoot = useCallback(() => {
+  const clearHideTimer = useCallback(() => {
+    if (hideTimerRef.current !== null) {
+      clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = null;
+    }
+  }, []);
+
+  const finishBoot = useCallback(() => {
+    clearHideTimer();
     setBootGame(null);
     originPathRef.current = null;
     reachedTargetRef.current = false;
-  }, []);
+    bootStartedAtRef.current = null;
+  }, [clearHideTimer]);
+
+  const hideBoot = useCallback(() => {
+    const startedAt = bootStartedAtRef.current;
+    if (startedAt === null) {
+      finishBoot();
+      return;
+    }
+
+    const remaining = MIN_BOOT_VISIBILITY_MS - (Date.now() - startedAt);
+    if (remaining <= 0) {
+      finishBoot();
+      return;
+    }
+
+    clearHideTimer();
+    hideTimerRef.current = setTimeout(finishBoot, remaining);
+  }, [clearHideTimer, finishBoot]);
 
   const showBoot = useCallback((game: BootGame) => {
+    clearHideTimer();
     originPathRef.current = pathname;
     reachedTargetRef.current = false;
+    bootStartedAtRef.current = Date.now();
     setBootGame(game);
-  }, [pathname]);
+  }, [clearHideTimer, pathname]);
+
+  useEffect(() => () => clearHideTimer(), [clearHideTimer]);
 
   useEffect(() => {
     if (!bootGame) return;
@@ -59,8 +93,10 @@ export function GameBootProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    hideBoot();
-  }, [bootGame, hideBoot, pathname]);
+    // The requested game was never reached, or the user navigated away from it.
+    // In that case there is no handoff to protect, so remove the takeover now.
+    finishBoot();
+  }, [bootGame, finishBoot, pathname]);
 
   const value = useMemo(
     () => ({ bootGame, showBoot, hideBoot }),

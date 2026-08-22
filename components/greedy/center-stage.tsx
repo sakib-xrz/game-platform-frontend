@@ -40,9 +40,9 @@ export function CenterStage({ round, serverOffsetMs }: { round: SnapshotRound | 
   return (
     <div className={clsx("center-stage", isBetting && "center-stage--betting", isDrawing && "center-stage--drawing")}>
       <div className="center-stage__inner">
-        {/* This decorative platter mirrors the reference; outcome artwork remains server-driven in the result UI. */}
+        {/* Decorative food-wheel centerpiece; outcome artwork remains server-driven in the result UI. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/assets/greedy/center-platter.png" alt="" aria-hidden="true" className="center-stage__platter" />
+        <img src="/assets/greedy/center-feast.png" alt="" aria-hidden="true" className="center-stage__platter" />
         <div className="center-stage__copy">
           <span>{label}</span>
           <strong>{value}</strong>

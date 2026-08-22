@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
-import { OptionArtwork } from "@/lib/option-art";
+import { getOptionDisplayName, OptionArtwork } from "@/lib/option-art";
 import { formatInteger } from "@/lib/format";
 import type { GreedySnapshot } from "@/types/greedy";
 
@@ -90,6 +90,7 @@ export function ResultModal({
     ? Math.max(0, Math.ceil((clock.deadline - clock.now) / 1000))
     : Math.ceil(displayMs / 1000);
   const winner = result.winning_option;
+  const winnerName = getOptionDisplayName(winner.code, winner.name);
   const winningBet = snapshot.my_bets.some((bet) => bet.option.id === winner.id);
   const payoutPending = snapshot.my_bets.some((bet) => !bet.settlement)
     && (round.status === "result_revealed" || round.status === "settling");
@@ -119,7 +120,7 @@ export function ResultModal({
           <OptionArtwork
             imageUrl={winner.image_url}
             code={winner.code}
-            name={winner.name}
+            name={winnerName}
             className="result-sheet__winner-image"
           />
         </div>
@@ -128,7 +129,7 @@ export function ResultModal({
           <p className="result-card__line">
             The <em>{round.round_number}</em> round&apos;s result:
             <span className="result-card__inline-art">
-              <OptionArtwork imageUrl={winner.image_url} code={winner.code} name={winner.name} className="result-card__inline-image" />
+              <OptionArtwork imageUrl={winner.image_url} code={winner.code} name={winnerName} className="result-card__inline-image" />
             </span>
           </p>
           <p className="result-card__line">
@@ -143,7 +144,7 @@ export function ResultModal({
 
           <div className="result-card__player">
             <div className="result-card__avatar">
-              <OptionArtwork imageUrl={winner.image_url} code={winner.code} name={winner.name} className="result-card__avatar-image" />
+              <OptionArtwork imageUrl={winner.image_url} code={winner.code} name={winnerName} className="result-card__avatar-image" />
               <small>You</small>
             </div>
             <div>

@@ -3,30 +3,83 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 
-const FALLBACK_ICON_BY_CODE: Record<string, string> = {
-  FALCON: "🦅",
-  TIGER: "🐯",
-  PANDA: "🐼",
-  LION: "🦁",
-  SHARK: "🦈",
-  DRAGON: "🐉",
-  CROWN: "👑",
-  DIAMOND: "💎",
+type FoodPresentation = {
+  name: string;
+  emoji: string;
+  art: string;
 };
 
-const LOCAL_ART_BY_CODE: Record<string, string> = {
-  FALCON: "/assets/greedy/falcon.png",
-  TIGER: "/assets/greedy/tiger.png",
-  PANDA: "/assets/greedy/panda.png",
-  LION: "/assets/greedy/lion.png",
-  SHARK: "/assets/greedy/shark.png",
-  DRAGON: "/assets/greedy/dragon.png",
-  CROWN: "/assets/greedy/crown.png",
-  DIAMOND: "/assets/greedy/diamond.png",
+const FOOD_PRESENTATIONS = {
+  HOT_DOG: {
+    name: "Hot dog",
+    emoji: "🌭",
+    art: "/assets/greedy/hot-dog.png",
+  },
+  KEBAB: {
+    name: "Barbecue kebab",
+    emoji: "🍢",
+    art: "/assets/greedy/kebab.png",
+  },
+  HAM: {
+    name: "Ham",
+    emoji: "🍖",
+    art: "/assets/greedy/ham.png",
+  },
+  STEAK: {
+    name: "Grilled steak",
+    emoji: "🥩",
+    art: "/assets/greedy/steak.png",
+  },
+  CARROT: {
+    name: "Carrot",
+    emoji: "🥕",
+    art: "/assets/greedy/carrot.png",
+  },
+  CORN: {
+    name: "Corn",
+    emoji: "🌽",
+    art: "/assets/greedy/corn.png",
+  },
+  CABBAGE: {
+    name: "Cabbage",
+    emoji: "🥬",
+    art: "/assets/greedy/cabbage.png",
+  },
+  TOMATO: {
+    name: "Tomato",
+    emoji: "🍅",
+    art: "/assets/greedy/tomato.png",
+  },
+} as const satisfies Record<string, FoodPresentation>;
+
+type FoodCode = keyof typeof FOOD_PRESENTATIONS;
+
+// Older published configurations used animal codes. Keep those immutable
+// identifiers compatible while presenting the food wheel requested for Greedy.
+const LEGACY_FOOD_CODE: Record<string, FoodCode> = {
+  FALCON: "HOT_DOG",
+  TIGER: "KEBAB",
+  PANDA: "HAM",
+  LION: "STEAK",
+  SHARK: "CARROT",
+  DRAGON: "CORN",
+  CROWN: "CABBAGE",
+  DIAMOND: "TOMATO",
 };
+
+function resolveFood(code: string): FoodPresentation | undefined {
+  const normalizedCode = code.toUpperCase();
+  const foodCode = (normalizedCode in FOOD_PRESENTATIONS
+    ? normalizedCode
+    : LEGACY_FOOD_CODE[normalizedCode]) as FoodCode | undefined;
+  return foodCode ? FOOD_PRESENTATIONS[foodCode] : undefined;
+}
 
 export const getOptionEmoji = (code: string): string =>
-  FALLBACK_ICON_BY_CODE[code.toUpperCase()] ?? "🎯";
+  resolveFood(code)?.emoji ?? "🎯";
+
+export const getOptionDisplayName = (code: string, fallbackName: string): string =>
+  resolveFood(code)?.name ?? fallbackName;
 
 export function OptionArtwork({ imageUrl, code, name, className = "" }: {
   imageUrl?: string | null;
@@ -34,12 +87,15 @@ export function OptionArtwork({ imageUrl, code, name, className = "" }: {
   name: string;
   className?: string;
 }): ReactNode {
-  const resolvedImageUrl = imageUrl || LOCAL_ART_BY_CODE[code.toUpperCase()];
+  // Recognized Greedy outcomes always use the bundled, reviewed food artwork.
+  // Unknown future options can still use a managed backend image URL.
+  const resolvedImageUrl = resolveFood(code)?.art || imageUrl;
+  const displayName = getOptionDisplayName(code, name);
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
 
   if (resolvedImageUrl && failedImageUrl !== resolvedImageUrl) {
     return (
-      // Backend controls option image_url. The game intentionally allows dynamic, versioned artwork.
+      // Unknown future options may still supply dynamic, versioned backend artwork.
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={resolvedImageUrl}
@@ -53,7 +109,7 @@ export function OptionArtwork({ imageUrl, code, name, className = "" }: {
     );
   }
   return (
-    <span className={className} role="img" aria-label={name}>
+    <span className={className} role="img" aria-label={displayName}>
       {getOptionEmoji(code)}
     </span>
   );

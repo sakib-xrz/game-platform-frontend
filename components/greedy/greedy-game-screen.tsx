@@ -15,7 +15,7 @@ import {
 import { useCountdown } from "@/hooks/use-countdown";
 import { useGreedyGame } from "@/hooks/use-greedy-game";
 import { formatInteger } from "@/lib/format";
-import { OptionArtwork } from "@/lib/option-art";
+import { getOptionDisplayName, OptionArtwork } from "@/lib/option-art";
 import { BetOptionNode } from "@/components/greedy/bet-option-node";
 import { CenterStage } from "@/components/greedy/center-stage";
 import { ChipTray } from "@/components/greedy/chip-tray";
@@ -197,8 +197,9 @@ export function GreedyGameScreen() {
     [snapshot?.active_config?.chip_values, snapshot?.round?.chip_values],
   );
   const options = useMemo(
-    () => (snapshot?.round?.options ?? snapshot?.active_config?.options ?? [])
-      .filter((option) => option.is_enabled !== false),
+    () => [...(snapshot?.round?.options ?? snapshot?.active_config?.options ?? [])]
+      .filter((option) => option.is_enabled !== false)
+      .sort((a, b) => a.display_order - b.display_order),
     [snapshot?.active_config?.options, snapshot?.round?.options],
   );
   const [selectedChip, setSelectedChip] = useState("");
@@ -352,6 +353,9 @@ export function GreedyGameScreen() {
     (item) => item.result?.winning_option,
   );
   const latestResult = latestRound?.result?.winning_option;
+  const latestResultName = latestResult
+    ? getOptionDisplayName(latestResult.code, latestResult.name)
+    : null;
 
   return (
     <main className="mobile-canvas greedy-shell greedy-game-shell text-[#14243d]">
@@ -526,7 +530,7 @@ export function GreedyGameScreen() {
               <OptionArtwork
                 imageUrl={latestResult.image_url}
                 code={latestResult.code}
-                name={latestResult.name}
+                name={latestResultName ?? latestResult.name}
                 className="dashboard-ranking__art"
               />
             ) : (
@@ -537,7 +541,7 @@ export function GreedyGameScreen() {
             <strong>Latest verified result</strong>
             <span>
               {latestResult && latestRound
-                ? `Round ${latestRound.round_number} · ${latestResult.name}`
+                ? `Round ${latestRound.round_number} · ${latestResultName ?? latestResult.name}`
                 : "Waiting for the first completed round"}
             </span>
           </div>

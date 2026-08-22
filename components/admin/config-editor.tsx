@@ -11,9 +11,17 @@ import type { ConfigValidationPreview } from "@/lib/admin-config-validation";
 export const newConfigDefaults: CreateAdminConfigInput = {
   betting_duration_ms: 10000, lock_duration_ms: 1000, drawing_duration_ms: 3000, result_duration_ms: 4000,
   min_bet: "10", max_single_bet: "10000", max_round_bet: "50000", notes: "",
-  options: ["FALCON", "TIGER", "PANDA", "LION", "SHARK", "DRAGON", "CROWN", "DIAMOND"].map((code, index) => ({
-    code,
-    name: code[0] + code.slice(1).toLowerCase(),
+  options: [
+    { code: "HOT_DOG", name: "Hot dog" },
+    { code: "KEBAB", name: "Barbecue kebab" },
+    { code: "HAM", name: "Ham" },
+    { code: "STEAK", name: "Grilled steak" },
+    { code: "CARROT", name: "Carrot" },
+    { code: "CORN", name: "Corn" },
+    { code: "CABBAGE", name: "Cabbage" },
+    { code: "TOMATO", name: "Tomato" },
+  ].map((option, index) => ({
+    ...option,
     image_url: null,
     asset_id: null,
     display_order: index + 1,

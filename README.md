@@ -11,7 +11,7 @@ Production-oriented **mobile-only** Next.js frontend for the supplied multi-game
 - Reference-matched 414 × 560 Greedy machine with eight radial options, integrated chip pedestal and red results dashboard
 - Betting, drawing/highlight and result-sheet visual states from the supplied screenshots
 - Dynamic options, multipliers, chip values and image URLs from the backend config
-- Original local cartoon fallback artwork for the current seed codes: `FALCON`, `TIGER`, `PANDA`, `LION`, `SHARK`, `DRAGON`, `CROWN`, `DIAMOND`
+- Original local 3D food artwork for `HOT_DOG`, `KEBAB`, `HAM`, `STEAK`, `CARROT`, `CORN`, `CABBAGE`, and `TOMATO`; legacy animal-code configs are mapped to the same food wheel for compatibility
 - Server-time countdowns (client does not authoritatively advance game state)
 - Idempotent REST bet placement with a new `client_request_id` per bet
 - Socket.IO realtime round/wallet events
