@@ -10,6 +10,8 @@ import type {
   BetAcceptedEvent,
   GreedySnapshot,
   PlayerBet,
+  PublicBetAggregate,
+  PublicBetPlacedEvent,
   PublicOption,
   RoundResultEvent,
   WalletBalanceEvent,
@@ -23,9 +25,43 @@ export type GameNotice = {
 
 type PendingBet = {
   amount: bigint;
+  optionId: string;
   requestId: string;
   roundId: string;
 };
+
+export type BetLanding = {
+  id: string;
+  optionId: string;
+};
+
+function aggregateRecency(
+  candidate: Pick<PublicBetAggregate, "bet_count" | "last_bet_at">,
+  current: Pick<PublicBetAggregate, "bet_count" | "last_bet_at">,
+): number {
+  if (candidate.bet_count !== current.bet_count) {
+    return candidate.bet_count - current.bet_count;
+  }
+  const candidateTime = new Date(candidate.last_bet_at).getTime();
+  const currentTime = new Date(current.last_bet_at).getTime();
+  if (Number.isFinite(candidateTime) && Number.isFinite(currentTime)) {
+    return candidateTime - currentTime;
+  }
+  return candidate.last_bet_at.localeCompare(current.last_bet_at);
+}
+
+function fresherAggregate(
+  left: PublicBetAggregate,
+  right: PublicBetAggregate,
+): PublicBetAggregate {
+  const newer = aggregateRecency(left, right) > 0 ? left : right;
+  const other = newer === left ? right : left;
+  return {
+    ...newer,
+    display_name: newer.display_name ?? other.display_name,
+    avatar_url: newer.avatar_url ?? other.avatar_url,
+  };
+}
 
 function eventAlreadySeen(eventId: unknown, seen: Set<string>): boolean {
   if (typeof eventId !== "string" || !eventId) return false;
@@ -54,6 +90,7 @@ export function useGreedyGame() {
   const [fatalError, setFatalError] = useState<string | null>(null);
   const [resultModalOpen, setResultModalOpen] = useState(false);
   const [resultModalDisplayMs, setResultModalDisplayMs] = useState(3_500);
+  const [betLandings, setBetLandings] = useState<BetLanding[]>([]);
 
   const mountedRef = useRef(false);
   const snapshotRef = useRef<GreedySnapshot | null>(null);
@@ -64,15 +101,21 @@ export function useGreedyGame() {
   const seenEventIdsRef = useRef(new Set<string>());
   const resultCloseTimerRef = useRef<number | null>(null);
   const serverOffsetRef = useRef(0);
+  const animatedBetIdsRef = useRef(new Set<string>());
+  const landingTimersRef = useRef(new Set<number>());
 
   const syncPendingBets = useCallback(() => {
-    setPendingOptionIds(new Set(pendingBetAmountsRef.current.keys()));
-    setPendingOptionAmounts(new Map(
-      Array.from(pendingBetAmountsRef.current, ([optionId, pendingBet]) => [
-        optionId,
-        pendingBet.amount,
-      ] as const),
-    ));
+    const optionIds = new Set<string>();
+    const optionAmounts = new Map<string, bigint>();
+    for (const pendingBet of pendingBetAmountsRef.current.values()) {
+      optionIds.add(pendingBet.optionId);
+      optionAmounts.set(
+        pendingBet.optionId,
+        (optionAmounts.get(pendingBet.optionId) ?? 0n) + pendingBet.amount,
+      );
+    }
+    setPendingOptionIds(optionIds);
+    setPendingOptionAmounts(optionAmounts);
     setPendingBetTotal(
       Array.from(pendingBetAmountsRef.current.values())
         .reduce((total, pendingBet) => total + pendingBet.amount, 0n),
@@ -81,6 +124,25 @@ export function useGreedyGame() {
 
   const pushNotice = useCallback((kind: ToastKind, message: string) => {
     showToast(kind, message);
+  }, []);
+
+  const queueBetLanding = useCallback((betId: string, optionId: string) => {
+    if (!betId || animatedBetIdsRef.current.has(betId)) return;
+    animatedBetIdsRef.current.add(betId);
+    if (animatedBetIdsRef.current.size > 500) {
+      const first = animatedBetIdsRef.current.values().next().value as string | undefined;
+      if (first) animatedBetIdsRef.current.delete(first);
+    }
+
+    const landing = { id: betId, optionId };
+    setBetLandings((current) => [...current, landing].slice(-24));
+    const timer = window.setTimeout(() => {
+      landingTimersRef.current.delete(timer);
+      if (mountedRef.current) {
+        setBetLandings((current) => current.filter((item) => item.id !== landing.id));
+      }
+    }, 850);
+    landingTimersRef.current.add(timer);
   }, []);
 
   const scheduleResultClose = useCallback((durationMs: number) => {
@@ -137,6 +199,27 @@ export function useGreedyGame() {
                 my_bets: [...next.my_bets, ...missingBets],
               };
             }
+            if (previousSnapshot?.round && reconciled.round) {
+              const mergedBettors = new Map<string, PublicBetAggregate>();
+              for (const bettor of reconciled.round.bettors ?? []) {
+                mergedBettors.set(`${bettor.option_id}:${bettor.user_id}`, bettor);
+              }
+              for (const bettor of previousSnapshot.round.bettors ?? []) {
+                const key = `${bettor.option_id}:${bettor.user_id}`;
+                const recoveredBettor = mergedBettors.get(key);
+                mergedBettors.set(
+                  key,
+                  recoveredBettor ? fresherAggregate(bettor, recoveredBettor) : bettor,
+                );
+              }
+              reconciled = {
+                ...reconciled,
+                round: {
+                  ...reconciled.round,
+                  bettors: Array.from(mergedBettors.values()),
+                },
+              };
+            }
             if (previousSnapshot?.round?.result && !reconciled.round?.result) {
               reconciled = {
                 ...reconciled,
@@ -156,12 +239,13 @@ export function useGreedyGame() {
           setFatalError(null);
 
           if (previousRoundId && nextRoundId !== previousRoundId) {
-            for (const [optionId, pendingBet] of pendingBetAmountsRef.current) {
+            for (const [requestId, pendingBet] of pendingBetAmountsRef.current) {
               if (pendingBet.roundId !== nextRoundId) {
-                pendingBetAmountsRef.current.delete(optionId);
+                pendingBetAmountsRef.current.delete(requestId);
               }
             }
             syncPendingBets();
+            setBetLandings([]);
             setResultModalOpen(false);
             if (resultCloseTimerRef.current) window.clearTimeout(resultCloseTimerRef.current);
           }
@@ -204,7 +288,6 @@ export function useGreedyGame() {
   }, [pushNotice, scheduleResultClose, syncPendingBets]);
 
   const placeBet = useCallback(async (option: PublicOption, amount: string) => {
-    if (pendingBetAmountsRef.current.has(option.id)) return false;
     const current = snapshotRef.current;
     const round = current?.round;
     if (!current || !round) {
@@ -238,18 +321,8 @@ export function useGreedyGame() {
       return false;
     }
 
-    // One selection per round: block backing a different option once the user
-    // has committed (or is committing) to one this round.
-    const chosenOptionId = current.my_bets.find((bet) => bet.round_id === round.id)?.option.id
-      ?? pendingBetAmountsRef.current.keys().next().value
-      ?? null;
-    if (chosenOptionId && chosenOptionId !== option.id) {
-      pushNotice("info", "You can back only one option per round.");
-      return false;
-    }
-
     const roundExposure = current.my_bets.reduce(
-      (total, bet) => total + BigInt(bet.amount),
+      (total, bet) => bet.round_id === round.id ? total + BigInt(bet.amount) : total,
       0n,
     );
     const pendingExposure = Array.from(pendingBetAmountsRef.current.values())
@@ -269,8 +342,9 @@ export function useGreedyGame() {
     }
 
     const clientRequestId = createBetRequestId();
-    pendingBetAmountsRef.current.set(option.id, {
+    pendingBetAmountsRef.current.set(clientRequestId, {
       amount: betAmount,
+      optionId: option.id,
       requestId: clientRequestId,
       roundId: round.id,
     });
@@ -336,6 +410,7 @@ export function useGreedyGame() {
         return updated;
       });
 
+      queueBetLanding(response.bet_id, response.option_id);
       pushNotice("success", `${amount} coins placed on ${option.name}`);
       return true;
     } catch (error) {
@@ -343,7 +418,7 @@ export function useGreedyGame() {
         && (error.status === 0 || error.status === 408);
       if (uncertain) {
         keepPendingUntilRoundChanges = true;
-        pushNotice("info", "Still confirming this bet. This choice will stay locked for your safety.");
+        pushNotice("info", "Still confirming this bet. Its amount remains reserved for your safety.");
         await recover("bet-uncertain");
       } else {
         const message = error instanceof Error ? error.message : "Bet could not be placed";
@@ -357,18 +432,19 @@ export function useGreedyGame() {
       }
       return false;
     } finally {
-      const pendingBet = pendingBetAmountsRef.current.get(option.id);
+      const pendingBet = pendingBetAmountsRef.current.get(clientRequestId);
       if (!keepPendingUntilRoundChanges && pendingBet?.requestId === clientRequestId) {
-        pendingBetAmountsRef.current.delete(option.id);
+        pendingBetAmountsRef.current.delete(clientRequestId);
       }
       if (mountedRef.current) {
         syncPendingBets();
       }
     }
-  }, [pushNotice, recover, serverOffsetMs, syncPendingBets]);
+  }, [pushNotice, queueBetLanding, recover, serverOffsetMs, syncPendingBets]);
 
   useEffect(() => {
     mountedRef.current = true;
+    const landingTimers = landingTimersRef.current;
     let socket: Socket | null = null;
 
     const handleDurableEvent = (payload: { event_id?: string }, action: () => void) => {
@@ -398,31 +474,36 @@ export function useGreedyGame() {
 
     const onRoundResult = (payload: RoundResultEvent) => {
       handleDurableEvent(payload, () => {
-        revealedRoundIdRef.current = payload.round_id;
-        setSnapshot((current) => {
-          if (!current?.round || current.round.id !== payload.round_id) return current;
-          const winningOption = current.round.options.find(
-            (option) => option.id === payload.winning_option.id,
-          );
-          if (!winningOption) return current;
-          const updated = {
-            ...current,
-            round: {
-              ...current.round,
-              status: "result_revealed",
-              result: {
-                round_id: payload.round_id,
-                winning_option: { ...winningOption, ...payload.winning_option },
-                revealed_at: payload.revealed_at,
-              },
+        const current = snapshotRef.current;
+        const winningOption = current?.round?.id === payload.round_id
+          ? current.round.options.find(
+              (option) => option.id === payload.winning_option.id,
+            )
+          : null;
+        if (!current?.round || !winningOption) {
+          void recover("socket-result-missing-snapshot");
+          return;
+        }
+
+        const updated: GreedySnapshot = {
+          ...current,
+          round: {
+            ...current.round,
+            status: "result_revealed",
+            result: {
+              round_id: payload.round_id,
+              winning_option: { ...winningOption, ...payload.winning_option },
+              revealed_at: payload.revealed_at,
+              top_winners: payload.top_winners ?? [],
             },
-          };
-          snapshotRef.current = updated;
-          return updated;
-        });
+          },
+        };
+        revealedRoundIdRef.current = payload.round_id;
+        snapshotRef.current = updated;
+        setSnapshot(updated);
         const resultDurationMs =
-          snapshotRef.current?.round?.result_duration_ms
-          ?? snapshotRef.current?.active_config?.result_duration_ms
+          updated.round?.result_duration_ms
+          ?? updated.active_config.result_duration_ms
           ?? 3_500;
         const resultAgeMs = Math.max(
           0,
@@ -479,14 +560,76 @@ export function useGreedyGame() {
           snapshotRef.current = updated;
           return updated;
         });
-        const pendingBet = pendingBetAmountsRef.current.get(payload.option_id);
+        const pendingBet = pendingBetAmountsRef.current.get(payload.client_request_id);
         if (
           pendingBet?.roundId === payload.round_id
           && pendingBet.requestId === payload.client_request_id
         ) {
-          pendingBetAmountsRef.current.delete(payload.option_id);
+          pendingBetAmountsRef.current.delete(payload.client_request_id);
           syncPendingBets();
         }
+      });
+    };
+
+    const onPublicBetPlaced = (payload: PublicBetPlacedEvent) => {
+      handleDurableEvent(payload, () => {
+        const currentRound = snapshotRef.current?.round;
+        if (!currentRound || currentRound.id !== payload.round_id) return;
+
+        const eventAggregate: PublicBetAggregate = {
+          round_id: payload.round_id,
+          option_id: payload.option_id,
+          user_id: payload.bettor.user_id,
+          display_name: payload.bettor.display_name,
+          avatar_url: payload.bettor.avatar_url,
+          total_amount: payload.total_amount,
+          bet_count: payload.bet_count,
+          first_bet_at: payload.first_bet_at,
+          last_bet_at: payload.last_bet_at,
+        };
+
+        const existing = currentRound.bettors.find(
+          (bettor) => bettor.option_id === payload.option_id
+            && bettor.user_id === payload.bettor.user_id,
+        );
+
+        const acceptedTime = new Date(payload.accepted_at).getTime();
+        const eventAgeMs = Date.now() + serverOffsetRef.current - acceptedTime;
+        if (Number.isFinite(acceptedTime) && eventAgeMs >= -1_000 && eventAgeMs <= 2_500) {
+          queueBetLanding(payload.bet_id, payload.option_id);
+        }
+        if (existing && aggregateRecency(eventAggregate, existing) <= 0) return;
+        setSnapshot((current) => {
+          if (!current?.round || current.round.id !== payload.round_id) return current;
+          const existingIndex = current.round.bettors.findIndex(
+            (bettor) => bettor.option_id === payload.option_id
+              && bettor.user_id === payload.bettor.user_id,
+          );
+          const existingBettor = existingIndex >= 0
+            ? current.round.bettors[existingIndex]
+            : null;
+          if (
+            existingBettor
+            && aggregateRecency(eventAggregate, existingBettor) <= 0
+          ) {
+            return current;
+          }
+
+          const nextBettor = existingBettor
+            ? fresherAggregate(eventAggregate, existingBettor)
+            : eventAggregate;
+          const bettors = existingIndex >= 0
+            ? current.round.bettors.map((bettor, index) => (
+                index === existingIndex ? nextBettor : bettor
+              ))
+            : [...current.round.bettors, nextBettor];
+          const updated = {
+            ...current,
+            round: { ...current.round, bettors },
+          };
+          snapshotRef.current = updated;
+          return updated;
+        });
       });
     };
 
@@ -533,6 +676,7 @@ export function useGreedyGame() {
       socket.on("greedy.round.drawing", onRoundRefresh);
       socket.on("greedy.round.result", onRoundResult);
       socket.on("greedy.bet.accepted", onBetAccepted);
+      socket.on("greedy.bet.placed", onPublicBetPlaced);
       socket.on("greedy.round.settled", onRoundRefresh);
       socket.on("greedy.round.closed", onRoundRefresh);
       socket.on("greedy.round.cancelled", onRoundRefresh);
@@ -564,6 +708,8 @@ export function useGreedyGame() {
       window.removeEventListener("online", onOnline);
       window.clearInterval(fallbackTimer);
       if (resultCloseTimerRef.current) window.clearTimeout(resultCloseTimerRef.current);
+      for (const timer of landingTimers) window.clearTimeout(timer);
+      landingTimers.clear();
       if (socket) {
         socket.off("connect");
         socket.off("disconnect", onDisconnect);
@@ -576,6 +722,7 @@ export function useGreedyGame() {
         socket.off("greedy.round.drawing", onRoundRefresh);
         socket.off("greedy.round.result", onRoundResult);
         socket.off("greedy.bet.accepted", onBetAccepted);
+        socket.off("greedy.bet.placed", onPublicBetPlaced);
         socket.off("greedy.round.settled", onRoundRefresh);
         socket.off("greedy.round.closed", onRoundRefresh);
         socket.off("greedy.round.cancelled", onRoundRefresh);
@@ -585,19 +732,24 @@ export function useGreedyGame() {
       }
     };
   // recover intentionally carries the latest authoritative snapshot behavior.
-  }, [pushNotice, recover, scheduleResultClose, syncPendingBets]);
+  }, [pushNotice, queueBetLanding, recover, scheduleResultClose, syncPendingBets]);
 
   const roundBetTotal = useMemo(() => {
-    return snapshot?.my_bets.reduce((sum, bet) => sum + BigInt(bet.amount), 0n).toString() ?? "0";
-  }, [snapshot?.my_bets]);
+    const roundId = snapshot?.round?.id;
+    return snapshot?.my_bets.reduce(
+      (sum, bet) => bet.round_id === roundId ? sum + BigInt(bet.amount) : sum,
+      0n,
+    ).toString() ?? "0";
+  }, [snapshot?.my_bets, snapshot?.round?.id]);
 
   const optionBetTotals = useMemo(() => {
     const totals = new Map<string, bigint>();
     for (const bet of snapshot?.my_bets ?? []) {
+      if (bet.round_id !== snapshot?.round?.id) continue;
       totals.set(bet.option.id, (totals.get(bet.option.id) ?? 0n) + BigInt(bet.amount));
     }
     return totals;
-  }, [snapshot?.my_bets]);
+  }, [snapshot?.my_bets, snapshot?.round?.id]);
 
   return {
     snapshot,
@@ -612,6 +764,7 @@ export function useGreedyGame() {
     notice: null as GameNotice,
     resultModalOpen,
     resultModalDisplayMs,
+    betLandings,
     setResultModalOpen,
     roundBetTotal,
     optionBetTotals,

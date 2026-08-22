@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { X } from "lucide-react";
+import { Crown, X } from "lucide-react";
+import { PlayerAvatar } from "@/components/greedy/player-avatar";
 import { getOptionDisplayName, OptionArtwork } from "@/lib/option-art";
-import { formatInteger } from "@/lib/format";
+import { formatInteger, formatMultiplier, multiplyRational } from "@/lib/format";
+import { playerDisplayName } from "@/lib/player-display";
 import type { GreedySnapshot } from "@/types/greedy";
 
 type ModalClock = {
@@ -79,10 +81,37 @@ export function ResultModal({
   }, [displayMs, open, round?.id]);
 
   const totals = useMemo(() => {
-    const stake = snapshot.my_bets.reduce((sum, bet) => sum + BigInt(bet.amount), 0n);
-    const payout = snapshot.my_bets.reduce((sum, bet) => sum + BigInt(bet.settlement?.payout_amount ?? "0"), 0n);
-    return { stake, payout };
-  }, [snapshot.my_bets]);
+    const currentBets = snapshot.my_bets.filter((bet) => bet.round_id === round?.id);
+    const stake = currentBets.reduce((sum, bet) => sum + BigInt(bet.amount), 0n);
+    const winningOption = round?.result?.winning_option;
+    if (!winningOption) {
+      return { stake, winningStake: 0n, payout: 0n };
+    }
+
+    const winningBets = currentBets.filter((bet) => bet.option.id === winningOption.id);
+    const winningStake = winningBets.reduce((sum, bet) => sum + BigInt(bet.amount), 0n);
+    const calculatedPayout = BigInt(multiplyRational(
+      winningStake.toString(),
+      winningOption.payout_numerator,
+      winningOption.payout_denominator,
+    ));
+    const leaderboardPayout = round.result?.top_winners?.find(
+      (winner) => winner.user_id === snapshot.wallet.user_id,
+    )?.total_payout;
+    const settlementsReady = winningBets.length > 0
+      && winningBets.every((bet) => bet.settlement !== null);
+    const settledPayout = winningBets.reduce(
+      (sum, bet) => sum + BigInt(bet.settlement?.payout_amount ?? "0"),
+      0n,
+    );
+    const payout = leaderboardPayout !== undefined
+      ? BigInt(leaderboardPayout)
+      : settlementsReady
+        ? settledPayout
+        : calculatedPayout;
+
+    return { stake, winningStake, payout };
+  }, [round, snapshot.my_bets, snapshot.wallet.user_id]);
 
   if (!open || !round || !result) return null;
 
@@ -91,11 +120,13 @@ export function ResultModal({
     : Math.ceil(displayMs / 1000);
   const winner = result.winning_option;
   const winnerName = getOptionDisplayName(winner.code, winner.name);
-  const winningBet = snapshot.my_bets.some((bet) => bet.option.id === winner.id);
-  const payoutPending = snapshot.my_bets.some((bet) => !bet.settlement)
-    && (round.status === "result_revealed" || round.status === "settling");
-  const payoutLabel = payoutPending ? "Settling…" : formatInteger(totals.payout);
-  const outcome = totals.stake === 0n ? "No selection this round" : winningBet ? "You picked the winner!" : "Better luck next round";
+  const hasWon = totals.winningStake > 0n && totals.payout > 0n;
+  const payoutLabel = formatInteger(totals.payout);
+  const multiplier = winner.payout_multiplier
+    || formatMultiplier(winner.payout_numerator, winner.payout_denominator);
+  const topWinners = [...(result.top_winners ?? [])]
+    .sort((a, b) => a.rank - b.rank)
+    .slice(0, 3);
 
   return (
     <div
@@ -125,35 +156,52 @@ export function ResultModal({
           />
         </div>
 
-        <div className="result-card">
-          <p className="result-card__line">
-            The <em>{round.round_number}</em> round&apos;s result:
-            <span className="result-card__inline-art">
-              <OptionArtwork imageUrl={winner.image_url} code={winner.code} name={winnerName} className="result-card__inline-image" />
-            </span>
+        <div className={`result-card${hasWon ? " result-card--win" : ""}`}>
+          <p className="result-card__eyebrow" aria-live="polite">
+            {hasWon ? "YOU WIN" : "ROUND RESULT"}
           </p>
-          <p className="result-card__line">
-            This round&apos;s winnings: <span className="game-gem" aria-hidden="true">◆</span>
-            <strong aria-live="polite">{payoutLabel}</strong>
-          </p>
-          <p className="result-card__line">
-            Your selection this round: <span className="game-coin game-coin--inline" aria-hidden="true" /> <strong>{formatInteger(totals.stake)}</strong>
-          </p>
+          <h3>{winnerName}</h3>
+          <p className="result-card__round">Round {round.round_number} winning item · {multiplier}</p>
 
-          <div className="result-card__divider"><span>Your result</span></div>
-
-          <div className="result-card__player">
-            <div className="result-card__avatar">
-              <OptionArtwork imageUrl={winner.image_url} code={winner.code} name={winnerName} className="result-card__avatar-image" />
-              <small>You</small>
-            </div>
-            <div>
-              <strong>{outcome}</strong>
-              <span><span className="game-gem" aria-hidden="true">◆</span>{payoutLabel}</span>
-            </div>
+          <div className="result-card__payout">
+            <span>Your gross payout</span>
+            <strong><span className="game-gem" aria-hidden="true">◆</span>{payoutLabel}</strong>
+            <small>
+              {hasWon
+                ? `${formatInteger(totals.winningStake)} winning stake × ${multiplier}`
+                : totals.stake > 0n
+                  ? "Your selected items did not win this round"
+                  : "You did not place a bet this round"}
+            </small>
           </div>
 
-          <p className="result-card__note">The public winner and your payout are verified by the game server.</p>
+          <div className="result-card__divider"><span>Top 3 winners</span></div>
+
+          {topWinners.length > 0 ? (
+            <ol className="result-leaderboard">
+              {topWinners.map((topWinner) => {
+                const isCurrentPlayer = topWinner.user_id === snapshot.wallet.user_id;
+                return (
+                  <li key={topWinner.user_id} className={`result-leaderboard__row result-leaderboard__row--${topWinner.rank}`}>
+                    <span className="result-leaderboard__rank" aria-label={`Rank ${topWinner.rank}`}>
+                      <Crown aria-hidden="true" />
+                      <b>{topWinner.rank}</b>
+                    </span>
+                    <PlayerAvatar player={topWinner} className="result-leaderboard__avatar" />
+                    <span className="result-leaderboard__player">
+                      <strong>{playerDisplayName(topWinner)}{isCurrentPlayer ? " (You)" : ""}</strong>
+                      <small>{formatInteger(topWinner.winning_stake)} winning stake · {topWinner.bet_count} {topWinner.bet_count === 1 ? "bet" : "bets"}</small>
+                    </span>
+                    <b className="result-leaderboard__payout"><span className="game-gem" aria-hidden="true">◆</span>{formatInteger(topWinner.total_payout)}</b>
+                  </li>
+                );
+              })}
+            </ol>
+          ) : (
+            <p className="result-leaderboard__empty">No player selected the winning item.</p>
+          )}
+
+          <p className="result-card__note">All winning players are paid. The podium only highlights the three biggest gross payouts.</p>
         </div>
       </section>
     </div>

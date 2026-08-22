@@ -37,6 +37,30 @@ export type WinningOption = Pick<
   | "payout_multiplier"
 >;
 
+export type PlayerIdentity = {
+  user_id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+};
+
+/** One permanent, server-aggregated row per option and player. */
+export type PublicBetAggregate = PlayerIdentity & {
+  round_id: string;
+  option_id: string;
+  total_amount: string;
+  bet_count: number;
+  first_bet_at: string;
+  last_bet_at: string;
+};
+
+export type TopWinner = PlayerIdentity & {
+  rank: number;
+  winning_stake: string;
+  total_payout: string;
+  bet_count: number;
+  first_bet_at: string;
+};
+
 export type ChipValue = {
   id: string;
   amount: string;
@@ -65,6 +89,7 @@ export type RoundResult = {
   generated_at?: string;
   revealed_at: string | null;
   winning_option: PublicOption;
+  top_winners: TopWinner[];
 };
 
 export type SnapshotRound = {
@@ -85,6 +110,7 @@ export type SnapshotRound = {
   result_reveal_at: string | null;
   options: PublicOption[];
   chip_values: ChipValue[];
+  bettors: PublicBetAggregate[];
   result: RoundResult | null;
 };
 
@@ -169,6 +195,20 @@ export type BetResponse = {
 
 export type BetAcceptedEvent = BetResponse & { event_id: string };
 
+export type PublicBetPlacedEvent = {
+  event_id: string;
+  bet_id: string;
+  round_id: string;
+  option_id: string;
+  amount: string;
+  accepted_at: string;
+  total_amount: string;
+  bet_count: number;
+  first_bet_at: string;
+  last_bet_at: string;
+  bettor: PlayerIdentity;
+};
+
 export type SocketEnvelope = { event_id?: string } & Record<string, unknown>;
 
 export type RoundOpenedEvent = {
@@ -199,6 +239,7 @@ export type RoundResultEvent = {
   round_id: string;
   winning_option: WinningOption;
   revealed_at: string;
+  top_winners: TopWinner[];
 };
 
 export type WalletBalanceEvent = {

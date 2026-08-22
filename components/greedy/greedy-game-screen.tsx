@@ -17,6 +17,7 @@ import { useGreedyGame } from "@/hooks/use-greedy-game";
 import { formatInteger } from "@/lib/format";
 import { getOptionDisplayName, OptionArtwork } from "@/lib/option-art";
 import { BetOptionNode } from "@/components/greedy/bet-option-node";
+import { BettorListSheet } from "@/components/greedy/bettor-list-sheet";
 import { CenterStage } from "@/components/greedy/center-stage";
 import { ChipTray } from "@/components/greedy/chip-tray";
 import { RecentResults } from "@/components/greedy/recent-results";
@@ -24,18 +25,19 @@ import { ResultModal } from "@/components/greedy/result-modal";
 import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
+import type { PublicBetAggregate } from "@/types/greedy";
 
 // A 129px orbit keeps every node circular and evenly spaced while reserving
 // a 9px visual safety gap below the toolbar and round banner at 414px.
 const NODE_POSITIONS = [
-  { left: 50, top: 18.392857 },
-  { left: 72.033037, top: 25.139862 },
-  { left: 81.15942, top: 41.428571 },
-  { left: 72.033037, top: 57.717281 },
-  { left: 50, top: 64.464286 },
-  { left: 27.966963, top: 57.717281 },
-  { left: 18.84058, top: 41.428571 },
-  { left: 27.966963, top: 25.139862 },
+  { left: 50, top: 18.392857, markerPlacement: "n" },
+  { left: 72.033037, top: 25.139862, markerPlacement: "ne" },
+  { left: 81.15942, top: 41.428571, markerPlacement: "e" },
+  { left: 72.033037, top: 57.717281, markerPlacement: "se" },
+  { left: 50, top: 64.464286, markerPlacement: "s" },
+  { left: 27.966963, top: 57.717281, markerPlacement: "sw" },
+  { left: 18.84058, top: 41.428571, markerPlacement: "w" },
+  { left: 27.966963, top: 25.139862, markerPlacement: "nw" },
 ] as const;
 
 const SPOKE_POINTS = [
@@ -177,6 +179,7 @@ export function GreedyGameScreen() {
     fatalError,
     resultModalOpen,
     resultModalDisplayMs,
+    betLandings,
     setResultModalOpen,
     roundBetTotal,
     optionBetTotals,
@@ -202,6 +205,10 @@ export function GreedyGameScreen() {
   );
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
+  const [bettorSheetSelection, setBettorSheetSelection] = useState<{
+    roundId: string;
+    optionId: string;
+  } | null>(null);
   const helpCloseRef = useRef<HTMLButtonElement>(null);
   const disabledChipAmounts = useMemo(() => {
     const disabled = new Set<string>();
@@ -253,13 +260,20 @@ export function GreedyGameScreen() {
       ? Math.abs(Math.floor(drawingMs / 360)) % Math.min(options.length, 8)
       : -1;
   const winnerId = snapshot?.round?.result?.winning_option.id ?? null;
-  const lockedOptionId = useMemo(() => {
-    for (const id of pendingOptionIds) return id;
-    for (const [id, amount] of optionBetTotals) {
-      if (amount > 0n) return id;
+  const bettorsByOption = useMemo(() => {
+    const grouped = new Map<string, PublicBetAggregate[]>();
+    for (const bettor of snapshot?.round?.bettors ?? []) {
+      const bettors = grouped.get(bettor.option_id) ?? [];
+      bettors.push(bettor);
+      grouped.set(bettor.option_id, bettors);
     }
-    return null;
-  }, [pendingOptionIds, optionBetTotals]);
+    for (const bettors of grouped.values()) {
+      bettors.sort((a, b) => (
+        new Date(b.last_bet_at).getTime() - new Date(a.last_bet_at).getTime()
+      ));
+    }
+    return grouped;
+  }, [snapshot?.round]);
   const canBet =
     snapshot?.game.status === "active" &&
     snapshot?.round?.status === "betting_open" &&
@@ -270,6 +284,15 @@ export function GreedyGameScreen() {
     const roundNumber = snapshot?.round?.round_number;
     return roundNumber ? `Today’s ${roundNumber} Round` : "Today’s Round";
   }, [snapshot?.round?.round_number]);
+
+  const bettorSheetOption = (
+    bettorSheetSelection?.roundId === snapshot?.round?.id
+  )
+    ? options.find((option) => option.id === bettorSheetSelection?.optionId) ?? null
+    : null;
+  const bettorSheetBettors = bettorSheetOption
+    ? bettorsByOption.get(bettorSheetOption.id) ?? []
+    : [];
 
   useEffect(() => {
     if (!helpOpen) return;
@@ -450,15 +473,27 @@ export function GreedyGameScreen() {
               option={option}
               left={position.left}
               top={position.top}
+              bettorPlacement={position.markerPlacement}
               myBet={(
                 (optionBetTotals.get(option.id) ?? 0n)
                 + (pendingOptionAmounts.get(option.id) ?? 0n)
               ).toString()}
               winner={winnerId === option.id}
               drawingHighlighted={drawingFocusIndex === index}
-              disabled={!canBet || (lockedOptionId !== null && lockedOptionId !== option.id)}
+              disabled={!canBet}
               busy={pendingOptionIds.has(option.id)}
+              bettors={bettorsByOption.get(option.id) ?? []}
+              landingIds={betLandings
+                .filter((landing) => landing.optionId === option.id)
+                .map((landing) => landing.id)}
               onPress={() => void placeBet(option, effectiveSelectedChip)}
+              onViewBettors={() => {
+                if (!snapshot.round) return;
+                setBettorSheetSelection({
+                  roundId: snapshot.round.id,
+                  optionId: option.id,
+                });
+              }}
             />
           );
         })}
@@ -574,7 +609,8 @@ export function GreedyGameScreen() {
             <h2 id="greedy-help-title">How to play</h2>
             <ol>
               <li>Choose a coin value on the blue stand.</li>
-              <li>Tap any round option before the timer reaches zero.</li>
+              <li>Tap one or several options before the timer reaches zero. Every tap places another bet immediately.</li>
+              <li>Tap the player markers on an option to see everyone who selected it.</li>
               <li>
                 The highlighted draw is visual only; the server publishes the
                 verified winner.
@@ -583,6 +619,13 @@ export function GreedyGameScreen() {
           </div>
         </div>
       )}
+
+      <BettorListSheet
+        option={bettorSheetOption}
+        bettors={bettorSheetBettors}
+        open={Boolean(bettorSheetOption) && !resultModalOpen}
+        onClose={() => setBettorSheetSelection(null)}
+      />
 
       <ResultModal
         snapshot={snapshot}

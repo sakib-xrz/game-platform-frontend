@@ -17,9 +17,10 @@ Production-oriented **mobile-only** Next.js frontend for the supplied multi-game
 - Socket.IO realtime round/wallet events
 - Snapshot recovery on load, reconnect, visibility resume, network resume and fallback polling
 - Durable Socket `event_id` de-duplication
-- Wallet balance and current-user round exposure
+- Wallet balance, current-user round exposure, and immediate multi-item betting
+- Public per-option bettor aggregates with compact avatar markers, live coin landings, and a complete bettor sheet
 - Recent revealed-result strip
-- Result modal using the authoritative backend winner/settlements
+- Result modal using the authoritative backend winner, current-player gross payout, and aggregate Top-3 winners
 - iOS/Android safe-area handling and Flutter WebView-friendly viewport behavior
 - Loading/error/offline/reconnecting UI
 - Production standalone Docker image
@@ -40,6 +41,7 @@ Socket events used:
 - `greedy.round.locked`
 - `greedy.round.drawing`
 - `greedy.round.result`
+- `greedy.bet.placed`
 - `greedy.round.settled`
 - `greedy.round.closed`
 - `greedy.round.cancelled`
@@ -50,11 +52,12 @@ The UI intentionally re-fetches `/games/greedy/snapshot` after important round e
 
 ## Screenshot features intentionally not faked
 
-The screenshots contain values such as **Today's profits**, global profit ranking, biggest-winner profiles, gift state, popularity/Hot state, recommendation packages and a coin-to-diamond exchange rate. The supplied backend does not expose those values, so this frontend does **not** invent them:
+The screenshots contain values such as **Today's profits**, a global all-time profit ranking, gift state, popularity/Hot state, recommendation packages and a coin-to-diamond exchange rate. The supplied backend does not expose those values, so this frontend does **not** invent them:
 
 - the second wallet pill truthfully shows the current round selection;
-- the ranking-shaped card explicitly reports that ranking data is unavailable;
-- the result sheet shows only the current player result and authoritative payout;
+- the dashboard ranking-shaped card shows only the latest verified result;
+- the result sheet shows the current player result and the authoritative round Top 3, not a fabricated global ranking;
+- bettor names and avatars use trusted platform values when supplied, otherwise temporary shortened IDs and generated initials;
 - the conversion-shaped plaque describes the backend's one-coin/one-stake semantics.
 
 Those slots can be populated without restructuring the screen when matching backend endpoints/events are added.
