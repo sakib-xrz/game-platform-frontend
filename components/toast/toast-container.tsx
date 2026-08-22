@@ -29,7 +29,7 @@ export function ToastContainer({ className }: { className?: string }) {
   return (
     <div
       className={clsx(
-        "pointer-events-none fixed inset-x-0 top-0 z-[9999] flex justify-center px-4 pt-[max(14px,env(safe-area-inset-top))]",
+        "pointer-events-none fixed inset-x-0 top-0 z-9999 flex justify-center px-4 pt-[max(14px,env(safe-area-inset-top))]",
         className,
       )}
       aria-live={isError ? "assertive" : "polite"}

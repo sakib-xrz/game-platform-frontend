@@ -609,7 +609,7 @@ export function useGreedyGame() {
     connected,
     serverOffsetMs,
     fatalError,
-    notice,
+    notice: null as GameNotice,
     resultModalOpen,
     resultModalDisplayMs,
     setResultModalOpen,

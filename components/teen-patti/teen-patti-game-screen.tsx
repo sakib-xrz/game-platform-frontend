@@ -14,7 +14,6 @@ import {
 import { useCountdown } from "@/hooks/use-countdown";
 import { useTeenPattiGame } from "@/hooks/use-teen-patti-game";
 import { formatInteger } from "@/lib/format";
-import { GameNotice } from "@/components/greedy/game-notice";
 import { BetFlyLayer, type FlyChip } from "@/components/teen-patti/bet-fly-layer";
 import { DeckColumn, type DeckVisualPhase } from "@/components/teen-patti/deck-column";
 import { TeenPattiChipTray } from "@/components/teen-patti/teen-patti-chip-tray";
@@ -72,7 +71,6 @@ export function TeenPattiGameScreen() {
     connected,
     serverOffsetMs,
     fatalError,
-    notice,
     resultModalOpen,
     setResultModalOpen,
     roundBetTotal,
@@ -319,7 +317,6 @@ export function TeenPattiGameScreen() {
   return (
     <main className="mobile-canvas greedy-shell tp-shell">
       <DevPlayerSwitcher variant="compact" />
-      <GameNotice notice={notice} className="tp-game-notice" />
       {flyChips.map((chip) => (
         <BetFlyLayer
           key={chip.id}
