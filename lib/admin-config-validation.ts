@@ -33,5 +33,5 @@ export function validateAdminConfig(input: CreateAdminConfigInput): ConfigValida
     const contribution = denominator && totalWeight ? Number(weight * numerator * 1_000_000n / (totalWeight * denominator)) / 10_000 : 0;
     return { code: item.code, probability_percent: probability, payout_contribution_percent: contribution };
   });
-  return { valid: failures.length === 0, failures, total_weight: totalWeight.toString(), theoretical_return_percent: options.reduce((sum, item) => sum + item.payout_contribution_percent, 0), options };
+  return { valid: failures.length === 0, failures, total_weight: totalWeight.toString(), theoretical_return_percent: options.length ? Math.max(...options.map((item) => item.payout_contribution_percent)) : 0, options };
 }
