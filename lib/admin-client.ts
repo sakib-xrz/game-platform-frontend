@@ -99,4 +99,58 @@ export const adminClient = {
   acknowledgeAlert: (id: string) => adminFetch(`/greedy/alerts/${encodeURIComponent(id)}/acknowledge`, { method: "POST" }),
   resolveAlert: (id: string) => adminFetch(`/greedy/alerts/${encodeURIComponent(id)}/resolve`, { method: "POST" }),
   setAvailability: (status: "active" | "maintenance" | "disabled") => adminFetch("/greedy/availability", { method: "POST", body: JSON.stringify({ status }) }),
+  teenPatti: {
+    runtime: () =>
+      adminFetch<import("@/types/admin").AdminRuntime>("/teen-patti/runtime"),
+    configs: () =>
+      adminFetch<import("@/types/admin").TeenPattiAdminConfigVersion[]>(
+        "/teen-patti/configs",
+      ),
+    createConfig: (payload: import("@/types/admin").CreateTeenPattiAdminConfigInput) =>
+      adminFetch("/teen-patti/configs", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    config: (id: string) =>
+      adminFetch<import("@/types/admin").TeenPattiAdminConfigVersion>(
+        `/teen-patti/configs/${id}`,
+      ),
+    updateConfig: (
+      id: string,
+      payload: import("@/types/admin").CreateTeenPattiAdminConfigInput,
+    ) =>
+      adminFetch(`/teen-patti/configs/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      }),
+    cloneConfig: (id: string) =>
+      adminFetch<import("@/types/admin").TeenPattiAdminConfigVersion>(
+        `/teen-patti/configs/${id}/clone`,
+        { method: "POST" },
+      ),
+    validateConfig: (
+      payload: import("@/types/admin").CreateTeenPattiAdminConfigInput,
+    ) =>
+      adminFetch<import("@/types/admin").TeenPattiConfigValidationPreview>(
+        "/teen-patti/configs/validate",
+        { method: "POST", body: JSON.stringify(payload) },
+      ),
+    publish: (id: string) =>
+      adminFetch(`/teen-patti/configs/${id}/publish`, { method: "POST" }),
+    publishApproved: (approvalId: string) =>
+      adminFetch("/teen-patti/configs/publish-approved", {
+        method: "POST",
+        body: JSON.stringify({ approval_id: approvalId }),
+      }),
+    resume: () => adminFetch("/teen-patti/resume", { method: "POST" }),
+    pause: () => adminFetch("/teen-patti/pause", { method: "POST" }),
+    uploadAsset: (file: File) => {
+      const data = new FormData();
+      data.append("file", file);
+      return adminFetch<import("@/types/admin").AdminAsset>(
+        "/teen-patti/assets",
+        { method: "POST", body: data },
+      );
+    },
+  },
 };

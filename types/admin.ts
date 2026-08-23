@@ -107,6 +107,61 @@ export type CreateAdminConfigInput = {
   chip_values: AdminChipValue[];
 };
 
+export type TeenPattiAdminOption = {
+  id?: string;
+  config_version_id?: string;
+  code: string;
+  name: string;
+  image_url: string | null;
+  asset_id?: string | null;
+  display_order: number;
+  is_enabled: boolean;
+};
+
+export type TeenPattiAdminConfigVersion = {
+  id: string;
+  game_id: string;
+  version: number;
+  status: "draft" | "review_pending" | "published" | "retired" | string;
+  betting_duration_ms: number;
+  lock_duration_ms: number;
+  drawing_duration_ms: number;
+  result_duration_ms: number;
+  min_bet: string;
+  max_single_bet: string;
+  max_round_bet: string;
+  rake_bps: number;
+  created_by: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  published_at: string | null;
+  retired_at: string | null;
+  options: TeenPattiAdminOption[];
+  chip_values: AdminChipValue[];
+};
+
+export type CreateTeenPattiAdminConfigInput = {
+  betting_duration_ms: number;
+  lock_duration_ms: number;
+  drawing_duration_ms: number;
+  result_duration_ms: number;
+  min_bet: string;
+  max_single_bet: string;
+  max_round_bet: string;
+  rake_bps: number;
+  notes?: string;
+  options: TeenPattiAdminOption[];
+  chip_values: AdminChipValue[];
+};
+
+export type TeenPattiConfigValidationPreview = {
+  valid: boolean;
+  failures: Array<{ field: string; message: string }>;
+  rake_bps: number;
+  decks: string[];
+};
+
 export type AdminError = { message?: string; errors?: string[] };
 export type AdminPaged<T> = T[];
 export type AdminPageMeta = { page: number; limit: number; total: number };
