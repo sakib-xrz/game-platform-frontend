@@ -358,3 +358,13 @@ export type WalletAdjustmentResult = {
   wallet?: { id: string; balance: string; version: number };
   ledger?: AdminWalletLedger;
 };
+
+export type AdminWalletSearchItem = {
+  id: string;
+  user_id: string;
+  balance: string;
+  version: number;
+  created_at: string;
+  updated_at: string;
+  currency: { code: string; name: string; symbol: string | null };
+};

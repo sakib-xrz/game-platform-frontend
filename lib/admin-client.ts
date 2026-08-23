@@ -69,6 +69,7 @@ export const adminClient = {
   pause: () => adminFetch("/greedy/pause", { method: "POST" }),
   cancel: (reason: string, approvalId?: string) => adminFetch<{ status?: string; approval_id?: string; round_id?: string; exposure?: string; expires_at?: string }>("/greedy/cancel-current-round", { method: "POST", body: JSON.stringify({ reason, ...(approvalId ? { approval_id: approvalId } : {}) }) }),
   adjustWallet: (payload: import("@/types/admin").WalletAdjustmentInput) => adminFetch<import("@/types/admin").WalletAdjustmentResult>("/wallets/adjust", { method: "POST", body: JSON.stringify(payload) }),
+  wallets: (query = "?page=1&limit=20") => adminFetchPaged<import("@/types/admin").AdminWalletSearchItem>(`/wallets${query}`),
   overview: () => adminFetch("/greedy/overview"),
   health: () => adminFetch("/greedy/health"),
   metrics: (query = "") => adminFetch(`/greedy/metrics${query}`),

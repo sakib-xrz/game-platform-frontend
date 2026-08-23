@@ -24,6 +24,15 @@ Production-oriented **mobile-only** Next.js frontend for the supplied multi-game
 - iOS/Android safe-area handling and Flutter WebView-friendly viewport behavior
 - Loading/error/offline/reconnecting UI
 - Production standalone Docker image
+- Protected Shadcn UI + Tailwind admin panel at `/admin/login`
+- Five-page admin navigation: Dashboard, Manage Greedy, Manage Teen Patti, Manage Lucky 77, and Adjust User Balance
+- Complete Greedy runtime/configuration/approval workflow and searchable audited wallet adjustments
+
+## Admin panel
+
+The admin panel uses the backend's opaque administrator sessions through a trusted Next.js BFF. The session token remains in an HTTP-only cookie; browser mutations additionally require the scoped CSRF cookie and unique idempotency/request identifiers.
+
+Only Manage Greedy and Adjust User Balance currently contain active controls. Dashboard is intentionally empty, while Teen Patti and Lucky 77 are reserved placeholders. Publishing a Greedy configuration automatically updates the authoritative runtime configuration consumed by the player snapshot. High-risk configuration publication and wallet adjustments retain the backend's independent approval workflow.
 
 ## Backend contract used
 
