@@ -5543,6 +5543,11 @@ a:focus-visible {
    Teen Patti player experience — self-contained. Does not touch Greedy.
    ========================================================================== */
 
+/* Deprecated skin retained for history only. The active, route-wide Teen Patti
+   skin lives in teen-patti.css; keeping this block out of the cascade prevents
+   duplicate transforms, keyframes, and safe-area padding. */
+@media not all {
+
 .tp-shell {
   position: relative;
   min-height: 100dvh;
@@ -6913,6 +6918,8 @@ a:focus-visible {
   .tp-bet-fly {
     transition: none !important;
   }
+}
+
 }
 
 .sr-only {

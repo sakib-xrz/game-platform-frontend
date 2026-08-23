@@ -10,6 +10,8 @@ import type {
   BetAcceptedEvent,
   DealtHand,
   PlayerBet,
+  PublicBetAggregate,
+  PublicBetPlacedEvent,
   PublicDeck,
   RoundDrawingEvent,
   RoundLockedEvent,
@@ -26,12 +28,33 @@ export type GameNotice = {
 
 type PendingBet = {
   amount: bigint;
+  optionId: string;
   requestId: string;
   roundId: string;
 };
 
-/** Wait for staggered card flips before opening the result sheet. */
-export const TEEN_PATTI_REVEAL_MS = 1_800;
+/** Let the staggered flips, winner glow, and payout sweep finish first. */
+export const TEEN_PATTI_REVEAL_MS = 3_000;
+const TEEN_PATTI_RESULT_LIVE_AGE_MS = 500;
+const TEEN_PATTI_RESULT_MIN_VISIBLE_MS = 1_600;
+
+function isUncertainBetError(error: unknown): error is ApiError {
+  return error instanceof ApiError
+    && (
+      error.status === 0
+      || error.status === 408
+      || (error.status === 409 && error.message.toLowerCase().includes("already being processed"))
+    );
+}
+
+function parseCoinAmount(value: string): bigint | null {
+  try {
+    const parsed = BigInt(value);
+    return parsed >= 0n ? parsed : null;
+  } catch {
+    return null;
+  }
+}
 
 function eventAlreadySeen(eventId: unknown, seen: Set<string>): boolean {
   if (typeof eventId !== "string" || !eventId) return false;
@@ -97,14 +120,29 @@ export function useTeenPattiGame() {
   const resultOpenTimerRef = useRef<number | null>(null);
   const serverOffsetRef = useRef(0);
 
+  const updateSnapshot = useCallback((
+    updater: (current: TeenPattiSnapshot | null) => TeenPattiSnapshot | null,
+  ) => {
+    const current = snapshotRef.current;
+    const updated = updater(current);
+    if (updated === current) return updated;
+    snapshotRef.current = updated;
+    setSnapshot(updated);
+    return updated;
+  }, []);
+
   const syncPendingBets = useCallback(() => {
-    setPendingOptionIds(new Set(pendingBetAmountsRef.current.keys()));
-    setPendingOptionAmounts(new Map(
-      Array.from(pendingBetAmountsRef.current, ([optionId, pendingBet]) => [
-        optionId,
-        pendingBet.amount,
-      ] as const),
-    ));
+    const optionIds = new Set<string>();
+    const optionAmounts = new Map<string, bigint>();
+    for (const pendingBet of pendingBetAmountsRef.current.values()) {
+      optionIds.add(pendingBet.optionId);
+      optionAmounts.set(
+        pendingBet.optionId,
+        (optionAmounts.get(pendingBet.optionId) ?? 0n) + pendingBet.amount,
+      );
+    }
+    setPendingOptionIds(optionIds);
+    setPendingOptionAmounts(optionAmounts);
     setPendingBetTotal(
       Array.from(pendingBetAmountsRef.current.values())
         .reduce((total, pendingBet) => total + pendingBet.amount, 0n),
@@ -128,26 +166,52 @@ export function useTeenPattiGame() {
         animate?: boolean;
         resultDurationMs?: number;
         resultAgeMs?: number;
+        resultRevealedAt?: string | null;
       },
     ) => {
       if (revealedRoundIdRef.current === roundId) return;
       revealedRoundIdRef.current = roundId;
-      if (resultOpenTimerRef.current) window.clearTimeout(resultOpenTimerRef.current);
+      if (resultOpenTimerRef.current !== null) {
+        window.clearTimeout(resultOpenTimerRef.current);
+        resultOpenTimerRef.current = null;
+      }
 
       const animate = options?.animate !== false;
       const resultDurationMs = options?.resultDurationMs ?? 5_000;
       const resultAgeMs = Math.max(0, options?.resultAgeMs ?? 0);
-      const delay = animate
-        ? Math.max(0, TEEN_PATTI_REVEAL_MS - resultAgeMs)
-        : 0;
-      const visibleDurationMs = resultDurationMs - resultAgeMs - delay;
+      const remainingResultMs = resultDurationMs - resultAgeMs;
 
       // A late recovery should not flash an expired result over a live round.
-      if (visibleDurationMs < 800) return;
+      if (remainingResultMs < TEEN_PATTI_RESULT_MIN_VISIBLE_MS) return;
+
+      // A genuinely live result gets the full reveal sequence whenever the
+      // configured result window permits it. Never shorten the animation by
+      // its network age; clamp only to preserve useful modal reading time.
+      const delay = animate
+        ? Math.min(
+            TEEN_PATTI_REVEAL_MS,
+            remainingResultMs - TEEN_PATTI_RESULT_MIN_VISIBLE_MS,
+          )
+        : 0;
+      const visibleDurationMs = remainingResultMs - delay;
 
       resultOpenTimerRef.current = window.setTimeout(() => {
         resultOpenTimerRef.current = null;
         if (!mountedRef.current) return;
+        const currentRound = snapshotRef.current?.round;
+        const currentResult = currentRound?.result;
+        const expectedRevealedAt = options?.resultRevealedAt;
+        if (
+          currentRound?.id !== roundId
+          || currentResult?.round_id !== roundId
+          || (expectedRevealedAt !== undefined
+            && currentResult.revealed_at !== expectedRevealedAt)
+        ) {
+          if (revealedRoundIdRef.current === roundId) {
+            revealedRoundIdRef.current = null;
+          }
+          return;
+        }
         const displayMs = visibleDurationMs;
         setResultModalOpen(true);
         scheduleResultClose(displayMs);
@@ -175,6 +239,15 @@ export function useTeenPattiGame() {
           const next = await teenPattiApi.getSnapshot();
           const finishedAt = Date.now();
           if (!mountedRef.current) return;
+          if (
+            next.round
+            && (
+              !Number.isSafeInteger(next.round.round_bet_count)
+              || next.round.round_bet_count < 0
+            )
+          ) {
+            throw new Error("Teen Patti snapshot has an invalid bet watermark");
+          }
 
           // The API stamps server_time after assembling the snapshot, so the
           // receive time (not the HTTP midpoint) is the matching clock edge.
@@ -186,27 +259,36 @@ export function useTeenPattiGame() {
           const previousRoundId = previousSnapshot?.round?.id ?? null;
           const nextRoundId = next.round?.id ?? null;
 
-          let reconciled = next;
+          const nextPlayer = next.player ?? {
+            user_id: next.wallet.user_id,
+            display_name: null,
+            avatar_url: null,
+          };
+          let reconciled: TeenPattiSnapshot = { ...next, player: nextPlayer };
           if (
             previousSnapshot?.wallet.id === next.wallet.id
             && previousSnapshot.wallet.version > next.wallet.version
           ) {
             reconciled = { ...reconciled, wallet: previousSnapshot.wallet };
           }
+          if (
+            previousSnapshot?.player?.user_id === nextPlayer.user_id
+            && (previousSnapshot.player.display_name || previousSnapshot.player.avatar_url)
+          ) {
+            reconciled = {
+              ...reconciled,
+              player: {
+                ...nextPlayer,
+                display_name: nextPlayer.display_name ?? previousSnapshot.player.display_name,
+                avatar_url: nextPlayer.avatar_url ?? previousSnapshot.player.avatar_url,
+              },
+            };
+          }
           if (previousRoundId && previousRoundId === nextRoundId) {
             const nextBetIds = new Set(next.my_bets.map((bet) => bet.id));
             const missingBets = previousSnapshot?.my_bets.filter(
-              (bet) => !nextBetIds.has(bet.id),
+              (bet) => bet.round_id === nextRoundId && !nextBetIds.has(bet.id),
             ) ?? [];
-            const potTotals = new Map(
-              (next.round?.option_pot_totals ?? []).map((row) => [row.option_id, row]),
-            );
-            for (const previousTotal of previousSnapshot?.round?.option_pot_totals ?? []) {
-              const nextTotal = potTotals.get(previousTotal.option_id);
-              if (!nextTotal || BigInt(previousTotal.total_amount) > BigInt(nextTotal.total_amount)) {
-                potTotals.set(previousTotal.option_id, previousTotal);
-              }
-            }
             if (missingBets.length) {
               reconciled = {
                 ...reconciled,
@@ -214,6 +296,11 @@ export function useTeenPattiGame() {
               };
             }
             if (reconciled.round) {
+              const previousRound = previousSnapshot?.round;
+              const snapshotPublicStateIsOlder = Boolean(
+                previousRound
+                && reconciled.round.round_bet_count < previousRound.round_bet_count,
+              );
               reconciled = {
                 ...reconciled,
                 round: {
@@ -224,7 +311,14 @@ export function useTeenPattiGame() {
                         result: previousSnapshot.round.result,
                       }
                     : {}),
-                  option_pot_totals: Array.from(potTotals.values()),
+                  ...(snapshotPublicStateIsOlder && previousRound
+                    ? {
+                        option_pot_totals: previousRound.option_pot_totals,
+                        bettors: previousRound.bettors,
+                        player_count: previousRound.player_count,
+                        round_bet_count: previousRound.round_bet_count,
+                      }
+                    : {}),
                 },
               };
             }
@@ -234,15 +328,34 @@ export function useTeenPattiGame() {
           setSnapshot(reconciled);
           setFatalError(null);
 
-          if (previousRoundId && nextRoundId !== previousRoundId) {
-            for (const [optionId, pendingBet] of pendingBetAmountsRef.current) {
-              if (pendingBet.roundId !== nextRoundId) {
-                pendingBetAmountsRef.current.delete(optionId);
-              }
+          const recoveredRequestIds = new Set(
+            next.my_bets.map((bet) => bet.client_request_id),
+          );
+          const roundChanged = Boolean(previousRoundId && nextRoundId !== previousRoundId);
+          let pendingChanged = false;
+          for (const [requestId, pendingBet] of pendingBetAmountsRef.current) {
+            if (
+              recoveredRequestIds.has(requestId)
+              || (roundChanged && pendingBet.roundId !== nextRoundId)
+            ) {
+              pendingBetAmountsRef.current.delete(requestId);
+              pendingChanged = true;
             }
+          }
+          if (pendingChanged) {
             syncPendingBets();
+          }
+
+          if (roundChanged) {
             setResultModalOpen(false);
-            if (resultCloseTimerRef.current) window.clearTimeout(resultCloseTimerRef.current);
+            if (resultCloseTimerRef.current !== null) {
+              window.clearTimeout(resultCloseTimerRef.current);
+              resultCloseTimerRef.current = null;
+            }
+            if (resultOpenTimerRef.current !== null) {
+              window.clearTimeout(resultOpenTimerRef.current);
+              resultOpenTimerRef.current = null;
+            }
           }
 
           if (reconciled.round?.result && reconciled.round.id !== revealedRoundIdRef.current) {
@@ -251,9 +364,10 @@ export function useTeenPattiGame() {
               : 0;
             const ageMs = revealAt ? Date.now() + offset - revealAt : 0;
             openResultModal(reconciled.round.id, {
-              animate: ageMs < 2_000,
+              animate: ageMs <= TEEN_PATTI_RESULT_LIVE_AGE_MS,
               resultDurationMs: reconciled.round.result_duration_ms,
               resultAgeMs: ageMs,
+              resultRevealedAt: reconciled.round.result.revealed_at,
             });
           }
         } catch (error) {
@@ -285,7 +399,6 @@ export function useTeenPattiGame() {
     amount: string,
     onSubmitted?: () => void,
   ) => {
-    if (pendingBetAmountsRef.current.has(option.id)) return false;
     const current = snapshotRef.current;
     const round = current?.round;
     if (!current || !round) {
@@ -311,26 +424,30 @@ export function useTeenPattiGame() {
       return false;
     }
 
-    let betAmount: bigint;
-    try {
-      betAmount = BigInt(amount);
-    } catch {
+    const betAmount = parseCoinAmount(amount);
+    if (betAmount === null || betAmount === 0n) {
       pushNotice("error", "This chip value is not valid.");
       return false;
     }
-
-    // One selection per round: block backing a different hand once the user
-    // has committed (or is committing) to one this round.
-    const chosenOptionId = current.my_bets.find((bet) => bet.round_id === round.id)?.option.id
-      ?? pendingBetAmountsRef.current.keys().next().value
-      ?? null;
-    if (chosenOptionId && chosenOptionId !== option.id) {
-      pushNotice("info", "You can back only one hand per round.");
+    const currentOption = round.options.find(
+      (candidate) => candidate.id === option.id && candidate.is_enabled !== false,
+    );
+    if (!currentOption) {
+      pushNotice("error", "This hand is not available for the current round.");
+      void recover("option-unavailable");
+      return false;
+    }
+    const isEnabledChip = round.chip_values.some(
+      (chip) => chip.is_enabled !== false && parseCoinAmount(chip.amount) === betAmount,
+    );
+    if (!isEnabledChip) {
+      pushNotice("error", "Choose one of the enabled chip values.");
+      void recover("chip-unavailable");
       return false;
     }
 
     const roundExposure = current.my_bets.reduce(
-      (total, bet) => total + BigInt(bet.amount),
+      (total, bet) => bet.round_id === round.id ? total + BigInt(bet.amount) : total,
       0n,
     );
     const pendingExposure = Array.from(pendingBetAmountsRef.current.values())
@@ -353,8 +470,9 @@ export function useTeenPattiGame() {
     }
 
     const clientRequestId = createBetRequestId();
-    pendingBetAmountsRef.current.set(option.id, {
+    pendingBetAmountsRef.current.set(clientRequestId, {
       amount: betAmount,
+      optionId: currentOption.id,
       requestId: clientRequestId,
       roundId: round.id,
     });
@@ -364,17 +482,15 @@ export function useTeenPattiGame() {
     try {
       const betPayload = {
         round_id: round.id,
-        option_id: option.id,
-        amount,
+        option_id: currentOption.id,
+        amount: betAmount.toString(),
         client_request_id: clientRequestId,
       };
       let response;
       try {
         response = await teenPattiApi.placeBet(betPayload);
       } catch (firstError) {
-        const uncertain = firstError instanceof ApiError
-          && (firstError.status === 0 || firstError.status === 408);
-        if (!uncertain) throw firstError;
+        if (!isUncertainBetError(firstError)) throw firstError;
 
         // The server may have committed even when the response was lost.
         // Replay the exact same idempotency key so confirmation can never
@@ -383,7 +499,7 @@ export function useTeenPattiGame() {
         response = await teenPattiApi.placeBet(betPayload);
       }
 
-      setSnapshot((existing) => {
+      updateSnapshot((existing) => {
         if (!existing) return existing;
         const wallet = response.wallet_version >= existing.wallet.version
           ? {
@@ -393,62 +509,36 @@ export function useTeenPattiGame() {
             }
           : existing.wallet;
         if (existing.round?.id !== response.round_id) {
-          const updated = { ...existing, wallet };
-          snapshotRef.current = updated;
-          return updated;
+          return { ...existing, wallet };
         }
         if (existing.my_bets.some((bet) => bet.id === response.bet_id)) {
-          const updated = {
+          return {
             ...existing,
             wallet,
           };
-          snapshotRef.current = updated;
-          return updated;
         }
         const optimisticBet: PlayerBet = {
           id: response.bet_id,
           round_id: response.round_id,
+          client_request_id: response.client_request_id,
           amount: response.amount,
           accepted_at: response.accepted_at,
-          option,
+          option: currentOption,
           settlement: null,
         };
-        const currentPotTotals = existing.round.option_pot_totals ?? [];
-        const hasOptionTotal = currentPotTotals.some((row) => row.option_id === response.option_id);
-        const optimisticPotTotals = hasOptionTotal
-          ? currentPotTotals.map((row) => (
-              row.option_id === response.option_id
-                ? {
-                    ...row,
-                    total_amount: (BigInt(row.total_amount) + BigInt(response.amount)).toString(),
-                  }
-                : row
-            ))
-          : [
-              ...currentPotTotals,
-              { option_id: response.option_id, total_amount: response.amount },
-            ];
-        const updated = {
+        return {
           ...existing,
           wallet,
-          round: {
-            ...existing.round,
-            option_pot_totals: optimisticPotTotals,
-          },
           my_bets: [...existing.my_bets, optimisticBet],
         };
-        snapshotRef.current = updated;
-        return updated;
       });
 
-      pushNotice("success", `${formatCoinAmount(amount)} on ${option.name}`);
+      pushNotice("success", `${formatCoinAmount(response.amount)} on ${currentOption.name}`);
       return true;
     } catch (error) {
-      const uncertain = error instanceof ApiError
-        && (error.status === 0 || error.status === 408);
-      if (uncertain) {
+      if (isUncertainBetError(error)) {
         keepPendingUntilRoundChanges = true;
-        pushNotice("info", "Still confirming this bet. This hand will stay locked for your safety.");
+        pushNotice("info", "Still confirming this bet. Its amount remains reserved for your safety.");
         await recover("bet-uncertain");
       } else {
         const message = error instanceof Error ? error.message : "Bet could not be placed";
@@ -462,15 +552,15 @@ export function useTeenPattiGame() {
       }
       return false;
     } finally {
-      const pendingBet = pendingBetAmountsRef.current.get(option.id);
+      const pendingBet = pendingBetAmountsRef.current.get(clientRequestId);
       if (!keepPendingUntilRoundChanges && pendingBet?.requestId === clientRequestId) {
-        pendingBetAmountsRef.current.delete(option.id);
+        pendingBetAmountsRef.current.delete(clientRequestId);
       }
       if (mountedRef.current) {
         syncPendingBets();
       }
     }
-  }, [pushNotice, recover, serverOffsetMs, syncPendingBets]);
+  }, [pushNotice, recover, serverOffsetMs, syncPendingBets, updateSnapshot]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -481,13 +571,11 @@ export function useTeenPattiGame() {
       action();
     };
 
-    const onConnected = (payload: { server_time?: string }) => {
+    const onConnected = () => {
       setConnected(true);
-      if (payload?.server_time) {
-        const offset = new Date(payload.server_time).getTime() - Date.now();
-        serverOffsetRef.current = offset;
-        setServerOffsetMs(offset);
-      }
+      // Betting deadlines come from PostgreSQL. Keep the last snapshot-derived
+      // DB clock offset instead of replacing it with the app-server handshake
+      // clock; the connect handler immediately queues an authoritative refresh.
     };
 
     const onDisconnect = () => setConnected(false);
@@ -496,11 +584,9 @@ export function useTeenPattiGame() {
       roundId: string,
       patch: Partial<NonNullable<TeenPattiSnapshot["round"]>>,
     ) => {
-      setSnapshot((current) => {
+      updateSnapshot((current) => {
         if (!current?.round || current.round.id !== roundId) return current;
-        const updated = { ...current, round: { ...current.round, ...patch } };
-        snapshotRef.current = updated;
-        return updated;
+        return { ...current, round: { ...current.round, ...patch } };
       });
     };
 
@@ -533,21 +619,43 @@ export function useTeenPattiGame() {
 
     const onRoundResult = (payload: RoundResultEvent) => {
       handleDurableEvent(payload, () => {
+        const currentRound = snapshotRef.current?.round;
+        if (currentRound?.id !== payload.round_id) {
+          // Durable result delivery can arrive after its round has left the
+          // screen. Refresh state, but never arm a modal for that old round.
+          void recover("socket-result-round-mismatch");
+          return;
+        }
+        const existingResult = currentRound.result;
+        const winningOptionExists = currentRound.options.some(
+          (option) => option.id === payload.winning_option.id,
+        );
+        const revealedAt = new Date(payload.revealed_at).getTime();
+        if (
+          !winningOptionExists
+          || !Number.isFinite(revealedAt)
+          || (existingResult
+            && (
+              existingResult.round_id !== payload.round_id
+              || existingResult.winning_option.id !== payload.winning_option.id
+              || existingResult.revealed_at !== payload.revealed_at
+            ))
+        ) {
+          void recover("socket-result-invalid");
+          return;
+        }
         const resultAgeMs = Math.max(
           0,
-          Date.now() + serverOffsetRef.current - new Date(payload.revealed_at).getTime(),
+          Date.now() + serverOffsetRef.current - revealedAt,
         );
-        setSnapshot((current) => {
-          const merged = mergeResultIntoSnapshot(current, payload);
-          if (merged) snapshotRef.current = merged;
-          return merged ?? current;
-        });
+        updateSnapshot((current) => mergeResultIntoSnapshot(current, payload) ?? current);
         openResultModal(payload.round_id, {
-          animate: resultAgeMs < TEEN_PATTI_REVEAL_MS,
+          animate: resultAgeMs <= TEEN_PATTI_RESULT_LIVE_AGE_MS,
           resultDurationMs:
             snapshotRef.current?.round?.result_duration_ms
             ?? snapshotRef.current?.active_config?.result_duration_ms,
           resultAgeMs,
+          resultRevealedAt: payload.revealed_at,
         });
         void recover("socket-result");
       });
@@ -555,7 +663,7 @@ export function useTeenPattiGame() {
 
     const onBetAccepted = (payload: BetAcceptedEvent) => {
       handleDurableEvent(payload, () => {
-        setSnapshot((current) => {
+        updateSnapshot((current) => {
           if (!current) return current;
           const wallet = payload.wallet_version >= current.wallet.version
             ? {
@@ -568,67 +676,224 @@ export function useTeenPattiGame() {
             current.round?.id !== payload.round_id
             || current.my_bets.some((bet) => bet.id === payload.bet_id)
           ) {
-            const updated = { ...current, wallet };
-            snapshotRef.current = updated;
-            return updated;
+            return { ...current, wallet };
           }
           const option = current.round.options.find((item) => item.id === payload.option_id);
           if (!option) {
-            const updated = { ...current, wallet };
-            snapshotRef.current = updated;
-            return updated;
+            return { ...current, wallet };
           }
           const optimisticBet: PlayerBet = {
             id: payload.bet_id,
             round_id: payload.round_id,
+            client_request_id: payload.client_request_id,
             amount: payload.amount,
             accepted_at: payload.accepted_at,
             option,
             settlement: null,
           };
-          const currentPotTotals = current.round.option_pot_totals ?? [];
-          const hasOptionTotal = currentPotTotals.some(
-            (row) => row.option_id === payload.option_id,
-          );
-          const optionPotTotals = hasOptionTotal
-            ? currentPotTotals.map((row) => (
-                row.option_id === payload.option_id
-                  ? {
-                      ...row,
-                      total_amount: (BigInt(row.total_amount) + BigInt(payload.amount)).toString(),
-                    }
-                  : row
-              ))
-            : [
-                ...currentPotTotals,
-                { option_id: payload.option_id, total_amount: payload.amount },
-              ];
-          const updated = {
+          return {
             ...current,
             wallet,
-            round: { ...current.round, option_pot_totals: optionPotTotals },
             my_bets: [...current.my_bets, optimisticBet],
           };
-          snapshotRef.current = updated;
-          return updated;
         });
-        const pendingBet = pendingBetAmountsRef.current.get(payload.option_id);
+        const pendingBet = pendingBetAmountsRef.current.get(payload.client_request_id);
         if (
           pendingBet?.roundId === payload.round_id
           && pendingBet.requestId === payload.client_request_id
         ) {
-          pendingBetAmountsRef.current.delete(payload.option_id);
+          pendingBetAmountsRef.current.delete(payload.client_request_id);
           syncPendingBets();
         }
       });
     };
 
+    const onPublicBetPlaced = (payload: PublicBetPlacedEvent) => {
+      handleDurableEvent(payload, () => {
+        const currentSnapshot = snapshotRef.current;
+        const currentRound = currentSnapshot?.round;
+        if (!currentSnapshot || !currentRound) {
+          void recover("socket-public-bet-missing-round");
+          return;
+        }
+        if (currentRound.id !== payload.round_id) {
+          // This can be a stale event or evidence that the local round is stale.
+          void recover("socket-public-bet-round-mismatch");
+          return;
+        }
+
+        if (
+          !Number.isSafeInteger(currentRound.round_bet_count)
+          || currentRound.round_bet_count < 0
+          || !Number.isSafeInteger(payload.round_bet_count)
+          || payload.round_bet_count < 1
+        ) {
+          void recover("socket-public-bet-invalid-watermark");
+          return;
+        }
+        if (payload.round_bet_count <= currentRound.round_bet_count) {
+          // The snapshot or an earlier socket delivery already includes this
+          // tap. Aggregate values are authoritative at that newer watermark.
+          return;
+        }
+        if (payload.round_bet_count !== currentRound.round_bet_count + 1) {
+          // Applying an event across a gap would leave other bettors and pots
+          // incomplete. A snapshot is the only safe way to cross the gap.
+          void recover("socket-public-bet-gap");
+          return;
+        }
+
+        const amount = parseCoinAmount(payload.amount);
+        const userTotal = parseCoinAmount(payload.user_total_amount);
+        const optionTotal = parseCoinAmount(payload.option_total_amount);
+        const acceptedAt = new Date(payload.accepted_at).getTime();
+        const firstBetAt = new Date(payload.first_bet_at).getTime();
+        const lastBetAt = new Date(payload.last_bet_at).getTime();
+        const optionExists = currentRound.options.some(
+          (option) => option.id === payload.option_id,
+        );
+        if (
+          !payload.bet_id
+          || !payload.user_id
+          || !optionExists
+          || amount === null
+          || amount === 0n
+          || userTotal === null
+          || userTotal < amount
+          || optionTotal === null
+          || optionTotal < amount
+          || optionTotal < userTotal
+          || !Number.isSafeInteger(payload.bet_count)
+          || payload.bet_count < 1
+          || !Number.isSafeInteger(payload.player_count)
+          || payload.player_count < 1
+          || !Number.isFinite(acceptedAt)
+          || !Number.isFinite(firstBetAt)
+          || !Number.isFinite(lastBetAt)
+          || firstBetAt > lastBetAt
+        ) {
+          void recover("socket-public-bet-invalid");
+          return;
+        }
+
+        const currentBettors = currentRound.bettors ?? [];
+        const existingIndex = currentBettors.findIndex(
+          (bettor) => bettor.round_id === payload.round_id
+            && bettor.option_id === payload.option_id
+            && bettor.user_id === payload.user_id,
+        );
+        const previousAggregate = existingIndex >= 0
+          ? currentBettors[existingIndex]
+          : null;
+        const previousUserTotal = previousAggregate
+          ? parseCoinAmount(previousAggregate.total_amount)
+          : 0n;
+        const previousFirstBetAt = previousAggregate
+          ? new Date(previousAggregate.first_bet_at).getTime()
+          : null;
+        const previousLastBetAt = previousAggregate
+          ? new Date(previousAggregate.last_bet_at).getTime()
+          : null;
+        const currentPotTotals = currentRound.option_pot_totals ?? [];
+        const potIndex = currentPotTotals.findIndex(
+          (row) => row.option_id === payload.option_id,
+        );
+        const previousOptionTotal = potIndex >= 0
+          ? parseCoinAmount(currentPotTotals[potIndex].total_amount)
+          : 0n;
+        const userAlreadyAtTable = currentBettors.some(
+          (bettor) => bettor.round_id === payload.round_id
+            && bettor.user_id === payload.user_id,
+        );
+        const expectedPlayerCount = currentRound.player_count + (userAlreadyAtTable ? 0 : 1);
+
+        if (
+          previousUserTotal === null
+          || previousOptionTotal === null
+          || !Number.isSafeInteger(currentRound.player_count)
+          || currentRound.player_count < 0
+          || payload.bet_count !== (previousAggregate?.bet_count ?? 0) + 1
+          || userTotal !== previousUserTotal + amount
+          || optionTotal !== previousOptionTotal + amount
+          || payload.player_count !== expectedPlayerCount
+          || (previousAggregate
+            && (
+              !Number.isSafeInteger(previousAggregate.bet_count)
+              || previousAggregate.bet_count < 1
+              || previousFirstBetAt === null
+              || !Number.isFinite(previousFirstBetAt)
+              || previousLastBetAt === null
+              || !Number.isFinite(previousLastBetAt)
+              || firstBetAt !== previousFirstBetAt
+              || lastBetAt < previousLastBetAt
+            ))
+        ) {
+          // Never merge an impossible aggregate and then try to repair it:
+          // the poisoned maximum could otherwise survive every recovery.
+          void recover("socket-public-bet-inconsistent");
+          return;
+        }
+
+        const identityFallback = previousAggregate
+          ?? (currentSnapshot.player.user_id === payload.user_id
+            ? currentSnapshot.player
+            : null);
+        const eventAggregate: PublicBetAggregate = {
+          round_id: payload.round_id,
+          option_id: payload.option_id,
+          user_id: payload.user_id,
+          // Preserve a profile already learned from a snapshot when an older
+          // event producer still emits nullable identity fields.
+          display_name: payload.display_name ?? identityFallback?.display_name ?? null,
+          avatar_url: payload.avatar_url ?? identityFallback?.avatar_url ?? null,
+          total_amount: payload.user_total_amount,
+          bet_count: payload.bet_count,
+          first_bet_at: payload.first_bet_at,
+          last_bet_at: payload.last_bet_at,
+        };
+        const bettors = existingIndex >= 0
+          ? currentBettors.map((bettor, index) => (
+              index === existingIndex ? eventAggregate : bettor
+            ))
+          : [...currentBettors, eventAggregate];
+        const optionPotTotals = potIndex >= 0
+          ? currentPotTotals.map((row, index) => (
+              index === potIndex
+                ? { ...row, total_amount: payload.option_total_amount }
+                : row
+            ))
+          : [
+              ...currentPotTotals,
+              { option_id: payload.option_id, total_amount: payload.option_total_amount },
+            ];
+
+        const updated: TeenPattiSnapshot = {
+          ...currentSnapshot,
+          player: currentSnapshot.player.user_id === payload.user_id
+            ? {
+                ...currentSnapshot.player,
+                display_name: payload.display_name ?? currentSnapshot.player.display_name,
+                avatar_url: payload.avatar_url ?? currentSnapshot.player.avatar_url,
+              }
+            : currentSnapshot.player,
+          round: {
+            ...currentRound,
+            bettors,
+            option_pot_totals: optionPotTotals,
+            player_count: payload.player_count,
+            round_bet_count: payload.round_bet_count,
+          },
+        };
+        updateSnapshot(() => updated);
+      });
+    };
+
     const onWalletUpdate = (payload: WalletBalanceEvent) => {
       handleDurableEvent(payload, () => {
-        setSnapshot((current) => {
+        updateSnapshot((current) => {
           if (!current || current.wallet.id !== payload.wallet_id) return current;
           if (payload.wallet_version < current.wallet.version) return current;
-          const updated = {
+          return {
             ...current,
             wallet: {
               ...current.wallet,
@@ -636,8 +901,6 @@ export function useTeenPattiGame() {
               version: payload.wallet_version,
             },
           };
-          snapshotRef.current = updated;
-          return updated;
         });
         if (payload.reason === "teen_patti_win" && payload.payout) {
           pushNotice("success", `Round payout: +${formatCoinAmount(payload.payout)}`);
@@ -666,6 +929,7 @@ export function useTeenPattiGame() {
       socket.on("teen_patti.round.drawing", onRoundDrawing);
       socket.on("teen_patti.round.result", onRoundResult);
       socket.on("teen_patti.bet.accepted", onBetAccepted);
+      socket.on("teen_patti.bet.placed", onPublicBetPlaced);
       socket.on("teen_patti.round.settled", onRoundRefresh);
       socket.on("teen_patti.round.closed", onRoundRefresh);
       socket.on("teen_patti.round.cancelled", onRoundRefresh);
@@ -710,6 +974,7 @@ export function useTeenPattiGame() {
         socket.off("teen_patti.round.drawing", onRoundDrawing);
         socket.off("teen_patti.round.result", onRoundResult);
         socket.off("teen_patti.bet.accepted", onBetAccepted);
+        socket.off("teen_patti.bet.placed", onPublicBetPlaced);
         socket.off("teen_patti.round.settled", onRoundRefresh);
         socket.off("teen_patti.round.closed", onRoundRefresh);
         socket.off("teen_patti.round.cancelled", onRoundRefresh);
@@ -718,19 +983,24 @@ export function useTeenPattiGame() {
         socket.disconnect();
       }
     };
-  }, [openResultModal, pushNotice, recover, syncPendingBets]);
+  }, [openResultModal, pushNotice, recover, syncPendingBets, updateSnapshot]);
 
   const roundBetTotal = useMemo(() => {
-    return snapshot?.my_bets.reduce((sum, bet) => sum + BigInt(bet.amount), 0n).toString() ?? "0";
-  }, [snapshot?.my_bets]);
+    const roundId = snapshot?.round?.id;
+    return snapshot?.my_bets.reduce(
+      (sum, bet) => bet.round_id === roundId ? sum + BigInt(bet.amount) : sum,
+      0n,
+    ).toString() ?? "0";
+  }, [snapshot?.my_bets, snapshot?.round?.id]);
 
   const optionBetTotals = useMemo(() => {
     const totals = new Map<string, bigint>();
     for (const bet of snapshot?.my_bets ?? []) {
+      if (bet.round_id !== snapshot?.round?.id) continue;
       totals.set(bet.option.id, (totals.get(bet.option.id) ?? 0n) + BigInt(bet.amount));
     }
     return totals;
-  }, [snapshot?.my_bets]);
+  }, [snapshot?.my_bets, snapshot?.round?.id]);
 
   const optionPotTotals = useMemo(() => {
     const totals = new Map<string, bigint>();
@@ -739,6 +1009,43 @@ export function useTeenPattiGame() {
     }
     return totals;
   }, [snapshot?.round?.option_pot_totals]);
+
+  const bettorsByOption = useMemo(() => {
+    const grouped = new Map<string, PublicBetAggregate[]>();
+    const roundId = snapshot?.round?.id;
+    for (const bettor of snapshot?.round?.bettors ?? []) {
+      if (bettor.round_id !== roundId) continue;
+      const optionBettors = grouped.get(bettor.option_id);
+      if (optionBettors) {
+        optionBettors.push(bettor);
+      } else {
+        grouped.set(bettor.option_id, [bettor]);
+      }
+    }
+    for (const optionBettors of grouped.values()) {
+      optionBettors.sort((left, right) => {
+        const leftTime = new Date(left.last_bet_at).getTime();
+        const rightTime = new Date(right.last_bet_at).getTime();
+        if (Number.isFinite(leftTime) && Number.isFinite(rightTime) && leftTime !== rightTime) {
+          return rightTime - leftTime;
+        }
+        const leftAmount = parseCoinAmount(left.total_amount) ?? 0n;
+        const rightAmount = parseCoinAmount(right.total_amount) ?? 0n;
+        if (leftAmount !== rightAmount) return leftAmount > rightAmount ? -1 : 1;
+        return left.user_id.localeCompare(right.user_id);
+      });
+    }
+    return grouped as ReadonlyMap<string, PublicBetAggregate[]>;
+  }, [snapshot?.round?.bettors, snapshot?.round?.id]);
+
+  const playerCount = useMemo(() => {
+    const aggregateCount = new Set(
+      (snapshot?.round?.bettors ?? [])
+        .filter((bettor) => bettor.round_id === snapshot?.round?.id)
+        .map((bettor) => bettor.user_id),
+    ).size;
+    return Math.max(snapshot?.round?.player_count ?? 0, aggregateCount);
+  }, [snapshot?.round?.bettors, snapshot?.round?.id, snapshot?.round?.player_count]);
 
   return {
     snapshot,
@@ -756,13 +1063,17 @@ export function useTeenPattiGame() {
     roundBetTotal,
     optionBetTotals,
     optionPotTotals,
+    bettorsByOption,
+    playerCount,
     recover,
     placeBet,
   };
 }
 
 function formatCoinAmount(value: string): string {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return `${value} coins`;
-  return `${parsed.toLocaleString()} coins`;
+  try {
+    return `${BigInt(value).toLocaleString()} coins`;
+  } catch {
+    return `${value} coins`;
+  }
 }

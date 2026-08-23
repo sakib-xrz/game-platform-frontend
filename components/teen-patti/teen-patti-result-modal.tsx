@@ -50,15 +50,16 @@ export function TeenPattiResultModal({
 
   if (!open || !round || !result) return null;
 
-  const stake = snapshot.my_bets.reduce((sum, bet) => sum + BigInt(bet.amount), 0n);
-  const payout = snapshot.my_bets.reduce(
+  const roundBets = snapshot.my_bets.filter((bet) => bet.round_id === round.id);
+  const stake = roundBets.reduce((sum, bet) => sum + BigInt(bet.amount), 0n);
+  const payout = roundBets.reduce(
     (sum, bet) => sum + BigInt(bet.settlement?.payout_amount ?? "0"),
     0n,
   );
   const winnerId = result.winning_option.id;
-  const winningBet = snapshot.my_bets.some((bet) => bet.option.id === winnerId);
+  const winningBet = roundBets.some((bet) => bet.option.id === winnerId);
   const winningHand = result.hands?.find((hand) => hand.option_id === winnerId);
-  const payoutPending = snapshot.my_bets.some((bet) => !bet.settlement)
+  const payoutPending = roundBets.some((bet) => !bet.settlement)
     && (round.status === "result_revealed" || round.status === "settling");
   const currencySymbol = snapshot.wallet.currency.symbol ?? "●";
 

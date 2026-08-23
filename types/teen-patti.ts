@@ -27,6 +27,27 @@ export type WinningOption = Pick<
   "id" | "code" | "name" | "image_url"
 >;
 
+export type PlayerIdentity = {
+  user_id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+};
+
+/** One server-aggregated row per option and player for the active round. */
+export type PublicBetAggregate = PlayerIdentity & {
+  round_id: string;
+  option_id: string;
+  total_amount: string;
+  bet_count: number;
+  first_bet_at: string;
+  last_bet_at: string;
+};
+
+export type PreviewCard = {
+  option_id: string;
+  card: string;
+};
+
 export type ChipValue = {
   id: string;
   amount: string;
@@ -92,7 +113,13 @@ export type SnapshotRound = {
   options: PublicDeck[];
   chip_values: ChipValue[];
   rake_bps?: number;
+  /** Number of accepted tap-level bets in this round across every player and option. */
+  round_bet_count: number;
   option_pot_totals?: OptionPotTotal[];
+  bettors: PublicBetAggregate[];
+  player_count: number;
+  preview_cards: PreviewCard[];
+  result_commitment: string | null;
   result: RoundResult | null;
 };
 
@@ -116,6 +143,7 @@ export type Wallet = {
 export type PlayerBet = {
   id: string;
   round_id: string;
+  client_request_id: string;
   amount: string;
   accepted_at: string;
   option: PublicDeck;
@@ -132,6 +160,8 @@ export type RecentRound = {
   status: RoundStatus;
   result_reveal_at: string | null;
   closed_at: string | null;
+  total_bet_amount: string;
+  total_payout_amount: string;
   result: RoundResult | null;
 };
 
@@ -141,6 +171,7 @@ export type TeenPattiSnapshot = {
   runtime: { status: RuntimeStatus; revision: string };
   active_config: TeenPattiConfig;
   round: SnapshotRound | null;
+  player: PlayerIdentity;
   wallet: Wallet;
   my_bets: PlayerBet[];
   recent_history: RecentRound[];
@@ -165,6 +196,35 @@ export type BetResponse = {
 };
 
 export type BetAcceptedEvent = BetResponse & { event_id: string };
+
+export type PublicBetPlacedEvent = PlayerIdentity & {
+  event_id: string;
+  bet_id: string;
+  round_id: string;
+  option_id: string;
+  amount: string;
+  accepted_at: string;
+  user_total_amount: string;
+  option_total_amount: string;
+  bet_count: number;
+  first_bet_at: string;
+  last_bet_at: string;
+  player_count: number;
+  round_bet_count: number;
+};
+
+export type RoundOpenedEvent = {
+  event_id: string;
+  round_id: string;
+  round_number: string;
+  betting_started_at: string;
+  betting_ends_at: string;
+  options: PublicDeck[];
+  chip_values: ChipValue[];
+  preview_cards: PreviewCard[];
+  result_commitment: string;
+  rake_bps: number;
+};
 
 export type RoundLockedEvent = {
   event_id: string;

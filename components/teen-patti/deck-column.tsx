@@ -6,9 +6,11 @@ import { formatCompactAmount, formatInteger } from "@/lib/format";
 import { handCategoryLabel } from "@/lib/playing-cards";
 import { PlayingCard } from "@/components/teen-patti/playing-card";
 import { SeatAvatar } from "@/components/teen-patti/seat-avatar";
-import type { DealtHand, PublicDeck } from "@/types/teen-patti";
+import { PlayerAvatar } from "@/components/greedy/player-avatar";
+import { teenPattiPlayerName } from "@/lib/teen-patti-player-display";
+import type { DealtHand, PublicBetAggregate, PublicDeck } from "@/types/teen-patti";
 
-export type DeckVisualPhase = "idle" | "dealing" | "flipping" | "winner" | "settled";
+export type DeckVisualPhase = "opening" | "idle" | "dealing" | "turning" | "flipping" | "winner" | "settled";
 
 const DECK_ART = [
   {
@@ -43,8 +45,11 @@ export function DeckColumn({
   disabled,
   busy,
   hand,
+  previewCard,
+  bettors,
   phase,
   onPress,
+  onViewBettors,
 }: {
   deck: PublicDeck;
   deckIndex: number;
@@ -54,107 +59,139 @@ export function DeckColumn({
   disabled: boolean;
   busy: boolean;
   hand?: DealtHand;
+  previewCard?: string;
+  bettors: PublicBetAggregate[];
   phase: DeckVisualPhase;
   onPress: () => void;
+  onViewBettors: () => void;
 }) {
-  const dealing = phase === "dealing";
+  const opening = phase === "opening";
+  const dealing = phase === "dealing" || opening;
+  const turning = phase === "turning";
   const settled = phase === "winner" || phase === "settled";
   const flipping = phase === "flipping" || settled;
-  const faceUp = flipping && Boolean(hand);
   const dimLoser = settled && Boolean(hand) && !winner;
   const hasStake = stake !== "0" && stake !== "";
-  const cards = hand?.cards ?? [undefined, undefined, undefined];
+  const firstCard = hand?.cards[0] ?? previewCard;
+  const cards: [string | undefined, string | undefined, string | undefined] = hand
+    ? hand.cards
+    : [firstCard, undefined, undefined];
   const art = DECK_ART_BY_CODE[deck.code.toUpperCase()] ?? DECK_ART[deckIndex % DECK_ART.length];
 
-  const dealBaseDelay = deckIndex * 140;
-  const flipBaseDelay = deckIndex * 180;
+  const flipBaseDelay = deckIndex * 340;
+  const visibleBettors = bettors.slice(0, 2);
+  const hiddenBettors = Math.max(0, bettors.length - visibleBettors.length);
 
   return (
-    <button
-      type="button"
-      className={clsx(
-        "tp-deck",
-        `tp-deck--${art.tone}`,
-        winner && settled && "tp-deck--winner",
-        dimLoser && "tp-deck--loser",
-        dealing && "tp-deck--drawing",
-        hasStake && "tp-deck--staked",
-        busy && "tp-deck--busy",
-        disabled && "tp-deck--disabled",
-      )}
-      disabled={disabled || busy}
-      onClick={onPress}
-      aria-label={busy
-        ? `${deck.name}. Confirming ${stake} coins.`
-        : disabled
-        ? `${deck.name}. Betting unavailable.${hasStake ? ` Current stake ${stake} coins.` : ""}`
-        : `Bet on ${deck.name}${hasStake ? `. Current stake ${stake} coins.` : ""}`}
-      data-deck-id={deck.id}
-    >
-      <span className="tp-deck__identity">
-        <span className="tp-deck__throne" aria-hidden="true">
-          <Image
-            src={art.throne}
-            alt=""
-            width={640}
-            height={640}
-            sizes="88px"
-            loading="eager"
-            draggable={false}
-          />
-        </span>
-        <span className="tp-deck__avatar">
-          <SeatAvatar
-            imageUrl={deck.image_url}
-            fallbackSrc={art.avatar}
-            className="tp-deck__avatar-image"
-          />
-        </span>
-        {winner && settled && <span className="tp-deck__winner-crown" aria-hidden="true">♛</span>}
-      </span>
-
-      <span className="tp-deck__cabinet">
-        <span className="tp-deck__header">
-          <strong>{deck.name}</strong>
-          <small>Pot {formatCompactAmount(potTotal ?? "0")}</small>
-        </span>
-
-        <span className="tp-deck__cards" aria-hidden={!faceUp}>
-          {cards.map((code, index) => (
-            <PlayingCard
-              key={`${deck.id}-${index}`}
-              code={code}
-              faceUp={faceUp}
-              dealing={dealing || flipping}
-              dealDelayMs={dealing ? dealBaseDelay + index * 80 : 0}
-              flipDelayMs={flipping ? flipBaseDelay + index * 100 : 0}
-              dim={dimLoser}
-              size="sm"
+    <div className="tp-deck-wrap">
+      <button
+        type="button"
+        className={clsx(
+          "tp-deck",
+          `tp-deck--${art.tone}`,
+          winner && settled && "tp-deck--winner",
+          dimLoser && "tp-deck--loser",
+          (dealing || turning) && "tp-deck--drawing",
+          hasStake && "tp-deck--staked",
+          busy && "tp-deck--busy",
+          disabled && "tp-deck--disabled",
+        )}
+        disabled={disabled}
+        onClick={onPress}
+        aria-busy={busy || undefined}
+        aria-label={disabled
+          ? `${deck.name}. Betting unavailable.${hasStake ? ` Current stake ${stake} coins.` : ""}`
+          : `Bet on ${deck.name}${hasStake ? `. Current stake ${stake} coins.` : ""}${busy ? ". Other bets are confirming." : ""}`}
+        data-deck-id={deck.id}
+      >
+        <span className="tp-deck__identity">
+          <span className="tp-deck__throne" aria-hidden="true">
+            <Image
+              src={art.throne}
+              alt=""
+              width={640}
+              height={640}
+              sizes="88px"
+              loading="eager"
+              draggable={false}
             />
+          </span>
+          <span className="tp-deck__avatar">
+            <SeatAvatar
+              imageUrl={deck.image_url}
+              fallbackSrc={art.avatar}
+              className="tp-deck__avatar-image"
+            />
+          </span>
+          {winner && settled && <span className="tp-deck__winner-crown" aria-hidden="true">♛</span>}
+        </span>
+
+        <span className="tp-deck__cabinet">
+          <span className="tp-deck__header">
+            <strong>{deck.name}</strong>
+            <small>Pot {formatCompactAmount(potTotal ?? "0")}</small>
+          </span>
+
+          <span className="tp-deck__cards">
+            {cards.map((code, index) => (
+              <PlayingCard
+                key={`${deck.id}-${index}`}
+                code={code}
+                faceUp={index === 0 ? Boolean(firstCard) : flipping && Boolean(hand)}
+                dealing={opening}
+                dealDelayMs={opening ? index * 360 + deckIndex * 95 : 0}
+                flipDelayMs={flipping && index > 0 ? flipBaseDelay + (index - 1) * 105 : 0}
+                size="sm"
+              />
+            ))}
+          </span>
+
+          <span className={clsx("tp-deck__ribbon", settled && hand && "tp-deck__ribbon--show")}>
+            {winner && settled && <b aria-hidden="true">★</b>}
+            {settled && hand
+              ? handCategoryLabel(hand.category)
+              : phase === "flipping"
+                ? "Revealing"
+              : turning
+                ? "Turning"
+                : dealing
+                ? "Locked"
+                : busy
+                  ? "Confirming"
+                  : hasStake
+                    ? "Bet placed"
+                    : disabled
+                      ? "Next round"
+                      : "Tap to bet"}
+          </span>
+        </span>
+
+        <span className={clsx("tp-deck__stake", hasStake && "tp-deck__stake--active")}>
+          <i aria-hidden="true" />
+          <span>Your bet</span>
+          <b>{formatInteger(stake)}</b>
+        </span>
+      </button>
+
+      {bettors.length > 0 && (
+        <button
+          type="button"
+          className="tp-deck-bettors"
+          onClick={onViewBettors}
+          aria-label={`View all ${bettors.length} ${deck.name} ${bettors.length === 1 ? "bettor" : "bettors"}`}
+        >
+          {visibleBettors.map((bettor) => (
+            <span className="tp-deck-bettor" key={bettor.user_id}>
+              <PlayerAvatar player={bettor} />
+              <span>
+                <b>{teenPattiPlayerName(bettor)}</b>
+                <small>◆ {formatCompactAmount(bettor.total_amount)}</small>
+              </span>
+            </span>
           ))}
-        </span>
-
-        <span className={clsx("tp-deck__ribbon", faceUp && hand && "tp-deck__ribbon--show")}>
-          {winner && settled && <b aria-hidden="true">★</b>}
-          {faceUp && hand
-            ? handCategoryLabel(hand.category)
-            : dealing
-              ? "Dealing"
-              : busy
-                ? "Confirming"
-                : hasStake
-                ? "Bet placed"
-                : disabled
-                  ? "Next round"
-                  : "Tap to bet"}
-        </span>
-      </span>
-
-      <span className={clsx("tp-deck__stake", hasStake && "tp-deck__stake--active")}>
-        <i aria-hidden="true" />
-        <span>Your bet</span>
-        <b>{formatInteger(stake)}</b>
-      </span>
-    </button>
+          {hiddenBettors > 0 && <strong>+{hiddenBettors}</strong>}
+        </button>
+      )}
+    </div>
   );
 }

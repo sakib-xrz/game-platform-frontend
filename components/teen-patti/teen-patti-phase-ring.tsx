@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type {
   GameStatus,
   RuntimeStatus,
@@ -37,16 +37,32 @@ function parseTime(iso: string | null | undefined): number {
   return Number.isFinite(ms) ? ms : 0;
 }
 
-function useServerNow(serverOffsetMs: number, active: boolean): number {
-  const [, setTick] = useState(0);
+function useServerNow(serverOffsetMs: number, active: boolean): number | null {
+  const [serverNow, setServerNow] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!active) return;
-    const timer = window.setInterval(() => setTick((value) => value + 1), 100);
-    return () => window.clearInterval(timer);
+    const update = () => setServerNow(Date.now() + serverOffsetMs);
+    const frame = window.requestAnimationFrame(update);
+    const timer = active ? window.setInterval(update, 100) : null;
+    return () => {
+      window.cancelAnimationFrame(frame);
+      if (timer !== null) window.clearInterval(timer);
+    };
   }, [active, serverOffsetMs]);
 
-  return Date.now() + serverOffsetMs;
+  return serverNow;
+}
+
+function fallbackServerNow(round: SnapshotRound | null): number {
+  if (!round) return 0;
+  if (round.result) {
+    return parseTime(round.result.revealed_at) || parseTime(round.result_reveal_at);
+  }
+  if (round.status === "drawing" || round.status === "result_ready") {
+    return parseTime(round.drawing_started_at) || parseTime(round.betting_ends_at);
+  }
+  if (round.status === "betting_locked") return parseTime(round.betting_ends_at);
+  return parseTime(round.betting_started_at) || parseTime(round.betting_ends_at);
 }
 
 function resolvePhaseWindow(
@@ -131,7 +147,7 @@ function resolvePhaseWindow(
     showSeconds: true,
   };
   const dealingCards: PhaseWindow = {
-    label: "Dealing cards",
+    label: "Bets locked",
     detail: "",
     tone: "deal",
     endsAtMs: drawingStarts,
@@ -168,10 +184,10 @@ function resolvePhaseWindow(
 
 /**
  * Phase indicator with a countdown ring that drains in lockstep with the
- * displayed second counter. The countdown is derived purely from server
- * deadlines, so it is monotonic (never resets or counts up). When a deadline
- * has passed but the backend has not advanced the round yet, an indeterminate
- * "…" state is shown instead of a frozen "0s".
+ * displayed second counter. The countdown is derived from immutable server
+ * deadlines and a measured server-clock offset. When a deadline has passed
+ * but the backend has not advanced the round yet, an indeterminate "…" state
+ * is shown instead of a frozen "0s".
  */
 export function TeenPattiPhaseRing({
   round,
@@ -186,29 +202,16 @@ export function TeenPattiPhaseRing({
   gameStatus?: GameStatus;
   runtimeStatus?: RuntimeStatus;
 }) {
-  const serverNow = useServerNow(serverOffsetMs, Boolean(round));
+  const liveServerNow = useServerNow(serverOffsetMs, Boolean(round));
+  const serverNow = liveServerNow ?? fallbackServerNow(round);
   const phase = resolvePhaseWindow(round, config, serverNow, gameStatus, runtimeStatus);
 
   const remainingMs = phase.endsAtMs ? Math.max(0, phase.endsAtMs - serverNow) : 0;
   const totalSeconds = Math.max(1, Math.round(phase.durationMs / 1000));
   const rawSeconds = phase.showSeconds ? secondsFromMs(remainingMs) : 0;
 
-  // Monotonic latch: within a single round+phase the counter may only ever tick
-  // down. This shields the display from a backend that re-emits a phase or
-  // pushes its deadline forward (worker catching up), which would otherwise make
-  // the countdown jump back up and repeat (e.g. 3,2,1,3,2,1).
   const phaseKey = `${round?.id ?? "none"}:${phase.tone}`;
-  const latchRef = useRef<{ key: string; seconds: number } | null>(null);
-  let seconds = rawSeconds;
-  if (phase.showSeconds) {
-    const latched = latchRef.current?.key === phaseKey
-      ? latchRef.current.seconds
-      : Number.POSITIVE_INFINITY;
-    seconds = Math.min(rawSeconds, latched);
-    latchRef.current = { key: phaseKey, seconds };
-  } else if (latchRef.current?.key !== phaseKey) {
-    latchRef.current = null;
-  }
+  const seconds = rawSeconds;
 
   // The timed window elapsed but the round has not moved on yet (worker catching
   // up): stop showing a hard number and fall back to an indeterminate marker.
@@ -229,21 +232,6 @@ export function TeenPattiPhaseRing({
   }
   const ringCount = counting ? String(seconds) : null;
 
-  const prevSecondsRef = useRef<number | null>(null);
-  const [ticking, setTicking] = useState(false);
-
-  useEffect(() => {
-    prevSecondsRef.current = null;
-    setTicking(false);
-  }, [phaseKey]);
-
-  useEffect(() => {
-    const prev = prevSecondsRef.current;
-    prevSecondsRef.current = seconds;
-    // Animate the ring drain only on a genuine one-second tick down.
-    setTicking(Boolean(counting && prev != null && prev - seconds === 1));
-  }, [seconds, counting, phaseKey]);
-
   return (
     <div className={clsx("tp-phase", `tp-phase--${phase.tone}`)}>
       <span className="sr-only" aria-live="polite">
@@ -253,7 +241,8 @@ export function TeenPattiPhaseRing({
         <svg viewBox="0 0 36 36">
           <circle className="tp-phase__ring-track" cx="18" cy="18" r="15.915" />
           <circle
-            className={clsx("tp-phase__ring-fill", !ticking && "is-snap")}
+            key={phaseKey}
+            className="tp-phase__ring-fill"
             cx="18"
             cy="18"
             r="15.915"

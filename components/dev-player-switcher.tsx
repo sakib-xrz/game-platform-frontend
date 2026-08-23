@@ -23,12 +23,15 @@ export function DevPlayerSwitcher({ variant = "panel" }: DevPlayerSwitcherProps)
   useEffect(() => {
     if (!enabled) return;
     const id = getPlayerUserId();
-    setCurrentId(id);
-    setCustomId(id);
     if (id) {
       // Keep `?user=` visible so multi-tab testing is shareable by URL.
       setPlayerUserId(id);
     }
+    const frame = window.requestAnimationFrame(() => {
+      setCurrentId(id);
+      setCustomId(id);
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [enabled]);
 
   if (!enabled) return null;

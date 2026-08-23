@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   RefreshCw,
   UsersRound,
+  Volume2,
   VolumeX,
   X,
 } from "lucide-react";
@@ -19,12 +20,21 @@ import { DeckColumn, type DeckVisualPhase } from "@/components/teen-patti/deck-c
 import { TeenPattiChipTray } from "@/components/teen-patti/teen-patti-chip-tray";
 import { TeenPattiPhaseRing } from "@/components/teen-patti/teen-patti-phase-ring";
 import { TeenPattiResultModal } from "@/components/teen-patti/teen-patti-result-modal";
+import { TeenPattiBettorListSheet } from "@/components/teen-patti/teen-patti-bettor-list-sheet";
+import { TeenPattiHistorySheet } from "@/components/teen-patti/teen-patti-history-sheet";
+import { TeenPattiPayoutLayer } from "@/components/teen-patti/teen-patti-payout-layer";
 import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
+import { teenPattiPlayerName } from "@/lib/teen-patti-player-display";
+import { PlayerAvatar } from "@/components/greedy/player-avatar";
+import { useTeenPattiSound } from "@/hooks/use-teen-patti-sound";
 import type { PublicDeck } from "@/types/teen-patti";
 
 const CHIP_FLY_COLORS = ["#25c8ed", "#50b449", "#438cdb", "#7d51e0", "#f2a03c", "#de7650"];
+const LIVE_RESULT_MAX_AGE_MS = 500;
+const WINNER_REVEAL_MS = 1_420;
+const PAYOUT_SOUND_MS = 1_470;
 
 const HISTORY_AVATAR_BY_TONE: Record<string, string> = {
   green: "/assets/teen-patti/avatar-emerald.png",
@@ -43,12 +53,24 @@ type RepeatBet = {
   amount: string;
 };
 
-function resolveDeckPhase(status: string | undefined, hasResult: boolean): DeckVisualPhase {
+function resolveDeckPhase(
+  status: string | undefined,
+  hasResult: boolean,
+  opening: boolean,
+  winnerReady: boolean,
+  bettingRemainingMs: number,
+  drawingStartRemainingMs: number,
+): DeckVisualPhase {
   if (hasResult) {
-    return "winner";
+    return winnerReady ? "winner" : "flipping";
   }
-  if (status === "betting_locked" || status === "result_ready" || status === "drawing") {
-    return "dealing";
+  if (opening) return "opening";
+  if (status === "result_ready" || status === "drawing") {
+    return "turning";
+  }
+  if (status === "betting_locked" || status === "betting_open") {
+    if (status === "betting_open" && bettingRemainingMs > 0) return "idle";
+    return drawingStartRemainingMs > 0 ? "dealing" : "turning";
   }
   return "idle";
 }
@@ -76,10 +98,13 @@ export function TeenPattiGameScreen() {
     roundBetTotal,
     optionBetTotals,
     optionPotTotals,
+    bettorsByOption,
+    playerCount,
     recover,
     placeBet,
   } = useTeenPattiGame();
   const { bootGame, hideBoot } = useGameBoot();
+  const { soundEnabled, toggleSound, playSound } = useTeenPattiSound();
 
   useEffect(() => {
     if (snapshot || fatalError) hideBoot();
@@ -100,10 +125,18 @@ export function TeenPattiGameScreen() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [flyChips, setFlyChips] = useState<FlyChip[]>([]);
   const [repeatBet, setRepeatBet] = useState<RepeatBet | null>(null);
+  const [bettorSheetDeckId, setBettorSheetDeckId] = useState<string | "table" | null>(null);
+  const [historyRoundId, setHistoryRoundId] = useState<string | null>(null);
+  const [openingRoundId, setOpeningRoundId] = useState<string | null>(null);
+  const [winnerReadyResultKey, setWinnerReadyResultKey] = useState<string | null>(null);
+  const [payoutReadyResultKey, setPayoutReadyResultKey] = useState<string | null>(null);
 
   const helpCloseRef = useRef<HTMLButtonElement>(null);
   const flyIdRef = useRef(0);
+  const betSequenceRef = useRef(0);
+  const lastAcceptedBetSequenceRef = useRef(0);
   const chipTrayRef = useRef<HTMLDivElement>(null);
+  const serverOffsetRef = useRef(serverOffsetMs);
 
   const round = snapshot?.round ?? null;
   const disabledChipAmounts = useMemo(() => {
@@ -146,23 +179,127 @@ export function TeenPattiGameScreen() {
     isBetting ? round?.betting_ends_at : null,
     serverOffsetMs,
   );
+  const drawingStartsAt = useMemo(() => {
+    if (!round) return null;
+    if (round.drawing_started_at) return round.drawing_started_at;
+    if (!round.betting_ends_at) return null;
+    const bettingEndsMs = new Date(round.betting_ends_at).getTime();
+    if (!Number.isFinite(bettingEndsMs)) return null;
+    return new Date(bettingEndsMs + round.lock_duration_ms).toISOString();
+  }, [round]);
+  const drawingStartRemainingMs = useCountdown(
+    round?.status === "betting_open" || round?.status === "betting_locked"
+      ? drawingStartsAt
+      : null,
+    serverOffsetMs,
+  );
   const winnerId = round?.result?.winning_option.id ?? null;
-  const lockedOptionId = useMemo(() => {
-    for (const id of pendingOptionIds) return id;
-    for (const [id, amount] of optionBetTotals) {
-      if (amount > 0n) return id;
-    }
-    return null;
-  }, [pendingOptionIds, optionBetTotals]);
   const canBet = snapshot?.game.status === "active"
     && isBetting
     && bettingRemainingMs > 0
     && Boolean(effectiveSelectedChip);
   const rakePercent = ((round?.rake_bps ?? snapshot?.active_config.rake_bps ?? 0) / 100).toFixed(1);
   const hasResult = Boolean(round?.result?.hands?.length);
+  const resultKey = round?.result
+    ? `${round.id}:${round.result.revealed_at ?? "revealed"}`
+    : null;
+  const resultRevealedAt = round?.result?.revealed_at ?? null;
+  const allRoundBettors = useMemo(
+    () => (round?.bettors ?? []).filter((bettor) => bettor.round_id === round?.id),
+    [round?.bettors, round?.id],
+  );
+  const bettorSheetDeck = bettorSheetDeckId && bettorSheetDeckId !== "table"
+    ? decks.find((deck) => deck.id === bettorSheetDeckId) ?? null
+    : null;
+  const bettorSheetBettors = bettorSheetDeck
+    ? bettorsByOption.get(bettorSheetDeck.id) ?? []
+    : allRoundBettors;
+  const payoutSources = useMemo(
+    () => decks.slice(0, 3).map((deck) => {
+      const bettors = bettorsByOption.get(deck.id) ?? [];
+      const betCount = bettors.reduce((count, bettor) => count + bettor.bet_count, 0);
+      return {
+        optionId: deck.id,
+        betCount: betCount || ((optionPotTotals.get(deck.id) ?? 0n) > 0n ? 1 : 0),
+      };
+    }),
+    [bettorsByOption, decks, optionPotTotals],
+  );
 
   useEffect(() => {
-    if (!helpOpen) return;
+    serverOffsetRef.current = serverOffsetMs;
+  }, [serverOffsetMs]);
+
+  useEffect(() => {
+    if (!round?.id || round.status !== "betting_open" || hasResult) {
+      const clearFrame = window.requestAnimationFrame(() => setOpeningRoundId(null));
+      return () => window.cancelAnimationFrame(clearFrame);
+    }
+    const startFrame = window.requestAnimationFrame(() => setOpeningRoundId(round.id));
+    playSound("deal");
+    const timer = window.setTimeout(() => setOpeningRoundId((current) => (
+      current === round.id ? null : current
+    )), 1_500);
+    return () => {
+      window.cancelAnimationFrame(startFrame);
+      window.clearTimeout(timer);
+    };
+  }, [hasResult, playSound, round?.id, round?.status]);
+
+  useEffect(() => {
+    if (!resultKey) {
+      const clearFrame = window.requestAnimationFrame(() => {
+        setWinnerReadyResultKey(null);
+        setPayoutReadyResultKey(null);
+      });
+      return () => window.cancelAnimationFrame(clearFrame);
+    }
+    const revealedAtMs = resultRevealedAt ? new Date(resultRevealedAt).getTime() : Number.NaN;
+    const resultAgeMs = Number.isFinite(revealedAtMs)
+      ? Math.max(0, Date.now() + serverOffsetRef.current - revealedAtMs)
+      : 0;
+    const timers: number[] = [];
+    const setupFrame = window.requestAnimationFrame(() => {
+      setPayoutReadyResultKey(null);
+      if (resultAgeMs > LIVE_RESULT_MAX_AGE_MS) {
+        setWinnerReadyResultKey(resultKey);
+        return;
+      }
+
+      setWinnerReadyResultKey(null);
+      for (const delay of [0, 340, 680]) {
+        timers.push(window.setTimeout(() => playSound("flip"), delay));
+      }
+      timers.push(window.setTimeout(() => {
+        setWinnerReadyResultKey(resultKey);
+        setPayoutReadyResultKey(resultKey);
+        playSound("winner");
+      }, WINNER_REVEAL_MS));
+      timers.push(window.setTimeout(() => playSound("payout"), PAYOUT_SOUND_MS));
+    });
+    return () => {
+      window.cancelAnimationFrame(setupFrame);
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, [playSound, resultKey, resultRevealedAt]);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setBettorSheetDeckId(null));
+    return () => window.cancelAnimationFrame(frame);
+  }, [round?.id]);
+
+  useEffect(() => {
+    if (!resultModalOpen) return;
+    const frame = window.requestAnimationFrame(() => {
+      setHelpOpen(false);
+      setBettorSheetDeckId(null);
+      setHistoryRoundId(null);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [resultModalOpen]);
+
+  useEffect(() => {
+    if (!helpOpen || resultModalOpen) return;
     const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -180,11 +317,12 @@ export function TeenPattiGameScreen() {
       document.body.style.overflow = previousOverflow;
       previouslyFocused?.focus();
     };
-  }, [helpOpen]);
+  }, [helpOpen, resultModalOpen]);
 
   const handleChipSelect = useCallback((amount: string) => {
     setSelectedChip(amount);
-  }, []);
+    playSound("chip");
+  }, [playSound]);
   const handleFlyDone = useCallback((chipId: number) => {
     setFlyChips((current) => current.filter((chip) => chip.id !== chipId));
   }, []);
@@ -217,23 +355,26 @@ export function TeenPattiGameScreen() {
       amount: formatInteger(amount),
     };
     setFlyChips((current) => [...current.slice(-5), nextChip]);
-  }, [chips]);
+    playSound("bet");
+  }, [chips, playSound]);
 
   const submitBet = useCallback(
     async (deck: PublicDeck, amount: string) => {
       if (
         !canBet
         || !amount
-        || pendingOptionIds.has(deck.id)
         || disabledChipAmounts.has(amount)
       ) return;
+      const betSequence = ++betSequenceRef.current;
       const accepted = await placeBet(deck, amount, () => flyBet(deck, amount));
       if (!accepted) return;
 
-      const nextRepeatBet = { optionCode: deck.code, amount };
-      setRepeatBet(nextRepeatBet);
+      if (betSequence > lastAcceptedBetSequenceRef.current) {
+        lastAcceptedBetSequenceRef.current = betSequence;
+        setRepeatBet({ optionCode: deck.code, amount });
+      }
     },
-    [canBet, disabledChipAmounts, flyBet, pendingOptionIds, placeBet],
+    [canBet, disabledChipAmounts, flyBet, placeBet],
   );
 
   const handleDeckPress = useCallback(
@@ -300,9 +441,24 @@ export function TeenPattiGameScreen() {
     );
   }
 
-  const deckPhase = resolveDeckPhase(round?.status, hasResult);
+  const deckPhase = resolveDeckPhase(
+    round?.status,
+    hasResult,
+    openingRoundId === round?.id,
+    Boolean(resultKey && winnerReadyResultKey === resultKey),
+    bettingRemainingMs,
+    drawingStartRemainingMs,
+  );
+  const currentPlayer = snapshot.player ?? {
+    user_id: snapshot.wallet.user_id,
+    display_name: null,
+    avatar_url: null,
+  };
   const runtimePaused = snapshot.runtime.status !== "running";
   const historySlots = Array.from({ length: 5 }, (_, index) => snapshot.recent_history[index] ?? null);
+  const selectedHistoryRound = historyRoundId
+    ? snapshot.recent_history.find((item) => item.id === historyRoundId) ?? null
+    : null;
   const repeatDeck = repeatBet
     ? decks.find((deck) => deck.code === repeatBet.optionCode)
     : undefined;
@@ -310,8 +466,7 @@ export function TeenPattiGameScreen() {
     canBet
       && repeatBet
       && repeatDeck
-      && !disabledChipAmounts.has(repeatBet.amount)
-      && !pendingOptionIds.has(repeatDeck.id),
+      && !disabledChipAmounts.has(repeatBet.amount),
   );
 
   return (
@@ -324,6 +479,11 @@ export function TeenPattiGameScreen() {
           onDone={handleFlyDone}
         />
       ))}
+      <TeenPattiPayoutLayer
+        celebrationKey={payoutReadyResultKey}
+        winnerOptionId={winnerId}
+        sources={payoutSources}
+      />
 
       <section className="tp-table" aria-label="Teen Patti betting board">
         <div className="tp-felt" aria-hidden="true">
@@ -368,20 +528,16 @@ export function TeenPattiGameScreen() {
             aria-label={connected ? "Connected to live game" : "Reconnecting to live game"}
           >
             <span className="tp-player-profile__avatar">
-              <Image
-                src="/assets/teen-patti/avatar-sapphire.png"
-                alt=""
-                aria-hidden="true"
-                width={384}
-                height={384}
-                sizes="42px"
-                priority
+              <PlayerAvatar
+                player={currentPlayer}
+                className="tp-player-profile__avatar-image"
+                decorative={false}
               />
               <i className={connected ? "is-online" : ""} aria-hidden="true" />
             </span>
             <span className="tp-player-profile__copy">
               <small>Player</small>
-              <strong>You</strong>
+              <strong>{teenPattiPlayerName(currentPlayer)}</strong>
             </span>
           </div>
 
@@ -392,13 +548,32 @@ export function TeenPattiGameScreen() {
                 const option = item?.result?.winning_option;
                 const tone = toneForOption(option?.code, decks);
                 const avatarSrc = HISTORY_AVATAR_BY_TONE[tone];
+                if (!item || !avatarSrc) {
+                  return (
+                    <span
+                      key={`empty-${index}`}
+                      className="tp-history__seat tp-history__seat--empty"
+                      title="Waiting for result"
+                    >
+                      <span className="tp-history__empty" aria-hidden="true">♠</span>
+                    </span>
+                  );
+                }
+
                 return (
-                  <span
-                    key={item?.id ?? `empty-${index}`}
-                    className={`tp-history__seat tp-history__seat--${tone}`}
-                    title={option?.name ?? "Waiting for result"}
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`tp-history__seat tp-history__seat--interactive tp-history__seat--${tone}`}
+                    title={`Open Round ${item.round_number} details`}
+                    aria-label={`Round ${item.round_number}: ${option?.name ?? "winning hand"}, total bet ${formatInteger(item.total_bet_amount)}. Open details.`}
+                    onClick={() => {
+                      setHelpOpen(false);
+                      setBettorSheetDeckId(null);
+                      setHistoryRoundId(item.id);
+                    }}
                   >
-                    {avatarSrc ? (
+                    <span className="tp-history__portrait">
                       <Image
                         src={avatarSrc}
                         alt=""
@@ -408,10 +583,8 @@ export function TeenPattiGameScreen() {
                         sizes="30px"
                         className="tp-history__avatar"
                       />
-                    ) : (
-                      <span className="tp-history__empty" aria-hidden="true">♠</span>
-                    )}
-                  </span>
+                    </span>
+                  </button>
                 );
               })}
             </div>
@@ -421,14 +594,22 @@ export function TeenPattiGameScreen() {
             <button
               type="button"
               className="tp-control"
-              aria-label="Live player count is unavailable"
-              title="Live player count is unavailable"
-              disabled
+              aria-label={`${playerCount} ${playerCount === 1 ? "player" : "players"} betting in this round. View all.`}
+              title="View live players"
+              onClick={() => setBettorSheetDeckId("table")}
             >
               <UsersRound />
+              <span className="tp-control__count" aria-hidden="true">{playerCount}</span>
             </button>
-            <button type="button" className="tp-control" aria-label="Sound is unavailable" disabled>
-              <VolumeX />
+            <button
+              type="button"
+              className="tp-control"
+              aria-label="Game sound"
+              aria-pressed={soundEnabled}
+              title={soundEnabled ? "Mute game sounds" : "Enable game sounds"}
+              onClick={toggleSound}
+            >
+              {soundEnabled ? <Volume2 /> : <VolumeX />}
             </button>
             <button
               type="button"
@@ -459,6 +640,8 @@ export function TeenPattiGameScreen() {
           <div className="tp-decks">
             {decks.slice(0, 3).map((deck, deckIndex) => {
               const hand = round?.result?.hands?.find((item) => item.option_id === deck.id);
+              const previewCard = round?.preview_cards?.find((item) => item.option_id === deck.id)?.card;
+              const bettors = bettorsByOption.get(deck.id) ?? [];
               return (
                 <DeckColumn
                   key={deck.id}
@@ -470,11 +653,14 @@ export function TeenPattiGameScreen() {
                   ).toString()}
                   potTotal={(optionPotTotals.get(deck.id) ?? 0n).toString()}
                   winner={winnerId === deck.id}
-                  disabled={!canBet || (lockedOptionId !== null && lockedOptionId !== deck.id)}
+                  disabled={!canBet}
                   busy={pendingOptionIds.has(deck.id)}
                   hand={hand}
+                  previewCard={previewCard}
+                  bettors={bettors}
                   phase={deckPhase}
                   onPress={() => handleDeckPress(deck)}
+                  onViewBettors={() => setBettorSheetDeckId(deck.id)}
                 />
               );
             })}
@@ -513,7 +699,11 @@ export function TeenPattiGameScreen() {
                       ? "Betting is closing"
                       : "No chip is available within your balance and limits"
                   : deckPhase === "dealing"
-                    ? "Cards are being dealt"
+                    ? "Bets are locked"
+                    : deckPhase === "turning"
+                      ? "Cards are turning"
+                    : deckPhase === "flipping"
+                      ? "Revealing cards"
                     : deckPhase === "winner"
                       ? "Highest hand wins"
                       : "Waiting for the next round"}
@@ -553,7 +743,7 @@ export function TeenPattiGameScreen() {
         )}
       </section>
 
-      {helpOpen && (
+      {helpOpen && !resultModalOpen && historyRoundId === null && (
         <div
           className="game-help-backdrop tp-help-backdrop"
           role="dialog"
@@ -577,10 +767,12 @@ export function TeenPattiGameScreen() {
             </span>
             <h2 id="teen-patti-help-title">How to play</h2>
             <ol>
-              <li>Pick a coin, then tap one, two, or all three hands to bet.</li>
-              <li>After lock, the server deals three 3-card hands from one shuffled deck.</li>
+              <li>Pick an enabled coin, then tap any hand. Every tap is a separate bet.</li>
+              <li>You may repeat coins on the same hand or back other hands until the timer closes.</li>
+              <li>At round opening, the server shuffles one 52-card deck and commits three hands. After lock, the remaining cards turn face-up.</li>
               <li>The unique highest Teen Patti wins. Pot minus rake is split among that hand&rsquo;s bettors.</li>
               <li>Ranking (high → low): Trail · Pure sequence · Sequence · Color · Pair · High card. A-2-3 is the top sequence.</li>
+              <li>Tap the player markers under a hand to see its complete bettor list.</li>
             </ol>
           </div>
         </div>
@@ -590,6 +782,17 @@ export function TeenPattiGameScreen() {
         snapshot={snapshot}
         open={resultModalOpen}
         onClose={() => setResultModalOpen(false)}
+      />
+      <TeenPattiBettorListSheet
+        deck={bettorSheetDeck}
+        bettors={bettorSheetBettors}
+        open={bettorSheetDeckId !== null && !helpOpen && !resultModalOpen && historyRoundId === null}
+        onClose={() => setBettorSheetDeckId(null)}
+      />
+      <TeenPattiHistorySheet
+        round={selectedHistoryRound}
+        open={historyRoundId !== null && !helpOpen && !resultModalOpen && bettorSheetDeckId === null}
+        onClose={() => setHistoryRoundId(null)}
       />
     </main>
   );
