@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Banknote, CircleDollarSign, Dices, LayoutDashboard, LogOut, Menu, ShieldCheck, Spade } from "lucide-react";
+import { Banknote, CircleDollarSign, Dices, LayoutDashboard, LogOut, Menu, ShieldCheck, Smartphone, Spade } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ const navigation: Array<{ href: string; label: string; icon: ComponentType<{ cla
   { href: "/admin/greedy", label: "Manage Greedy", icon: Dices },
   { href: "/admin/teen-patti", label: "Manage Teen Patti", icon: Spade },
   { href: "/admin/lucky-77", label: "Manage Lucky 77", icon: ShieldCheck },
+  { href: "/admin/apps", label: "Platform Apps", icon: Smartphone },
   { href: "/admin/balance", label: "Adjust User Balance", icon: CircleDollarSign },
 ];
 

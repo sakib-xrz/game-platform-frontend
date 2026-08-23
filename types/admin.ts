@@ -423,3 +423,23 @@ export type AdminWalletSearchItem = {
   updated_at: string;
   currency: { code: string; name: string; symbol: string | null };
 };
+
+export type PlatformAppRecord = {
+  id: string;
+  app_name: string;
+  package_name: string;
+  sha_key: string;
+  status: "active" | "disabled";
+  created_by_admin_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreatePlatformAppInput = {
+  app_name: string;
+  package_name: string;
+  sha_key: string;
+  status?: "active" | "disabled";
+};
+
+export type UpdatePlatformAppInput = Partial<CreatePlatformAppInput>;

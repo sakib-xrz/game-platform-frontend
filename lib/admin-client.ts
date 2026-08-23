@@ -153,4 +153,25 @@ export const adminClient = {
       );
     },
   },
+  platformApps: () =>
+    adminFetch<import("@/types/admin").PlatformAppRecord[]>("/platform-apps"),
+  platformApp: (id: string) =>
+    adminFetch<import("@/types/admin").PlatformAppRecord>(
+      `/platform-apps/${encodeURIComponent(id)}`,
+    ),
+  createPlatformApp: (payload: import("@/types/admin").CreatePlatformAppInput) =>
+    adminFetch<import("@/types/admin").PlatformAppRecord>("/platform-apps", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updatePlatformApp: (
+    id: string,
+    payload: import("@/types/admin").UpdatePlatformAppInput,
+  ) =>
+    adminFetch<import("@/types/admin").PlatformAppRecord>(
+      `/platform-apps/${encodeURIComponent(id)}`,
+      { method: "PATCH", body: JSON.stringify(payload) },
+    ),
+  deletePlatformApp: (id: string) =>
+    adminFetch(`/platform-apps/${encodeURIComponent(id)}`, { method: "DELETE" }),
 };
