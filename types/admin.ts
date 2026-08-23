@@ -446,3 +446,38 @@ export type CreatePlatformAppInput = {
 };
 
 export type UpdatePlatformAppInput = Partial<CreatePlatformAppInput>;
+
+export type PlatformUserRecord = {
+  id: string;
+  platform_app_id: string;
+  app_name: string;
+  package_name: string;
+  external_user_id: string;
+  email: string;
+  display_name: string;
+  photo_url: string | null;
+  status: "active" | "disabled";
+  balance: string;
+  currency: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PlatformUserLedgerEntry = {
+  id: string;
+  type: "deposit" | "withdrawal";
+  ledger_type: string;
+  amount: string;
+  balance_before: string;
+  balance_after: string;
+  client_request_id: string | null;
+  metadata: unknown;
+  created_at: string;
+};
+
+export type PlatformAppFilterOption = {
+  id: string;
+  app_name: string;
+  package_name: string;
+  status: "active" | "disabled";
+};

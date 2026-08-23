@@ -179,4 +179,16 @@ export const adminClient = {
       `/platform-apps/${encodeURIComponent(id)}/regenerate-signing-secret`,
       { method: "POST" },
     ),
+  platformUsers: (query = "?page=1&limit=20") =>
+    adminFetchPaged<import("@/types/admin").PlatformUserRecord>(`/platform-users${query}`),
+  platformUser: (id: string) =>
+    adminFetch<import("@/types/admin").PlatformUserRecord>(
+      `/platform-users/${encodeURIComponent(id)}`,
+    ),
+  platformUserLedger: (id: string, query = "?page=1&limit=50") =>
+    adminFetchPaged<import("@/types/admin").PlatformUserLedgerEntry>(
+      `/platform-users/${encodeURIComponent(id)}/ledger${query}`,
+    ),
+  platformUserApps: () =>
+    adminFetch<import("@/types/admin").PlatformAppFilterOption[]>("/platform-users/apps"),
 };
