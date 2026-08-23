@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Pencil, Plus, Smartphone, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, RefreshCw, Smartphone, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAdminIdentity } from "@/components/admin/admin-gate";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -68,6 +68,7 @@ export function PlatformAppsAdminPanel() {
   const [editing, setEditing] = useState<PlatformAppRecord | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm());
   const [deleteTarget, setDeleteTarget] = useState<PlatformAppRecord | null>(null);
+  const [revealedSecret, setRevealedSecret] = useState<{ app_name: string; signing_secret: string } | null>(null);
 
   const apps = useQuery({
     queryKey: ["admin", "platform-apps"],
@@ -94,11 +95,17 @@ export function PlatformAppsAdminPanel() {
         status: form.status,
       });
     },
-    onSuccess: async () => {
+    onSuccess: async (result) => {
       toast.success(editing ? "App updated" : "App created");
       setDialogOpen(false);
       setEditing(null);
       setForm(emptyForm());
+      if (result?.signing_secret) {
+        setRevealedSecret({
+          app_name: result.app_name,
+          signing_secret: result.signing_secret,
+        });
+      }
       await refresh();
     },
     onError: (reason) =>
@@ -114,6 +121,22 @@ export function PlatformAppsAdminPanel() {
     },
     onError: (reason) =>
       toast.error(reason instanceof Error ? reason.message : "Could not delete app"),
+  });
+
+  const rotateSecret = useMutation({
+    mutationFn: (app: PlatformAppRecord) => adminClient.regeneratePlatformAppSigningSecret(app.id),
+    onSuccess: async (result) => {
+      toast.success("Signing secret rotated");
+      if (result?.signing_secret) {
+        setRevealedSecret({
+          app_name: result.app_name,
+          signing_secret: result.signing_secret,
+        });
+      }
+      await refresh();
+    },
+    onError: (reason) =>
+      toast.error(reason instanceof Error ? reason.message : "Could not rotate signing secret"),
   });
 
   const activeCount = useMemo(
@@ -145,8 +168,8 @@ export function PlatformAppsAdminPanel() {
           <p className="text-sm font-medium text-slate-500">Mobile integration</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight">Platform Apps</h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-500">
-            Register mobile apps that connect to the game platform. Each record stores the app
-            name, Android package name, and signing certificate SHA key used to verify requests.
+            Register mobile apps and manage the HMAC signing secret used by each app backend to
+            call integration APIs securely.
           </p>
         </div>
         {canManage && (
@@ -193,8 +216,8 @@ export function PlatformAppsAdminPanel() {
         <CardHeader>
           <CardTitle>App registry</CardTitle>
           <CardDescription>
-            Package name and SHA key pairs identify trusted mobile clients during platform
-            integration.
+            Package name identifies the app in signed requests. SHA key is kept for Android app
+            attestation; API auth uses the signing secret.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -208,6 +231,7 @@ export function PlatformAppsAdminPanel() {
                 <TableRow>
                   <TableHead>App name</TableHead>
                   <TableHead>Package name</TableHead>
+                  <TableHead>Signing secret</TableHead>
                   <TableHead>SHA key</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Updated</TableHead>
@@ -224,7 +248,11 @@ export function PlatformAppsAdminPanel() {
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-xs">{app.package_name}</TableCell>
-                    <TableCell className="max-w-[220px] truncate font-mono text-xs">
+                    <TableCell className="font-mono text-xs">
+                      {app.signing_secret_preview}
+                      {app.has_rotated_signing_secret ? " · rotated" : ""}
+                    </TableCell>
+                    <TableCell className="max-w-[180px] truncate font-mono text-xs">
                       {app.sha_key}
                     </TableCell>
                     <TableCell>
@@ -238,6 +266,15 @@ export function PlatformAppsAdminPanel() {
                     {canManage && (
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={rotateSecret.isPending}
+                            onClick={() => rotateSecret.mutate(app)}
+                          >
+                            <RefreshCw />
+                            Rotate secret
+                          </Button>
                           <Button size="sm" variant="outline" onClick={() => openEdit(app)}>
                             <Pencil />
                             Edit
@@ -390,6 +427,32 @@ export function PlatformAppsAdminPanel() {
             >
               {remove.isPending ? <Loader2 className="animate-spin" /> : <Trash2 />}
               Delete app
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={Boolean(revealedSecret)} onOpenChange={(open) => !open && setRevealedSecret(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save the signing secret</DialogTitle>
+            <DialogDescription>
+              Copy this secret into your app backend environment now. It will not be shown again
+              for <strong>{revealedSecret?.app_name}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-lg bg-slate-950 p-4 font-mono text-xs break-all text-emerald-300">
+            {revealedSecret?.signing_secret}
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={async () => {
+                if (revealedSecret?.signing_secret) {
+                  await navigator.clipboard.writeText(revealedSecret.signing_secret);
+                  toast.success("Signing secret copied");
+                }
+              }}
+            >
+              Copy secret
             </Button>
           </DialogFooter>
         </DialogContent>

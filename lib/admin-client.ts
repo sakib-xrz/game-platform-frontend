@@ -174,4 +174,9 @@ export const adminClient = {
     ),
   deletePlatformApp: (id: string) =>
     adminFetch(`/platform-apps/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  regeneratePlatformAppSigningSecret: (id: string) =>
+    adminFetch<import("@/types/admin").PlatformAppRecord>(
+      `/platform-apps/${encodeURIComponent(id)}/regenerate-signing-secret`,
+      { method: "POST" },
+    ),
 };

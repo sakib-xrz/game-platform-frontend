@@ -429,6 +429,9 @@ export type PlatformAppRecord = {
   app_name: string;
   package_name: string;
   sha_key: string;
+  signing_secret_preview: string;
+  has_rotated_signing_secret: boolean;
+  signing_secret?: string;
   status: "active" | "disabled";
   created_by_admin_id: string | null;
   created_at: string;
