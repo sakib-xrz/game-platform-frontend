@@ -38,13 +38,26 @@ export function isDevPlayerIdentityEnabled(): boolean {
 
 /**
  * Resolve order: `?user=` → sessionStorage → NEXT_PUBLIC_DEV_USER_ID → empty.
- * sessionStorage is per-tab so multiple tabs can act as different players.
+ * Identity is set once when the WebView opens (home URL with ?user=).
+ * After that, sessionStorage keeps it for every game page in this tab.
  */
 export function getPlayerUserId(): string {
   const fromQuery = readQueryUserId();
   if (fromQuery) {
-    // Keep storage aligned when the URL is the source of truth.
     writeStoredUserId(fromQuery);
+    // Drop ?user= from the visible URL after capturing identity (home + games).
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.has("user")) {
+          url.searchParams.delete("user");
+          const next = `${url.pathname}${url.search}${url.hash}`;
+          window.history.replaceState(window.history.state, "", next);
+        }
+      } catch {
+        // Ignore URL cleanup failures.
+      }
+    }
     return fromQuery;
   }
 
