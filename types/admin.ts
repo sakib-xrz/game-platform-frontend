@@ -423,3 +423,61 @@ export type AdminWalletSearchItem = {
   updated_at: string;
   currency: { code: string; name: string; symbol: string | null };
 };
+
+export type PlatformAppRecord = {
+  id: string;
+  app_name: string;
+  package_name: string;
+  sha_key: string;
+  signing_secret_preview: string;
+  has_rotated_signing_secret: boolean;
+  signing_secret?: string;
+  status: "active" | "disabled";
+  created_by_admin_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreatePlatformAppInput = {
+  app_name: string;
+  package_name: string;
+  sha_key: string;
+  status?: "active" | "disabled";
+};
+
+export type UpdatePlatformAppInput = Partial<CreatePlatformAppInput>;
+
+export type PlatformUserRecord = {
+  id: string;
+  platform_app_id: string;
+  app_name: string;
+  package_name: string;
+  external_user_id: string;
+  email: string;
+  display_name: string;
+  photo_url: string | null;
+  status: "active" | "disabled";
+  balance: string;
+  currency: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PlatformUserLedgerEntry = {
+  id: string;
+  type: "deposit" | "withdrawal";
+  ledger_type: string;
+  amount: string;
+  balance_before: string;
+  balance_after: string;
+  client_request_id: string | null;
+  metadata: unknown;
+  created_at: string;
+};
+
+export type PlatformAppFilterOption = {
+  id: string;
+  app_name: string;
+  package_name: string;
+  status: "active" | "disabled";
+};

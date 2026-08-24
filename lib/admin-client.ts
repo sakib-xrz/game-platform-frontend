@@ -153,4 +153,42 @@ export const adminClient = {
       );
     },
   },
+  platformApps: () =>
+    adminFetch<import("@/types/admin").PlatformAppRecord[]>("/platform-apps"),
+  platformApp: (id: string) =>
+    adminFetch<import("@/types/admin").PlatformAppRecord>(
+      `/platform-apps/${encodeURIComponent(id)}`,
+    ),
+  createPlatformApp: (payload: import("@/types/admin").CreatePlatformAppInput) =>
+    adminFetch<import("@/types/admin").PlatformAppRecord>("/platform-apps", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updatePlatformApp: (
+    id: string,
+    payload: import("@/types/admin").UpdatePlatformAppInput,
+  ) =>
+    adminFetch<import("@/types/admin").PlatformAppRecord>(
+      `/platform-apps/${encodeURIComponent(id)}`,
+      { method: "PATCH", body: JSON.stringify(payload) },
+    ),
+  deletePlatformApp: (id: string) =>
+    adminFetch(`/platform-apps/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  regeneratePlatformAppSigningSecret: (id: string) =>
+    adminFetch<import("@/types/admin").PlatformAppRecord>(
+      `/platform-apps/${encodeURIComponent(id)}/regenerate-signing-secret`,
+      { method: "POST" },
+    ),
+  platformUsers: (query = "?page=1&limit=20") =>
+    adminFetchPaged<import("@/types/admin").PlatformUserRecord>(`/platform-users${query}`),
+  platformUser: (id: string) =>
+    adminFetch<import("@/types/admin").PlatformUserRecord>(
+      `/platform-users/${encodeURIComponent(id)}`,
+    ),
+  platformUserLedger: (id: string, query = "?page=1&limit=50") =>
+    adminFetchPaged<import("@/types/admin").PlatformUserLedgerEntry>(
+      `/platform-users/${encodeURIComponent(id)}/ledger${query}`,
+    ),
+  platformUserApps: () =>
+    adminFetch<import("@/types/admin").PlatformAppFilterOption[]>("/platform-users/apps"),
 };
