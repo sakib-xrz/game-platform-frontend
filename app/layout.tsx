@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { GameBootProvider } from "@/components/game-boot-provider";
+import { PlayerIdentityBootstrap } from "@/components/player-identity-bootstrap";
 import { ToastContainer } from "@/components/toast/toast-container";
 import "./globals.css";
 import "./teen-patti.css";
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html lang="en">
       <body>
+        <PlayerIdentityBootstrap />
         <GameBootProvider>
           {children}
           <ToastContainer />
