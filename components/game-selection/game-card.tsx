@@ -3,8 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, LockKeyhole, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useGameBoot, type BootGame } from "@/components/game-boot-provider";
+import { withPlayerQuery } from "@/lib/player-identity";
 
 type GameCardImage = {
   src: string;
@@ -52,6 +53,8 @@ export function GameCard({
   const [opening, setOpening] = useState(false);
   const { showBoot } = useGameBoot();
   const orbitItems = artImages.length > 0 ? artImages : art;
+  // Keep ?user= on game links so WebView navigations never drop identity.
+  const resolvedHref = useMemo(() => (href ? withPlayerQuery(href) : undefined), [href]);
 
   function handleOpen() {
     setOpening(true);
@@ -160,9 +163,9 @@ export function GameCard({
     </div>
   );
 
-  return active && href ? (
+  return active && resolvedHref ? (
     <Link
-      href={href}
+      href={resolvedHref}
       aria-label={`Open ${title}`}
       className="game-card-link"
       onNavigate={handleOpen}
