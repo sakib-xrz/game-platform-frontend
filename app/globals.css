@@ -6971,66 +6971,8 @@ a:focus-visible {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  background:
-    radial-gradient(
-      80% 40% at 50% -5%,
-      rgba(255, 196, 80, 0.42),
-      transparent 72%
-    ),
-    radial-gradient(
-      70% 44% at 110% 42%,
-      rgba(255, 148, 164, 0.18),
-      transparent 76%
-    ),
-    linear-gradient(180deg, #fffaf0 0%, #fff3dc 48%, #f7e6c4 100%);
+  background: #fff;
   color: var(--ink);
-}
-
-.game-select-page__glow {
-  position: absolute;
-  z-index: -1;
-  width: 260px;
-  height: 260px;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.28;
-  pointer-events: none;
-}
-
-.game-select-page__glow--one {
-  top: 8%;
-  right: -45%;
-  background: #ffb45c;
-}
-
-.game-select-page__glow--two {
-  bottom: 4%;
-  left: -48%;
-  background: #8bb4ff;
-}
-
-.game-select-page__grain {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  background-image:
-    radial-gradient(
-      circle at 1px 1px,
-      rgba(80, 48, 16, 0.07) 1px,
-      transparent 1.1px
-    ),
-    linear-gradient(
-      115deg,
-      transparent 0 48%,
-      rgba(80, 48, 16, 0.03) 49% 51%,
-      transparent 52%
-    );
-  background-size:
-    18px 18px,
-    74px 74px;
-  mask-image: linear-gradient(to bottom, black, rgba(0, 0, 0, 0.32));
-  opacity: 0.45;
-  pointer-events: none;
 }
 
 .game-select {

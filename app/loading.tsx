@@ -6,10 +6,6 @@ export default function GameSelectionLoading() {
       aria-live="polite"
       aria-label="Loading games"
     >
-      <span className="game-select-page__glow game-select-page__glow--one" aria-hidden="true" />
-      <span className="game-select-page__glow game-select-page__glow--two" aria-hidden="true" />
-      <span className="game-select-page__grain" aria-hidden="true" />
-
       <section className="game-select">
         <header className="game-select__topbar" aria-hidden="true">
           <div className="game-select__identity">
