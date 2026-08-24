@@ -3,13 +3,13 @@ import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameCard } from "@/components/game-selection/game-card";
 
 export const viewport: Viewport = {
-  themeColor: "#151722",
-  colorScheme: "dark",
+  themeColor: "#fff6e4",
+  colorScheme: "light",
 };
 
 export default function GameSelectionPage() {
   return (
-    <main className="mobile-canvas game-select-page safe-top safe-bottom text-white">
+    <main className="mobile-canvas game-select-page safe-top safe-bottom">
       <span
         className="game-select-page__glow game-select-page__glow--one"
         aria-hidden="true"
@@ -22,11 +22,6 @@ export default function GameSelectionPage() {
 
       <section className="game-select">
         <DevPlayerSwitcher variant="panel" />
-
-        <div className="game-select__section-heading">
-          <strong>Game tables</strong>
-          <span>Instant play</span>
-        </div>
 
         <div className="game-select__cards">
           <GameCard

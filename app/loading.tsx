@@ -1,7 +1,7 @@
 export default function GameSelectionLoading() {
   return (
     <main
-      className="mobile-canvas game-select-page safe-top safe-bottom text-white"
+      className="mobile-canvas game-select-page safe-top safe-bottom"
       role="status"
       aria-live="polite"
       aria-label="Loading games"
