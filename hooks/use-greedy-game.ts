@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Socket } from "socket.io-client";
-import { greedyApi, ApiError } from "@/lib/api";
+import {
+  greedyApi,
+  greedyClassicApi,
+  ApiError,
+  type GreedyGameApi,
+} from "@/lib/api";
 import { createBetRequestId } from "@/lib/request-id";
 import { getGameSocket } from "@/lib/socket";
 import { showToast, type ToastKind } from "@/lib/toast";
@@ -34,6 +39,30 @@ export type BetLanding = {
   id: string;
   optionId: string;
 };
+
+export type GreedyGameDefinition = Readonly<{
+  api: GreedyGameApi;
+  gameCode: "GREEDY" | "GREEDY_CLASSIC";
+  eventPrefix: "greedy" | "greedy_classic";
+  displayName: "Greedy" | "Greedy Classic";
+  walletReasonPrefix: "greedy" | "greedy_classic";
+}>;
+
+export const GREEDY_GAME_DEFINITION: GreedyGameDefinition = Object.freeze({
+  api: greedyApi,
+  gameCode: "GREEDY",
+  eventPrefix: "greedy",
+  displayName: "Greedy",
+  walletReasonPrefix: "greedy",
+});
+
+export const GREEDY_CLASSIC_GAME_DEFINITION: GreedyGameDefinition = Object.freeze({
+  api: greedyClassicApi,
+  gameCode: "GREEDY_CLASSIC",
+  eventPrefix: "greedy_classic",
+  displayName: "Greedy Classic",
+  walletReasonPrefix: "greedy_classic",
+});
 
 function aggregateRecency(
   candidate: Pick<PublicBetAggregate, "bet_count" | "last_bet_at">,
@@ -74,7 +103,10 @@ function eventAlreadySeen(eventId: unknown, seen: Set<string>): boolean {
   return false;
 }
 
-export function useGreedyGame() {
+export function useGreedyGame(
+  definition: GreedyGameDefinition = GREEDY_GAME_DEFINITION,
+) {
+  const { api, displayName, eventPrefix, gameCode, walletReasonPrefix } = definition;
   const [snapshot, setSnapshot] = useState<GreedySnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -167,7 +199,7 @@ export function useGreedyGame() {
         recoveryQueuedReasonRef.current = null;
 
         try {
-          const next = await greedyApi.getSnapshot();
+          const next = await api.getSnapshot();
           const finishedAt = Date.now();
           if (!mountedRef.current) return;
 
@@ -285,9 +317,13 @@ export function useGreedyGame() {
     });
     recoveryInFlightRef.current = recoveryTask;
     return recoveryTask;
-  }, [pushNotice, scheduleResultClose, syncPendingBets]);
+  }, [api, pushNotice, scheduleResultClose, syncPendingBets]);
 
-  const placeBet = useCallback(async (option: PublicOption, amount: string) => {
+  const placeBet = useCallback(async (
+    option: PublicOption,
+    amount: string,
+    optionDisplayName = option.name,
+  ) => {
     const current = snapshotRef.current;
     const round = current?.round;
     if (!current || !round) {
@@ -295,7 +331,7 @@ export function useGreedyGame() {
       return false;
     }
     if (current.game.status !== "active") {
-      pushNotice("info", "Greedy is not accepting bets right now.");
+      pushNotice("info", `${displayName} is not accepting bets right now.`);
       void recover("game-unavailable");
       return false;
     }
@@ -359,7 +395,7 @@ export function useGreedyGame() {
       };
       let response;
       try {
-        response = await greedyApi.placeBet(betPayload);
+        response = await api.placeBet(betPayload);
       } catch (firstError) {
         const uncertain = firstError instanceof ApiError
           && (firstError.status === 0 || firstError.status === 408);
@@ -368,7 +404,7 @@ export function useGreedyGame() {
         // Replaying the same request ID confirms an uncertain transport result
         // without ever producing a second wager.
         pushNotice("info", "Connection interrupted. Confirming your bet…");
-        response = await greedyApi.placeBet(betPayload);
+        response = await api.placeBet(betPayload);
       }
 
       setSnapshot((existing) => {
@@ -411,7 +447,7 @@ export function useGreedyGame() {
       });
 
       queueBetLanding(response.bet_id, response.option_id);
-      pushNotice("success", `${amount} coins placed on ${option.name}`);
+      pushNotice("success", `${amount} coins placed on ${optionDisplayName}`);
       return true;
     } catch (error) {
       const uncertain = error instanceof ApiError
@@ -440,7 +476,7 @@ export function useGreedyGame() {
         syncPendingBets();
       }
     }
-  }, [pushNotice, queueBetLanding, recover, serverOffsetMs, syncPendingBets]);
+  }, [api, displayName, pushNotice, queueBetLanding, recover, serverOffsetMs, syncPendingBets]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -468,7 +504,7 @@ export function useGreedyGame() {
     };
 
     const onPlatformGameRefresh = (payload: { event_id?: string; game_code?: string }) => {
-      if (payload.game_code !== "GREEDY") return;
+      if (payload.game_code !== gameCode) return;
       onRoundRefresh(payload);
     };
 
@@ -649,11 +685,11 @@ export function useGreedyGame() {
           snapshotRef.current = updated;
           return updated;
         });
-        if (payload.reason === "greedy_win" && payload.payout) {
+        if (payload.reason === `${walletReasonPrefix}_win` && payload.payout) {
           pushNotice("success", `Round payout: +${payload.payout} coins`);
           void recover("wallet-payout");
         }
-        if (payload.reason === "greedy_refund" && payload.refund) {
+        if (payload.reason === `${walletReasonPrefix}_refund` && payload.refund) {
           pushNotice("info", `Round refund: +${payload.refund} coins`);
           void recover("wallet-refund");
         }
@@ -671,16 +707,16 @@ export function useGreedyGame() {
       socket.on("platform.game.paused", onPlatformGameRefresh);
       socket.on("platform.game.resumed", onPlatformGameRefresh);
       socket.on("platform.game.availability_changed", onPlatformGameRefresh);
-      socket.on("greedy.round.opened", onRoundRefresh);
-      socket.on("greedy.round.locked", onRoundRefresh);
-      socket.on("greedy.round.drawing", onRoundRefresh);
-      socket.on("greedy.round.result", onRoundResult);
-      socket.on("greedy.bet.accepted", onBetAccepted);
-      socket.on("greedy.bet.placed", onPublicBetPlaced);
-      socket.on("greedy.round.settled", onRoundRefresh);
-      socket.on("greedy.round.closed", onRoundRefresh);
-      socket.on("greedy.round.cancelled", onRoundRefresh);
-      socket.on("greedy.round.refunded", onRoundRefresh);
+      socket.on(`${eventPrefix}.round.opened`, onRoundRefresh);
+      socket.on(`${eventPrefix}.round.locked`, onRoundRefresh);
+      socket.on(`${eventPrefix}.round.drawing`, onRoundRefresh);
+      socket.on(`${eventPrefix}.round.result`, onRoundResult);
+      socket.on(`${eventPrefix}.bet.accepted`, onBetAccepted);
+      socket.on(`${eventPrefix}.bet.placed`, onPublicBetPlaced);
+      socket.on(`${eventPrefix}.round.settled`, onRoundRefresh);
+      socket.on(`${eventPrefix}.round.closed`, onRoundRefresh);
+      socket.on(`${eventPrefix}.round.cancelled`, onRoundRefresh);
+      socket.on(`${eventPrefix}.round.refunded`, onRoundRefresh);
       socket.on("wallet.balance.updated", onWalletUpdate);
       socket.connect();
     } catch {
@@ -717,22 +753,31 @@ export function useGreedyGame() {
         socket.off("platform.game.paused", onPlatformGameRefresh);
         socket.off("platform.game.resumed", onPlatformGameRefresh);
         socket.off("platform.game.availability_changed", onPlatformGameRefresh);
-        socket.off("greedy.round.opened", onRoundRefresh);
-        socket.off("greedy.round.locked", onRoundRefresh);
-        socket.off("greedy.round.drawing", onRoundRefresh);
-        socket.off("greedy.round.result", onRoundResult);
-        socket.off("greedy.bet.accepted", onBetAccepted);
-        socket.off("greedy.bet.placed", onPublicBetPlaced);
-        socket.off("greedy.round.settled", onRoundRefresh);
-        socket.off("greedy.round.closed", onRoundRefresh);
-        socket.off("greedy.round.cancelled", onRoundRefresh);
-        socket.off("greedy.round.refunded", onRoundRefresh);
+        socket.off(`${eventPrefix}.round.opened`, onRoundRefresh);
+        socket.off(`${eventPrefix}.round.locked`, onRoundRefresh);
+        socket.off(`${eventPrefix}.round.drawing`, onRoundRefresh);
+        socket.off(`${eventPrefix}.round.result`, onRoundResult);
+        socket.off(`${eventPrefix}.bet.accepted`, onBetAccepted);
+        socket.off(`${eventPrefix}.bet.placed`, onPublicBetPlaced);
+        socket.off(`${eventPrefix}.round.settled`, onRoundRefresh);
+        socket.off(`${eventPrefix}.round.closed`, onRoundRefresh);
+        socket.off(`${eventPrefix}.round.cancelled`, onRoundRefresh);
+        socket.off(`${eventPrefix}.round.refunded`, onRoundRefresh);
         socket.off("wallet.balance.updated", onWalletUpdate);
         socket.disconnect();
       }
     };
   // recover intentionally carries the latest authoritative snapshot behavior.
-  }, [pushNotice, queueBetLanding, recover, scheduleResultClose, syncPendingBets]);
+  }, [
+    eventPrefix,
+    gameCode,
+    pushNotice,
+    queueBetLanding,
+    recover,
+    scheduleResultClose,
+    syncPendingBets,
+    walletReasonPrefix,
+  ]);
 
   const roundBetTotal = useMemo(() => {
     const roundId = snapshot?.round?.id;

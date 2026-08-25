@@ -18,7 +18,7 @@ export type GameCardProps = {
   href?: string;
   active?: boolean;
   accent: string;
-  variant: "greedy" | "teen-patti" | "soon";
+  variant: "greedy" | "greedy-classic" | "teen-patti" | "soon";
   statusLabel?: string;
   meta?: string[];
   art?: string[];
@@ -58,8 +58,8 @@ export function GameCard({
 
   function handleOpen() {
     setOpening(true);
-    if (variant === "greedy" || variant === "teen-patti") {
-      showBoot(variant as BootGame);
+    if (variant !== "soon") {
+      showBoot(variant satisfies BootGame);
     }
   }
 

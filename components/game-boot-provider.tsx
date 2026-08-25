@@ -11,9 +11,12 @@ import {
   type ReactNode,
 } from "react";
 import { usePathname } from "next/navigation";
-import { GameLoadingScreen } from "@/components/game-loading-screen";
+import {
+  GameLoadingScreen,
+  type LoadingGame,
+} from "@/components/game-loading-screen";
 
-export type BootGame = "greedy" | "teen-patti";
+export type BootGame = LoadingGame;
 
 type GameBootContextValue = {
   bootGame: BootGame | null;
@@ -25,8 +28,14 @@ const GameBootContext = createContext<GameBootContextValue | null>(null);
 
 const MIN_BOOT_VISIBILITY_MS = 1_400;
 
-function targetPath(game: BootGame) {
-  return game === "greedy" ? "/games/greedy" : "/games/teen-patti";
+const TARGET_PATH: Record<BootGame, string> = {
+  greedy: "/games/greedy",
+  "greedy-classic": "/games/greedy-classic",
+  "teen-patti": "/games/teen-patti",
+};
+
+function isTargetPath(pathname: string, target: string) {
+  return pathname === target || pathname.startsWith(`${target}/`);
 }
 
 export function GameBootProvider({ children }: { children: ReactNode }) {
@@ -82,8 +91,8 @@ export function GameBootProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!bootGame) return;
 
-    const target = targetPath(bootGame);
-    if (pathname.startsWith(target)) {
+    const target = TARGET_PATH[bootGame];
+    if (isTargetPath(pathname, target)) {
       reachedTargetRef.current = true;
       return;
     }

@@ -30,6 +30,11 @@ export class ApiError extends Error {
   }
 }
 
+export type GreedyGameApi = Readonly<{
+  getSnapshot: () => Promise<GreedySnapshot>;
+  placeBet: (payload: BetRequest) => Promise<BetResponse>;
+}>;
+
 function playerHeaders(): HeadersInit {
   const userId = getPlayerUserId();
   return userId ? { "X-User-Id": userId } : {};
@@ -80,16 +85,22 @@ async function request<T>(path: string, init: RequestInit = {}, timeoutMs = 8_00
   }
 }
 
-export const greedyApi = {
-  getSnapshot: () => request<GreedySnapshot>("/games/greedy/snapshot"),
+function createGreedyGameApi(path: "greedy" | "greedy-classic"): GreedyGameApi {
+  const basePath = `/games/${path}`;
+  return Object.freeze({
+    getSnapshot: () => request<GreedySnapshot>(`${basePath}/snapshot`),
 
-  placeBet: (payload: BetRequest) =>
-    request<BetResponse>("/games/greedy/bets", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    }, BET_REQUEST_TIMEOUT_MS),
-};
+    placeBet: (payload: BetRequest) =>
+      request<BetResponse>(`${basePath}/bets`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }, BET_REQUEST_TIMEOUT_MS),
+  });
+}
+
+export const greedyApi = createGreedyGameApi("greedy");
+export const greedyClassicApi = createGreedyGameApi("greedy-classic");
 
 export const teenPattiApi = {
   getSnapshot: () => request<TeenPattiSnapshot>("/games/teen-patti/snapshot"),

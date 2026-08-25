@@ -1,8 +1,10 @@
 import Image from "next/image";
 import type { CSSProperties } from "react";
 
+export type LoadingGame = "greedy" | "greedy-classic" | "teen-patti";
+
 type GameLoadingScreenProps = {
-  game: "greedy" | "teen-patti";
+  game: LoadingGame;
   /** Raises the full-screen takeover above route-level loading UI. */
   overlay?: boolean;
 };
@@ -11,6 +13,10 @@ const GAME_META = {
   greedy: {
     title: "Greedy",
     label: "Greedy is loading",
+  },
+  "greedy-classic": {
+    title: "Greedy Classic",
+    label: "Greedy Classic is loading",
   },
   "teen-patti": {
     title: "Teen Patti",
@@ -70,6 +76,65 @@ const GREEDY_FOODS = [
   },
   {
     src: "/assets/greedy/tomato.png",
+    x: "21%",
+    y: "13%",
+    rotate: "-8deg",
+    delay: "-1.5s",
+  },
+] as const;
+
+const GREEDY_CLASSIC_FOODS = [
+  {
+    src: "/assets/greedy-classic/hot-dog.png",
+    x: "50%",
+    y: "2%",
+    rotate: "-8deg",
+    delay: "-0.2s",
+  },
+  {
+    src: "/assets/greedy-classic/kebab.png",
+    x: "78%",
+    y: "13%",
+    rotate: "16deg",
+    delay: "-0.7s",
+  },
+  {
+    src: "/assets/greedy-classic/ham.png",
+    x: "91%",
+    y: "45%",
+    rotate: "10deg",
+    delay: "-1.1s",
+  },
+  {
+    src: "/assets/greedy-classic/steak.png",
+    x: "79%",
+    y: "77%",
+    rotate: "-9deg",
+    delay: "-0.4s",
+  },
+  {
+    src: "/assets/greedy-classic/carrot.png",
+    x: "50%",
+    y: "90%",
+    rotate: "-12deg",
+    delay: "-1.3s",
+  },
+  {
+    src: "/assets/greedy-classic/corn.png",
+    x: "20%",
+    y: "77%",
+    rotate: "-20deg",
+    delay: "-0.9s",
+  },
+  {
+    src: "/assets/greedy-classic/cabbage.png",
+    x: "8%",
+    y: "45%",
+    rotate: "8deg",
+    delay: "-0.1s",
+  },
+  {
+    src: "/assets/greedy-classic/tomato.png",
     x: "21%",
     y: "13%",
     rotate: "-8deg",
@@ -138,6 +203,58 @@ function GreedyLoadingArt() {
           fill
           sizes="(max-width: 480px) 38vw, 172px"
           priority
+          draggable={false}
+        />
+      </span>
+    </div>
+  );
+}
+
+function GreedyClassicLoadingArt() {
+  return (
+    <div
+      className="game-boot__scene game-boot__scene--greedy-classic"
+      aria-hidden="true"
+    >
+      <span className="game-boot__classic-rays" />
+      <span className="game-boot__wheel-shadow game-boot__classic-wheel-shadow" />
+      <span className="game-boot__wheel-rim game-boot__classic-wheel-rim" />
+      <span className="game-boot__wheel-spokes game-boot__classic-wheel-spokes" />
+
+      {GREEDY_CLASSIC_FOODS.map((food) => (
+        <span
+          key={food.src}
+          className="game-boot__food game-boot__classic-food"
+          style={
+            {
+              "--food-x": food.x,
+              "--food-y": food.y,
+              "--food-rotate": food.rotate,
+              "--food-delay": food.delay,
+            } as CSSProperties
+          }
+        >
+          <Image src={food.src} alt="" fill sizes="72px" draggable={false} />
+        </span>
+      ))}
+
+      <span className="game-boot__platter-halo game-boot__classic-platter-halo" />
+      <span className="game-boot__platter game-boot__classic-platter">
+        <Image
+          src="/assets/greedy-classic/center-feast.png"
+          alt=""
+          fill
+          sizes="(max-width: 480px) 38vw, 172px"
+          priority
+          draggable={false}
+        />
+      </span>
+      <span className="game-boot__classic-token">
+        <Image
+          src="/assets/greedy-classic/silver-token.png"
+          alt=""
+          fill
+          sizes="38px"
           draggable={false}
         />
       </span>
@@ -234,7 +351,13 @@ export function GameLoadingScreen({
         </div>
 
         <div className="game-boot__stage">
-          {game === "greedy" ? <GreedyLoadingArt /> : <TeenPattiLoadingArt />}
+          {game === "greedy" ? (
+            <GreedyLoadingArt />
+          ) : game === "greedy-classic" ? (
+            <GreedyClassicLoadingArt />
+          ) : (
+            <TeenPattiLoadingArt />
+          )}
 
           <h1 className="game-boot__title">{meta.title}</h1>
           <p className="game-boot__loading">Loading...</p>

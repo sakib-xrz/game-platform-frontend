@@ -1,0 +1,2 @@
+import { proxyAdminRequest } from "@/lib/admin-bff"; import { requireAdminSession } from "@/lib/admin-session";
+export async function GET(_request: Request, { params }: { params: Promise<{ userId: string }> }) { const session = await requireAdminSession(); if (session instanceof Response) return session; const { userId } = await params; return proxyAdminRequest(`/admin/games/greedy-classic/users/${encodeURIComponent(userId)}`, session); }

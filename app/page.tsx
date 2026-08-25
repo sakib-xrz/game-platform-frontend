@@ -27,6 +27,17 @@ export default function GameSelectionPage() {
             heroImage={{ src: "/assets/greedy/game-card.png", alt: "" }}
           />
           <GameCard
+            title="Greedy Classic"
+            subtitle="Choose a lucky food on the classic board and chase the round multiplier."
+            href="/games/greedy-classic"
+            active
+            variant="greedy-classic"
+            statusLabel="Classic arcade"
+            meta={["8 foods", "Live rounds"]}
+            accent="linear-gradient(135deg,#44091a 0%,#73132e 45%,#a61c3c 78%,#d9561c 100%)"
+            heroImage={{ src: "/assets/greedy-classic/lobby-hero.png", alt: "" }}
+          />
+          <GameCard
             title="Teen Patti"
             subtitle="Back one or more royal hands. Highest three-card hand wins."
             href="/games/teen-patti"
@@ -34,11 +45,11 @@ export default function GameSelectionPage() {
             variant="teen-patti"
             statusLabel="Royal table"
             meta={["3 hands", "Live reveal"]}
-            accent="linear-gradient(135deg,#b7492d 0%,#d7782e 48%,#6f241c 100%)"
+            accent="linear-gradient(135deg,#44091a 0%,#73132e 45%,#a61c3c 78%,#d9561c 100%)"
             heroImage={{ src: "/assets/teen-patti/game-card.png", alt: "" }}
           />
           <GameCard
-            title="More games"
+            title="More Games"
             subtitle="Fresh challenges and live tables are being prepared."
             variant="soon"
             statusLabel="In the works"
