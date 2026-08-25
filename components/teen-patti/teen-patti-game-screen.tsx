@@ -33,7 +33,7 @@ import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
 import { PlayerAvatar } from "@/components/greedy/player-avatar";
-import { withPlayerQuery } from "@/lib/player-identity";
+import { usePlayerHref } from "@/hooks/use-player-href";
 import { useTeenPattiSound } from "@/hooks/use-teen-patti-sound";
 import type { PublicDeck } from "@/types/teen-patti";
 
@@ -122,6 +122,7 @@ export function TeenPattiGameScreen() {
     placeBet,
   } = useTeenPattiGame();
   const { bootGame, hideBoot } = useGameBoot();
+  const homeHref = usePlayerHref("/") ?? "/";
   const { soundEnabled, toggleSound, playSound } = useTeenPattiSound();
 
   useEffect(() => {
@@ -490,7 +491,7 @@ export function TeenPattiGameScreen() {
           </p>
           <div className="mt-6 grid grid-cols-2 gap-3">
             <Link
-              href={withPlayerQuery("/")}
+              href={homeHref}
               className="rounded-2xl bg-white/10 px-4 py-3 text-sm font-black"
             >
               Back
@@ -575,7 +576,7 @@ export function TeenPattiGameScreen() {
         </span>
 
         <header className="tp-topbar">
-          <Link href={withPlayerQuery("/")} className="tp-back" aria-label="Back to games">
+          <Link href={homeHref} className="tp-back" aria-label="Back to games">
             <ChevronLeft />
           </Link>
 

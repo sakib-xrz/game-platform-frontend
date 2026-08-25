@@ -5,6 +5,7 @@ import { PlayerIdentityBootstrap } from "@/components/player-identity-bootstrap"
 import { ToastContainer } from "@/components/toast/toast-container";
 import "./globals.css";
 import "./greedy-classic.css";
+import "./lucky-77.css";
 import "./teen-patti.css";
 
 export const metadata: Metadata = {

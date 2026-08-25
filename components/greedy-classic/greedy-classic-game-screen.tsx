@@ -23,7 +23,7 @@ import { useCountdown } from "@/hooks/use-countdown";
 import { useGreedyClassicGame } from "@/hooks/use-greedy-classic-game";
 import { formatCompactAmount, formatInteger } from "@/lib/format";
 import { getClassicOptionDisplayName } from "@/lib/greedy-classic-art";
-import { withPlayerQuery } from "@/lib/player-identity";
+import { usePlayerHref } from "@/hooks/use-player-href";
 import type { PublicBetAggregate } from "@/types/greedy";
 
 const CLASSIC_OPTION_POSITIONS = [
@@ -58,6 +58,7 @@ export function GreedyClassicGameScreen() {
     placeBet,
   } = useGreedyClassicGame();
   const { bootGame, hideBoot } = useGameBoot();
+  const homeHref = usePlayerHref("/") ?? "/";
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -270,7 +271,7 @@ export function GreedyClassicGameScreen() {
           <h1>Game unavailable</h1>
           <p>{fatalError}</p>
           <div>
-            <Link href={withPlayerQuery("/")}>Back to games</Link>
+            <Link href={homeHref}>Back to games</Link>
             <button type="button" onClick={() => void recover()}>
               Retry
             </button>
@@ -291,7 +292,7 @@ export function GreedyClassicGameScreen() {
       <header className="gc-toolbar safe-top">
         <nav aria-label="Game controls">
           <Link
-            href={withPlayerQuery("/")}
+            href={homeHref}
             className="gc-toolbar__button"
             aria-label="Home"
           >
@@ -496,7 +497,7 @@ export function GreedyClassicGameScreen() {
               : "No new round will start until the operator resumes the game. Your wallet remains safe."}
           </p>
           <div>
-            <Link ref={holdHomeRef} href={withPlayerQuery("/")}>
+            <Link ref={holdHomeRef} href={homeHref}>
               Back to games
             </Link>
             <button

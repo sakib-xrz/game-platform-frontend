@@ -129,6 +129,21 @@ export const adminClient = {
     resolveAlert: (id: string) => adminFetch(`/greedy-classic/alerts/${encodeURIComponent(id)}/resolve`, { method: "POST" }),
     setAvailability: (status: "active" | "maintenance" | "disabled") => adminFetch("/greedy-classic/availability", { method: "POST", body: JSON.stringify({ status }) }),
   },
+  lucky77: {
+    runtime: () => adminFetch<import("@/types/admin").AdminRuntime>("/lucky-77/runtime"),
+    configs: () => adminFetch<import("@/types/admin").AdminConfigVersion[]>("/lucky-77/configs"),
+    createConfig: (payload: import("@/types/admin").CreateAdminConfigInput) => adminFetch("/lucky-77/configs", { method: "POST", body: JSON.stringify(payload) }),
+    config: (id: string) => adminFetch<import("@/types/admin").AdminConfigVersion>(`/lucky-77/configs/${id}`),
+    updateConfig: (id: string, payload: import("@/types/admin").CreateAdminConfigInput) => adminFetch(`/lucky-77/configs/${id}`, { method: "PUT", body: JSON.stringify(payload) }),
+    cloneConfig: (id: string) => adminFetch<import("@/types/admin").AdminConfigVersion>(`/lucky-77/configs/${id}/clone`, { method: "POST" }),
+    validateConfig: (payload: import("@/types/admin").CreateAdminConfigInput) => adminFetch<import("@/lib/admin-config-validation").ConfigValidationPreview>("/lucky-77/configs/validate", { method: "POST", body: JSON.stringify(payload) }),
+    publish: (id: string) => adminFetch(`/lucky-77/configs/${id}/publish`, { method: "POST" }),
+    publishApproved: (approvalId: string) => adminFetch("/lucky-77/configs/publish-approved", { method: "POST", body: JSON.stringify({ approval_id: approvalId }) }),
+    resume: () => adminFetch("/lucky-77/resume", { method: "POST" }),
+    pause: () => adminFetch("/lucky-77/pause", { method: "POST" }),
+    uploadAsset: (file: File) => { const data = new FormData(); data.append("file", file); return adminFetch<import("@/types/admin").AdminAsset>("/lucky-77/assets", { method: "POST", body: data }); },
+    assets: () => adminFetch<import("@/types/admin").AdminAsset[]>("/lucky-77/assets"),
+  },
   teenPatti: {
     runtime: () =>
       adminFetch<import("@/types/admin").AdminRuntime>("/teen-patti/runtime"),

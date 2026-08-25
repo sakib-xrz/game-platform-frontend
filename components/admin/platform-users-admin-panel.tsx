@@ -31,10 +31,6 @@ export function PlatformUsersAdminPanel() {
     return () => window.clearTimeout(timer);
   }, [search]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [debounced, appId]);
-
   const query = buildQuery(debounced, appId, page);
   const users = useQuery({
     queryKey: ["admin", "platform-users", debounced, appId, page],
@@ -79,11 +75,20 @@ export function PlatformUsersAdminPanel() {
                 <Input
                   className="pl-9"
                   value={search}
-                  onChange={(event) => setSearch(event.target.value)}
+                  onChange={(event) => {
+                    setSearch(event.target.value);
+                    setPage(1);
+                  }}
                   placeholder="Search users…"
                 />
               </div>
-              <Select value={appId} onValueChange={setAppId}>
+              <Select
+                value={appId}
+                onValueChange={(value) => {
+                  setAppId(value);
+                  setPage(1);
+                }}
+              >
                 <SelectTrigger className="w-full sm:w-56">
                   <SelectValue placeholder="All apps" />
                 </SelectTrigger>

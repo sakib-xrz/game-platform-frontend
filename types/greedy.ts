@@ -89,6 +89,8 @@ export type RoundResult = {
   generated_at?: string;
   revealed_at: string | null;
   winning_option: PublicOption;
+  /** Lucky 77 uses the exact revealed wheel segment for deterministic motion. */
+  winning_slot_index?: number;
   top_winners: TopWinner[];
 };
 
@@ -168,6 +170,8 @@ export type GreedySnapshot = {
     status: RuntimeStatus;
     revision: string;
   };
+  /** Present for fixed-layout wheel games such as Lucky 77. */
+  slot_map?: string[];
   active_config: GreedyConfig;
   round: SnapshotRound | null;
   wallet: Wallet;
@@ -238,6 +242,7 @@ export type RoundResultEvent = {
   event_id: string;
   round_id: string;
   winning_option: WinningOption;
+  winning_slot_index?: number;
   revealed_at: string;
   top_winners: TopWinner[];
 };
