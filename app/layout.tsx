@@ -7,6 +7,7 @@ import "./globals.css";
 import "./greedy-classic.css";
 import "./lucky-77.css";
 import "./lucky-77-premium.css";
+import "./lucky-77-refinement.css";
 import "./teen-patti.css";
 
 export const metadata: Metadata = {
