@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Banknote, CircleDollarSign, Dices, LayoutDashboard, LogOut, Menu, ShieldCheck, Smartphone, Spade, Users } from "lucide-react";
+import { Banknote, CircleDollarSign, Dices, Gamepad2, LayoutDashboard, LogOut, Menu, ShieldCheck, Smartphone, Spade, Users } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import type { AdminIdentity } from "@/types/admin";
 const navigation: Array<{ href: string; label: string; icon: ComponentType<{ className?: string }> }> = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/greedy", label: "Manage Greedy", icon: Dices },
+  { href: "/admin/greedy-classic", label: "Manage Greedy Classic", icon: Gamepad2 },
   { href: "/admin/teen-patti", label: "Manage Teen Patti", icon: Spade },
   { href: "/admin/lucky-77", label: "Manage Lucky 77", icon: ShieldCheck },
   { href: "/admin/apps", label: "Platform Apps", icon: Smartphone },

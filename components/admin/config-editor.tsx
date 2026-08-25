@@ -55,7 +55,7 @@ export const newConfigDefaults: CreateAdminConfigInput = {
   chip_values: [10, 50, 100, 500].map((amount, index) => ({ amount: String(amount), display_order: index + 1, is_enabled: true })),
 };
 
-export function ConfigEditor({ initial, submitLabel, onSave, readOnly = false }: { initial: CreateAdminConfigInput; submitLabel: string; onSave: (payload: CreateAdminConfigInput) => Promise<void>; readOnly?: boolean }) {
+export function ConfigEditor({ initial, submitLabel, onSave, readOnly = false, validateConfig = adminClient.validateConfig, uploadAsset = adminClient.uploadAsset }: { initial: CreateAdminConfigInput; submitLabel: string; onSave: (payload: CreateAdminConfigInput) => Promise<void>; readOnly?: boolean; validateConfig?: (payload: CreateAdminConfigInput) => Promise<ConfigValidationPreview>; uploadAsset?: (file: File) => Promise<import("@/types/admin").AdminAsset> }) {
   const { register, control, setValue, handleSubmit, formState: { isSubmitting } } = useForm<CreateAdminConfigInput>({ defaultValues: initial });
   const optionFields = useFieldArray({ control, name: "options" });
   const chipFields = useFieldArray({ control, name: "chip_values" });
@@ -65,7 +65,7 @@ export function ConfigEditor({ initial, submitLabel, onSave, readOnly = false }:
   const [uploading, setUploading] = useState<number | null>(null);
 
   async function validate(payload: CreateAdminConfigInput) {
-    const result = await adminClient.validateConfig(sanitizeAdminConfigPayload(payload));
+    const result = await validateConfig(sanitizeAdminConfigPayload(payload));
     setPreview(result);
     return result;
   }
@@ -84,7 +84,7 @@ export function ConfigEditor({ initial, submitLabel, onSave, readOnly = false }:
       else setError(reason instanceof Error ? reason.message : "Configuration could not be saved");
     }
   }
-  async function upload(index: number, file?: File) { if (!file) return; setUploading(index); setError(""); try { const asset = await adminClient.uploadAsset(file); setValue(`options.${index}.asset_id`, asset.id, { shouldDirty: true }); setValue(`options.${index}.image_url`, asset.cdn_url, { shouldDirty: true }); } catch (reason) { setError(reason instanceof Error ? reason.message : "Artwork upload failed"); } finally { setUploading(null); } }
+  async function upload(index: number, file?: File) { if (!file) return; setUploading(index); setError(""); try { const asset = await uploadAsset(file); setValue(`options.${index}.asset_id`, asset.id, { shouldDirty: true }); setValue(`options.${index}.image_url`, asset.cdn_url, { shouldDirty: true }); } catch (reason) { setError(reason instanceof Error ? reason.message : "Artwork upload failed"); } finally { setUploading(null); } }
 
   return <form className="space-y-6" onSubmit={readOnly ? (event) => event.preventDefault() : handleSubmit(submit)}>
     {error && <Alert variant="destructive"><AlertTitle>Configuration blocked</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
