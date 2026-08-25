@@ -3,8 +3,8 @@ import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameCard } from "@/components/game-selection/game-card";
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
-  colorScheme: "light",
+  themeColor: "#2b000d",
+  colorScheme: "dark",
 };
 
 export default function GameSelectionPage() {
@@ -12,6 +12,22 @@ export default function GameSelectionPage() {
     <main className="mobile-canvas game-select-page safe-top safe-bottom">
       <section className="game-select">
         <DevPlayerSwitcher variant="panel" />
+
+        <header className="game-select__hero-copy">
+          <p className="game-select__eyebrow">
+            <i aria-hidden="true" />
+            Live arcade
+          </p>
+          <h1>Choose your game</h1>
+          <p className="game-select__intro">
+            Pick a table, place your chips, and follow every live reveal.
+          </p>
+        </header>
+
+        <div className="game-select__section-heading" aria-hidden="true">
+          <strong>Live tables</strong>
+          <span>3 games</span>
+        </div>
 
         <div className="game-select__cards">
           <GameCard
@@ -27,6 +43,17 @@ export default function GameSelectionPage() {
             heroImage={{ src: "/assets/greedy/game-card.png", alt: "" }}
           />
           <GameCard
+            title="Greedy Classic"
+            subtitle="Choose a lucky food on the classic board and chase the round multiplier."
+            href="/games/greedy-classic"
+            active
+            variant="greedy-classic"
+            statusLabel="Classic arcade"
+            meta={["8 foods", "Live rounds"]}
+            accent="linear-gradient(135deg,#2a000d 0%,#650516 42%,#ad151f 72%,#f28c16 100%)"
+            heroImage={{ src: "/assets/greedy-classic/lobby-hero.png", alt: "" }}
+          />
+          <GameCard
             title="Teen Patti"
             subtitle="Back one or more royal hands. Highest three-card hand wins."
             href="/games/teen-patti"
@@ -38,7 +65,7 @@ export default function GameSelectionPage() {
             heroImage={{ src: "/assets/teen-patti/game-card.png", alt: "" }}
           />
           <GameCard
-            title="More games"
+            title="More Games"
             subtitle="Fresh challenges and live tables are being prepared."
             variant="soon"
             statusLabel="In the works"

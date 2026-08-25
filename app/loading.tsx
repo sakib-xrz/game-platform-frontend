@@ -32,7 +32,7 @@ export default function GameSelectionLoading() {
         </div>
 
         <div className="game-select__cards" aria-hidden="true">
-          {Array.from({ length: 3 }, (_, index) => (
+          {Array.from({ length: 4 }, (_, index) => (
             <div
               key={index}
               className="selection-skeleton game-select__card-skeleton"
