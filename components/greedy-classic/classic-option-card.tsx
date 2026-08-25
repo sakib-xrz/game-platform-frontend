@@ -52,7 +52,7 @@ export function ClassicOptionCard({
     option.name,
     option.image_url,
   );
-  const visibleBettors = bettors.slice(0, 2);
+  const visibleBettors = bettors.slice(0, 1);
   const hiddenBettors = Math.max(0, bettors.length - visibleBettors.length);
   const details = [
     hasBet ? `your bet is ${formatInteger(myBet)} coins` : null,
@@ -113,7 +113,7 @@ export function ClassicOptionCard({
         <span className="gc-option__payout">Win {multiplier}</span>
         {hasBet ? (
           <span className="gc-option__mine">
-            You <b>{formatCompactAmount(myBet)}</b>
+            You <b>{formatInteger(myBet)}</b>
           </span>
         ) : null}
       </button>

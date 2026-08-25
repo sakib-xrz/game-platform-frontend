@@ -65,7 +65,6 @@ export function ClassicCenterDial({
       aria-atomic="true"
       aria-label={`${eyebrow}. ${label}.`}
     >
-      <span className="gc-dial__spokes" aria-hidden="true" />
       <div className="gc-dial__inner" aria-hidden="true">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img

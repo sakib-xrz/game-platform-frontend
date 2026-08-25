@@ -6975,6 +6975,11 @@ a:focus-visible {
   color: var(--ink);
 }
 
+html:has(.game-select-page),
+body:has(.game-select-page) {
+  background: #fff;
+}
+
 .game-select {
   display: flex;
   width: 100%;

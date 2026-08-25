@@ -27,14 +27,14 @@ import { withPlayerQuery } from "@/lib/player-identity";
 import type { PublicBetAggregate } from "@/types/greedy";
 
 const CLASSIC_OPTION_POSITIONS = [
-  { left: 50, top: 13 },
-  { left: 76, top: 24 },
-  { left: 87, top: 43 },
-  { left: 76, top: 62 },
-  { left: 50, top: 70 },
-  { left: 24, top: 62 },
-  { left: 13, top: 43 },
-  { left: 24, top: 24 },
+  { left: 50, top: 12 },
+  { left: 75.5, top: 22 },
+  { left: 88.5, top: 43 },
+  { left: 75.5, top: 64 },
+  { left: 50, top: 74 },
+  { left: 24.5, top: 64 },
+  { left: 11.5, top: 43 },
+  { left: 24.5, top: 22 },
 ] as const;
 
 export function GreedyClassicGameScreen() {
@@ -74,15 +74,21 @@ export function GreedyClassicGameScreen() {
   }, [fatalError, hideBoot, snapshot]);
 
   const chips = useMemo(
-    () => (snapshot?.round?.chip_values ?? snapshot?.active_config?.chip_values ?? [])
-      .filter((chip) => chip.is_enabled !== false)
-      .sort((left, right) => left.display_order - right.display_order),
+    () =>
+      (
+        snapshot?.round?.chip_values ??
+        snapshot?.active_config?.chip_values ??
+        []
+      )
+        .filter((chip) => chip.is_enabled !== false)
+        .sort((left, right) => left.display_order - right.display_order),
     [snapshot?.active_config?.chip_values, snapshot?.round?.chip_values],
   );
   const options = useMemo(
-    () => [...(snapshot?.round?.options ?? snapshot?.active_config?.options ?? [])]
-      .filter((option) => option.is_enabled !== false)
-      .sort((left, right) => left.display_order - right.display_order),
+    () =>
+      [...(snapshot?.round?.options ?? snapshot?.active_config?.options ?? [])]
+        .filter((option) => option.is_enabled !== false)
+        .sort((left, right) => left.display_order - right.display_order),
     [snapshot?.active_config?.options, snapshot?.round?.options],
   );
 
@@ -98,10 +104,10 @@ export function GreedyClassicGameScreen() {
     for (const chip of chips) {
       const amount = BigInt(chip.amount);
       if (
-        amount < minBet
-        || amount > maxSingleBet
-        || amount > balance
-        || exposure + amount > maxRoundBet
+        amount < minBet ||
+        amount > maxSingleBet ||
+        amount > balance ||
+        exposure + amount > maxRoundBet
       ) {
         disabled.add(chip.amount);
       }
@@ -110,14 +116,16 @@ export function GreedyClassicGameScreen() {
   }, [chips, pendingBetTotal, roundBetTotal, snapshot]);
 
   const effectiveSelectedChip = chips.some(
-    (chip) => chip.amount === selectedChip && !disabledChipAmounts.has(chip.amount),
+    (chip) =>
+      chip.amount === selectedChip && !disabledChipAmounts.has(chip.amount),
   )
     ? selectedChip
-    : (chips.find((chip) => !disabledChipAmounts.has(chip.amount))?.amount ?? "");
+    : (chips.find((chip) => !disabledChipAmounts.has(chip.amount))?.amount ??
+      "");
   const optimisticWallet = snapshot
-    ? (BigInt(snapshot.wallet.balance) > pendingBetTotal
-        ? BigInt(snapshot.wallet.balance) - pendingBetTotal
-        : 0n)
+    ? BigInt(snapshot.wallet.balance) > pendingBetTotal
+      ? BigInt(snapshot.wallet.balance) - pendingBetTotal
+      : 0n
     : 0n;
   const optimisticSelection = BigInt(roundBetTotal) + pendingBetTotal;
   const isDrawing = snapshot?.round?.status === "drawing";
@@ -131,9 +139,10 @@ export function GreedyClassicGameScreen() {
       : null,
     serverOffsetMs,
   );
-  const drawingFocusIndex = isDrawing && options.length
-    ? Math.abs(Math.floor(drawingMs / 360)) % Math.min(options.length, 8)
-    : -1;
+  const drawingFocusIndex =
+    isDrawing && options.length
+      ? Math.abs(Math.floor(drawingMs / 360)) % Math.min(options.length, 8)
+      : -1;
   const winnerId = snapshot?.round?.result?.winning_option.id ?? null;
 
   const bettorsByOption = useMemo(() => {
@@ -145,42 +154,47 @@ export function GreedyClassicGameScreen() {
     }
     for (const group of grouped.values()) {
       group.sort(
-        (left, right) => new Date(right.last_bet_at).getTime()
-          - new Date(left.last_bet_at).getTime(),
+        (left, right) =>
+          new Date(right.last_bet_at).getTime() -
+          new Date(left.last_bet_at).getTime(),
       );
     }
     return grouped;
   }, [snapshot?.round]);
 
-  const canBet = snapshot?.game.status === "active"
-    && snapshot?.round?.status === "betting_open"
-    && bettingMs > 0
-    && Boolean(effectiveSelectedChip);
+  const canBet =
+    snapshot?.game.status === "active" &&
+    snapshot?.round?.status === "betting_open" &&
+    bettingMs > 0 &&
+    Boolean(effectiveSelectedChip);
   const runtimeHeld = snapshot?.runtime.status !== "running";
   const roundStillFinishing = Boolean(
-    snapshot?.round
-      && snapshot.round.status !== "closed",
+    snapshot?.round && snapshot.round.status !== "closed",
   );
-  const gameUnavailable = Boolean(snapshot && snapshot.game.status !== "active");
+  const gameUnavailable = Boolean(
+    snapshot && snapshot.game.status !== "active",
+  );
   const operatorHeld = runtimeHeld || gameUnavailable;
   const finishingHeldRound = Boolean(operatorHeld && roundStillFinishing);
   const fullHold = Boolean(operatorHeld && !roundStillFinishing);
   const fullHoldVisible = fullHold && !resultModalOpen;
   const helpVisible = helpOpen && !resultModalOpen && !fullHoldVisible;
 
-  const bettorOption = bettorSelection
-    && bettorSelection.roundId === snapshot?.round?.id
-    ? options.find((option) => option.id === bettorSelection.optionId) ?? null
-    : null;
+  const bettorOption =
+    bettorSelection && bettorSelection.roundId === snapshot?.round?.id
+      ? (options.find((option) => option.id === bettorSelection.optionId) ??
+        null)
+      : null;
   const selectedBettors = bettorOption
-    ? bettorsByOption.get(bettorOption.id) ?? []
+    ? (bettorsByOption.get(bettorOption.id) ?? [])
     : [];
 
   useEffect(() => {
     if (!helpVisible) return;
-    const previousFocus = document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
+    const previousFocus =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     helpCloseRef.current?.focus();
@@ -202,11 +216,14 @@ export function GreedyClassicGameScreen() {
   useEffect(() => {
     if (!fullHoldVisible) return;
 
-    const previousFocus = document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
+    const previousFocus =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
     const previousOverflow = document.body.style.overflow;
-    const frame = window.requestAnimationFrame(() => holdHomeRef.current?.focus());
+    const frame = window.requestAnimationFrame(() =>
+      holdHomeRef.current?.focus(),
+    );
     document.body.style.overflow = "hidden";
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -214,7 +231,10 @@ export function GreedyClassicGameScreen() {
       if (event.shiftKey && document.activeElement === holdHomeRef.current) {
         event.preventDefault();
         holdRetryRef.current?.focus();
-      } else if (!event.shiftKey && document.activeElement === holdRetryRef.current) {
+      } else if (
+        !event.shiftKey &&
+        document.activeElement === holdRetryRef.current
+      ) {
         event.preventDefault();
         holdHomeRef.current?.focus();
       }
@@ -251,7 +271,9 @@ export function GreedyClassicGameScreen() {
           <p>{fatalError}</p>
           <div>
             <Link href={withPlayerQuery("/")}>Back to games</Link>
-            <button type="button" onClick={() => void recover()}>Retry</button>
+            <button type="button" onClick={() => void recover()}>
+              Retry
+            </button>
           </div>
         </section>
       </main>
@@ -268,7 +290,11 @@ export function GreedyClassicGameScreen() {
 
       <header className="gc-toolbar safe-top">
         <nav aria-label="Game controls">
-          <Link href={withPlayerQuery("/")} className="gc-toolbar__button" aria-label="Home">
+          <Link
+            href={withPlayerQuery("/")}
+            className="gc-toolbar__button"
+            aria-label="Home"
+          >
             <House aria-hidden="true" />
           </Link>
           <button
@@ -298,7 +324,10 @@ export function GreedyClassicGameScreen() {
           </button>
         </nav>
 
-        <div className="gc-toolbar__wallet" aria-label={`${formatInteger(optimisticWallet)} coins available`}>
+        <div
+          className="gc-toolbar__wallet"
+          aria-label={`${formatInteger(optimisticWallet)} coins available`}
+        >
           <i className={connected ? "is-online" : ""} aria-hidden="true" />
           <span>
             <small>{connected ? "Coins" : "Reconnecting"}</small>
@@ -322,11 +351,28 @@ export function GreedyClassicGameScreen() {
 
       <section className="gc-arena" aria-label="Greedy Classic betting board">
         <span className="gc-arena__rays" aria-hidden="true" />
-        <span className="gc-arena__spokes" aria-hidden="true" />
-        <span className="gc-arena__diamond" aria-hidden="true">◆</span>
+        <svg
+          className="gc-arena__spokes"
+          viewBox="0 0 713 860"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          focusable="false"
+        >
+          {CLASSIC_OPTION_POSITIONS.map((position) => (
+            <line
+              key={`${position.left}-${position.top}`}
+              className="gc-arena__spoke"
+              x1="356.5"
+              y1="369.8"
+              x2={(position.left / 100) * 713}
+              y2={(position.top / 100) * 860}
+            />
+          ))}
+        </svg>
 
         {options.slice(0, 8).map((option, index) => {
-          const position = CLASSIC_OPTION_POSITIONS[index] ?? CLASSIC_OPTION_POSITIONS[0];
+          const position =
+            CLASSIC_OPTION_POSITIONS[index] ?? CLASSIC_OPTION_POSITIONS[0];
           return (
             <ClassicOptionCard
               key={option.id}
@@ -334,8 +380,8 @@ export function GreedyClassicGameScreen() {
               left={position.left}
               top={position.top}
               myBet={(
-                (optionBetTotals.get(option.id) ?? 0n)
-                + (pendingOptionAmounts.get(option.id) ?? 0n)
+                (optionBetTotals.get(option.id) ?? 0n) +
+                (pendingOptionAmounts.get(option.id) ?? 0n)
               ).toString()}
               winner={winnerId === option.id}
               drawingHighlighted={drawingFocusIndex === index}
@@ -345,11 +391,17 @@ export function GreedyClassicGameScreen() {
               landingIds={betLandings
                 .filter((landing) => landing.optionId === option.id)
                 .map((landing) => landing.id)}
-              onPress={() => void placeBet(
-                option,
-                effectiveSelectedChip,
-                getClassicOptionDisplayName(option.code, option.name, option.image_url),
-              )}
+              onPress={() =>
+                void placeBet(
+                  option,
+                  effectiveSelectedChip,
+                  getClassicOptionDisplayName(
+                    option.code,
+                    option.name,
+                    option.image_url,
+                  ),
+                )
+              }
               onViewBettors={() => {
                 if (!snapshot.round) return;
                 setBettorSelection({
@@ -361,7 +413,10 @@ export function GreedyClassicGameScreen() {
           );
         })}
 
-        <ClassicCenterDial round={snapshot.round} serverOffsetMs={serverOffsetMs} />
+        <ClassicCenterDial
+          round={snapshot.round}
+          serverOffsetMs={serverOffsetMs}
+        />
 
         <div className="gc-kiosk gc-kiosk--salad" aria-hidden="true">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -374,7 +429,9 @@ export function GreedyClassicGameScreen() {
           <span>Pizza</span>
         </div>
 
-        {isDrawing ? <span className="gc-arena__draw-dimmer" aria-hidden="true" /> : null}
+        {isDrawing ? (
+          <span className="gc-arena__draw-dimmer" aria-hidden="true" />
+        ) : null}
       </section>
 
       <section className="gc-deck">
@@ -385,10 +442,17 @@ export function GreedyClassicGameScreen() {
             aria-label="Refresh game state"
             className="gc-deck__refresh"
           >
-            <RefreshCw className={refreshing ? "animate-spin" : ""} aria-hidden="true" />
+            <RefreshCw
+              className={refreshing ? "animate-spin" : ""}
+              aria-hidden="true"
+            />
           </button>
           <span>
-            <small>{snapshot.round ? `Round ${snapshot.round.round_number}` : "Next round"}</small>
+            <small>
+              {snapshot.round
+                ? `Round ${snapshot.round.round_number}`
+                : "Next round"}
+            </small>
             <strong>{connected ? "Live" : "Syncing"}</strong>
           </span>
           <span>
@@ -402,10 +466,10 @@ export function GreedyClassicGameScreen() {
           selected={effectiveSelectedChip}
           onChange={setSelectedChip}
           disabled={
-            snapshot.game.status !== "active"
-            || !snapshot.round
-            || snapshot.round.status !== "betting_open"
-            || bettingMs <= 0
+            snapshot.game.status !== "active" ||
+            !snapshot.round ||
+            snapshot.round.status !== "betting_open" ||
+            bettingMs <= 0
           }
           disabledAmounts={disabledChipAmounts}
         />
@@ -432,8 +496,14 @@ export function GreedyClassicGameScreen() {
               : "No new round will start until the operator resumes the game. Your wallet remains safe."}
           </p>
           <div>
-            <Link ref={holdHomeRef} href={withPlayerQuery("/")}>Back to games</Link>
-            <button ref={holdRetryRef} type="button" onClick={() => void recover()}>
+            <Link ref={holdHomeRef} href={withPlayerQuery("/")}>
+              Back to games
+            </Link>
+            <button
+              ref={holdRetryRef}
+              type="button"
+              onClick={() => void recover()}
+            >
               Check again
             </button>
           </div>
@@ -467,9 +537,18 @@ export function GreedyClassicGameScreen() {
             <h2 id="gc-help-title">How to play</h2>
             <ol>
               <li>Choose a coin value from the silver tray.</li>
-              <li>Tap one or several food cards before the center timer reaches zero.</li>
-              <li>Every tap places a real bet immediately; your selection total updates below.</li>
-              <li>The server publishes the verified winner after the drawing animation.</li>
+              <li>
+                Tap one or several food cards before the center timer reaches
+                zero.
+              </li>
+              <li>
+                Every tap places a real bet immediately; your selection total
+                updates below.
+              </li>
+              <li>
+                The server publishes the verified winner after the drawing
+                animation.
+              </li>
             </ol>
           </section>
         </div>
@@ -483,7 +562,12 @@ export function GreedyClassicGameScreen() {
       <ClassicBettorSheet
         option={bettorOption}
         bettors={selectedBettors}
-        open={Boolean(bettorOption) && !resultModalOpen && !historyOpen && !fullHoldVisible}
+        open={
+          Boolean(bettorOption) &&
+          !resultModalOpen &&
+          !historyOpen &&
+          !fullHoldVisible
+        }
         onClose={() => setBettorSelection(null)}
       />
       <ClassicResultModal

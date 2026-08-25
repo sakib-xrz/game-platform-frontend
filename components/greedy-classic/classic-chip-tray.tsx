@@ -24,19 +24,23 @@ export function ClassicChipTray({
     if (disabled || chips.length === 0) return;
 
     let nextIndex = index;
-    const direction = key === "ArrowRight" || key === "ArrowDown"
-      ? 1
-      : key === "ArrowLeft" || key === "ArrowUp"
-        ? -1
-        : 0;
+    const direction =
+      key === "ArrowRight" || key === "ArrowDown"
+        ? 1
+        : key === "ArrowLeft" || key === "ArrowUp"
+          ? -1
+          : 0;
 
     if (key === "Home") {
       nextIndex = chips.findIndex((chip) => !disabledAmounts?.has(chip.amount));
     } else if (key === "End") {
-      nextIndex = chips.findLastIndex((chip) => !disabledAmounts?.has(chip.amount));
+      nextIndex = chips.findLastIndex(
+        (chip) => !disabledAmounts?.has(chip.amount),
+      );
     } else if (direction) {
       for (let step = 1; step <= chips.length; step += 1) {
-        const candidate = (index + direction * step + chips.length) % chips.length;
+        const candidate =
+          (index + direction * step + chips.length) % chips.length;
         if (!disabledAmounts?.has(chips[candidate].amount)) {
           nextIndex = candidate;
           break;
@@ -53,11 +57,11 @@ export function ClassicChipTray({
 
   return (
     <section className="gc-controls" aria-label="Classic betting controls">
-      <div className="gc-controls__mode" aria-label="Greedy Classic mode">
-        <span>Classic</span>
-      </div>
-
-      <div className="gc-chip-tray" role="radiogroup" aria-label="Choose coin value">
+      <div
+        className="gc-chip-tray"
+        role="radiogroup"
+        aria-label="Choose coin value"
+      >
         {chips.map((chip, index) => {
           const active = chip.amount === selected;
           const unavailable = Boolean(disabledAmounts?.has(chip.amount));
@@ -78,7 +82,16 @@ export function ClassicChipTray({
               aria-label={`${formatInteger(chip.amount)} coin chip${unavailable && !disabled ? ", unavailable for this bet" : ""}`}
               onClick={() => onChange(chip.amount)}
               onKeyDown={(event) => {
-                if (["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp", "Home", "End"].includes(event.key)) {
+                if (
+                  [
+                    "ArrowRight",
+                    "ArrowDown",
+                    "ArrowLeft",
+                    "ArrowUp",
+                    "Home",
+                    "End",
+                  ].includes(event.key)
+                ) {
                   event.preventDefault();
                   selectByKeyboard(index, event.key);
                 }

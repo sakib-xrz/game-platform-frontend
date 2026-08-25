@@ -3,8 +3,8 @@ import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameCard } from "@/components/game-selection/game-card";
 
 export const viewport: Viewport = {
-  themeColor: "#2b000d",
-  colorScheme: "dark",
+  themeColor: "#ffffff",
+  colorScheme: "light",
 };
 
 export default function GameSelectionPage() {
@@ -12,22 +12,6 @@ export default function GameSelectionPage() {
     <main className="mobile-canvas game-select-page safe-top safe-bottom">
       <section className="game-select">
         <DevPlayerSwitcher variant="panel" />
-
-        <header className="game-select__hero-copy">
-          <p className="game-select__eyebrow">
-            <i aria-hidden="true" />
-            Live arcade
-          </p>
-          <h1>Choose your game</h1>
-          <p className="game-select__intro">
-            Pick a table, place your chips, and follow every live reveal.
-          </p>
-        </header>
-
-        <div className="game-select__section-heading" aria-hidden="true">
-          <strong>Live tables</strong>
-          <span>3 games</span>
-        </div>
 
         <div className="game-select__cards">
           <GameCard
