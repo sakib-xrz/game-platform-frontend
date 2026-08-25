@@ -3,9 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, LockKeyhole, Sparkles } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useGameBoot, type BootGame } from "@/components/game-boot-provider";
-import { withPlayerQuery } from "@/lib/player-identity";
+import { usePlayerHref } from "@/hooks/use-player-href";
 
 type GameCardImage = {
   src: string;
@@ -18,7 +18,7 @@ export type GameCardProps = {
   href?: string;
   active?: boolean;
   accent: string;
-  variant: "greedy" | "greedy-classic" | "teen-patti" | "soon";
+  variant: "greedy" | "greedy-classic" | "teen-patti" | "lucky-77" | "soon";
   statusLabel?: string;
   meta?: string[];
   art?: string[];
@@ -26,6 +26,8 @@ export type GameCardProps = {
   centerImage?: GameCardImage;
   heroImage?: GameCardImage;
   priority?: boolean;
+  /** From page `searchParams.user` so SSR links match the launch URL. */
+  playerUserId?: string;
 };
 
 const ORBIT_POSITIONS = [
@@ -49,12 +51,13 @@ export function GameCard({
   centerImage,
   heroImage,
   priority = false,
+  playerUserId = "",
 }: GameCardProps) {
   const [opening, setOpening] = useState(false);
   const { showBoot } = useGameBoot();
   const orbitItems = artImages.length > 0 ? artImages : art;
   // Keep ?user= on game links so WebView navigations never drop identity.
-  const resolvedHref = useMemo(() => (href ? withPlayerQuery(href) : undefined), [href]);
+  const resolvedHref = usePlayerHref(href, playerUserId);
 
   function handleOpen() {
     setOpening(true);

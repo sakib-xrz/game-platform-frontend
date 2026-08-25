@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { CSSProperties } from "react";
 
-export type LoadingGame = "greedy" | "greedy-classic" | "teen-patti";
+export type LoadingGame = "greedy" | "greedy-classic" | "teen-patti" | "lucky-77";
 
 type GameLoadingScreenProps = {
   game: LoadingGame;
@@ -21,6 +21,10 @@ const GAME_META = {
   "teen-patti": {
     title: "Teen Patti",
     label: "Teen Patti is loading",
+  },
+  "lucky-77": {
+    title: "Lucky 77",
+    label: "Lucky 77 is loading",
   },
 } as const;
 
@@ -312,6 +316,50 @@ function TeenPattiLoadingArt() {
   );
 }
 
+const LUCKY_LOADING_SLOTS = [
+  "APPLE",
+  "WATERMELON",
+  "APPLE",
+  "WATERMELON",
+  "SEVENTY_SEVEN",
+  "APPLE",
+  "WATERMELON",
+  "APPLE",
+  "WATERMELON",
+] as const;
+
+function Lucky77LoadingArt() {
+  return (
+    <div className="game-boot__scene game-boot__scene--lucky-77" aria-hidden="true">
+      <span className="game-boot__l77-glow" />
+      <span className="game-boot__l77-pointer" />
+      <span className="game-boot__l77-wheel">
+        {LUCKY_LOADING_SLOTS.map((code, index) => (
+          <span
+            key={`${code}-${index}`}
+            className="game-boot__l77-slot"
+            style={{ "--l77-loading-angle": `${index * 40}deg` } as CSSProperties}
+          >
+            {code === "SEVENTY_SEVEN" ? (
+              <b>77</b>
+            ) : (
+              <Image
+                src={code === "APPLE" ? "/assets/lucky-77/apple.png" : "/assets/lucky-77/watermelon.png"}
+                alt=""
+                fill
+                sizes="54px"
+                priority
+                draggable={false}
+              />
+            )}
+          </span>
+        ))}
+        <i>77</i>
+      </span>
+    </div>
+  );
+}
+
 export function GameLoadingScreen({
   game,
   overlay = false,
@@ -355,6 +403,8 @@ export function GameLoadingScreen({
             <GreedyLoadingArt />
           ) : game === "greedy-classic" ? (
             <GreedyClassicLoadingArt />
+          ) : game === "lucky-77" ? (
+            <Lucky77LoadingArt />
           ) : (
             <TeenPattiLoadingArt />
           )}

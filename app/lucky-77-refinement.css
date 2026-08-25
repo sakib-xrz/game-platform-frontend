@@ -1,0 +1,194 @@
+/* Lucky 77 — final visual refinements from in-game review.
+   Loaded after lucky-77-premium.css and limited to the areas called out in the latest UI pass. */
+
+/* Keep the decorative frame a true circle and put the prize wheel exactly at its center. */
+.l77-wheel-stage::before {
+  top: 50%;
+  width: min(82cqw, 352px);
+  height: min(82cqw, 352px);
+  aspect-ratio: 1 / 1;
+  border: .32cqw solid rgba(255, 225, 121, .24);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 42%, rgba(255, 224, 111, .08) 42.5% 43.2%, transparent 43.8%),
+    radial-gradient(circle at 50% 50%, rgba(255, 207, 70, .12) 0 25%, rgba(238, 94, 226, .12) 42%, rgba(103, 34, 188, .11) 59%, transparent 70%),
+    repeating-conic-gradient(from -8deg, rgba(255, 229, 140, .085) 0 4deg, transparent 4deg 18deg);
+  box-shadow:
+    inset 0 0 0 .28cqw rgba(255,255,255,.045),
+    inset 0 0 3.5cqw rgba(255, 206, 65, .055),
+    0 0 3.2cqw rgba(50, 3, 93, .22);
+  filter: none;
+  transform: translate(-50%, -50%);
+}
+
+/* The old horizontal pedestal made the circular frame look stretched/oval. */
+.l77-wheel-stage::after {
+  display: none;
+}
+
+.l77-wheel-stage__rays {
+  top: 50%;
+  left: 50%;
+  width: min(94cqw, 404px);
+  height: min(94cqw, 404px);
+  border-radius: 50%;
+  opacity: .76;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 213, 80, .13), transparent 37%),
+    repeating-conic-gradient(from 248deg at 50% 50%, transparent 0 7deg, rgba(255, 226, 117, .09) 8deg 12deg, transparent 13deg 26deg, rgba(255, 116, 226, .075) 27deg 33deg, transparent 34deg 44deg);
+  transform: translate(-50%, -50%);
+}
+
+.l77-wheel-shell {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Make the result refresh control feel like a real button, and spin only its glyph. */
+.l77-history > button {
+  position: relative;
+  display: grid;
+  width: min(6.2cqw, 27px);
+  height: min(6.2cqw, 27px);
+  flex: 0 0 min(6.2cqw, 27px);
+  place-items: center;
+  padding: 0;
+  border: .28cqw solid rgba(255, 226, 124, .42);
+  border-radius: 50%;
+  color: #fff2b1;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255,255,255,.14), transparent 28%),
+    linear-gradient(180deg, #7521a3, #49106f);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    0 .42cqw 0 #2d0750,
+    0 .72cqw 1.1cqw rgba(31,0,48,.24);
+  font-size: 0;
+  line-height: 1;
+  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+}
+
+.l77-history > button::before {
+  content: "⟳";
+  display: block;
+  color: currentColor;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: min(4.15cqw, 17.5px);
+  font-weight: 800;
+  line-height: 1;
+  transform-origin: 50% 50%;
+}
+
+.l77-history > button:hover {
+  filter: brightness(1.08);
+}
+
+.l77-history > button:active {
+  transform: translateY(.3cqw) scale(.96);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 .12cqw 0 #2d0750, 0 .35cqw .7cqw rgba(31,0,48,.22);
+}
+
+/* Override the legacy rule that rotates the whole button. */
+.l77-history > button.is-refreshing {
+  animation: none;
+  pointer-events: none;
+}
+
+.l77-history > button.is-refreshing::before {
+  animation: l77-refinement-refresh .72s linear infinite;
+}
+
+/* Give the chip row breathing room so the selected chip never collides with the console trim. */
+.l77-controls {
+  padding-top: 2.55cqw;
+}
+
+.l77-chip-row {
+  align-items: center;
+  padding-top: .8cqw;
+}
+
+.l77-chip.is-active {
+  transform: translateY(-.38cqw) scale(1.055);
+  box-shadow:
+    inset 0 0 0 .65cqw rgba(255,255,255,.3),
+    0 0 0 .42cqw #fff0a0,
+    0 0 1.6cqw rgba(255,210,68,.46),
+    0 .62cqw 0 #8f4307,
+    0 1.05cqw 1.5cqw rgba(36,0,52,.32);
+}
+
+/* Keep Repeat premium even when disabled instead of turning into a flat grey block. */
+.l77-repeat {
+  min-width: min(19cqw, 82px);
+  height: min(10.2cqw, 44px);
+  border-radius: 2.2cqw;
+}
+
+.l77-repeat:disabled {
+  color: rgba(255, 232, 157, .58);
+  border-color: rgba(229, 180, 70, .34);
+  background:
+    radial-gradient(circle at 35% 20%, rgba(255,255,255,.06), transparent 30%),
+    linear-gradient(180deg, rgba(100, 43, 126, .92), rgba(64, 25, 88, .96));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.07),
+    0 .45cqw 0 rgba(46, 11, 61, .9),
+    0 .8cqw 1.2cqw rgba(31,0,48,.16);
+  opacity: .82;
+}
+
+.l77-repeat:disabled svg {
+  color: rgba(255, 207, 78, .52);
+}
+
+@keyframes l77-refinement-refresh {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-height: 760px) {
+  .l77-wheel-stage::before {
+    width: min(75cqw, 316px);
+    height: min(75cqw, 316px);
+  }
+
+  .l77-wheel-stage__rays {
+    width: min(86cqw, 362px);
+    height: min(86cqw, 362px);
+  }
+
+  .l77-controls {
+    padding-top: 2.25cqw;
+  }
+
+  .l77-chip-row {
+    padding-top: .65cqw;
+  }
+
+  .l77-chip.is-active {
+    transform: translateY(-.28cqw) scale(1.045);
+  }
+}
+
+@media (max-height: 650px) {
+  .l77-wheel-stage::before {
+    width: min(66cqw, 276px);
+    height: min(66cqw, 276px);
+  }
+
+  .l77-wheel-stage__rays {
+    width: min(76cqw, 318px);
+    height: min(76cqw, 318px);
+  }
+
+  .l77-chip-row {
+    padding-top: .5cqw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .l77-history > button.is-refreshing::before {
+    animation: none;
+  }
+}

@@ -5,6 +5,7 @@ import type { Socket } from "socket.io-client";
 import {
   greedyApi,
   greedyClassicApi,
+  lucky77Api,
   ApiError,
   type GreedyGameApi,
 } from "@/lib/api";
@@ -15,6 +16,7 @@ import type {
   BetAcceptedEvent,
   GreedySnapshot,
   PlayerBet,
+  PlayerIdentity,
   PublicBetAggregate,
   PublicBetPlacedEvent,
   PublicOption,
@@ -38,14 +40,19 @@ type PendingBet = {
 export type BetLanding = {
   id: string;
   optionId: string;
+  amount?: string;
+  acceptedAt?: string;
+  bettor?: PlayerIdentity;
+  isMine?: boolean;
 };
 
 export type GreedyGameDefinition = Readonly<{
   api: GreedyGameApi;
-  gameCode: "GREEDY" | "GREEDY_CLASSIC";
-  eventPrefix: "greedy" | "greedy_classic";
-  displayName: "Greedy" | "Greedy Classic";
-  walletReasonPrefix: "greedy" | "greedy_classic";
+  gameCode: "GREEDY" | "GREEDY_CLASSIC" | "LUCKY_77";
+  eventPrefix: "greedy" | "greedy_classic" | "lucky_77";
+  displayName: "Greedy" | "Greedy Classic" | "Lucky 77";
+  walletReasonPrefix: "greedy" | "greedy_classic" | "lucky_77";
+  singleOptionPerRound?: boolean;
 }>;
 
 export const GREEDY_GAME_DEFINITION: GreedyGameDefinition = Object.freeze({
@@ -62,6 +69,15 @@ export const GREEDY_CLASSIC_GAME_DEFINITION: GreedyGameDefinition = Object.freez
   eventPrefix: "greedy_classic",
   displayName: "Greedy Classic",
   walletReasonPrefix: "greedy_classic",
+});
+
+export const LUCKY_77_GAME_DEFINITION: GreedyGameDefinition = Object.freeze({
+  api: lucky77Api,
+  gameCode: "LUCKY_77",
+  eventPrefix: "lucky_77",
+  displayName: "Lucky 77",
+  walletReasonPrefix: "lucky_77",
+  singleOptionPerRound: true,
 });
 
 function aggregateRecency(
@@ -106,7 +122,14 @@ function eventAlreadySeen(eventId: unknown, seen: Set<string>): boolean {
 export function useGreedyGame(
   definition: GreedyGameDefinition = GREEDY_GAME_DEFINITION,
 ) {
-  const { api, displayName, eventPrefix, gameCode, walletReasonPrefix } = definition;
+  const {
+    api,
+    displayName,
+    eventPrefix,
+    gameCode,
+    singleOptionPerRound = false,
+    walletReasonPrefix,
+  } = definition;
   const [snapshot, setSnapshot] = useState<GreedySnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -158,7 +181,11 @@ export function useGreedyGame(
     showToast(kind, message);
   }, []);
 
-  const queueBetLanding = useCallback((betId: string, optionId: string) => {
+  const queueBetLanding = useCallback((
+    betId: string,
+    optionId: string,
+    details: Omit<BetLanding, "id" | "optionId"> = {},
+  ) => {
     if (!betId || animatedBetIdsRef.current.has(betId)) return;
     animatedBetIdsRef.current.add(betId);
     if (animatedBetIdsRef.current.size > 500) {
@@ -166,14 +193,14 @@ export function useGreedyGame(
       if (first) animatedBetIdsRef.current.delete(first);
     }
 
-    const landing = { id: betId, optionId };
+    const landing: BetLanding = { id: betId, optionId, ...details };
     setBetLandings((current) => [...current, landing].slice(-24));
     const timer = window.setTimeout(() => {
       landingTimersRef.current.delete(timer);
       if (mountedRef.current) {
         setBetLandings((current) => current.filter((item) => item.id !== landing.id));
       }
-    }, 850);
+    }, 1_350);
     landingTimersRef.current.add(timer);
   }, []);
 
@@ -376,6 +403,17 @@ export function useGreedyGame(
       pushNotice("error", "Not enough coins for this chip.");
       return false;
     }
+    if (singleOptionPerRound) {
+      const backedOptionId =
+        current.my_bets.find((bet) => bet.round_id === round.id)?.option.id
+        ?? Array.from(pendingBetAmountsRef.current.values()).find(
+          (pendingBet) => pendingBet.roundId === round.id,
+        )?.optionId;
+      if (backedOptionId && backedOptionId !== option.id) {
+        pushNotice("info", "You can back only one Lucky 77 option per round.");
+        return false;
+      }
+    }
 
     const clientRequestId = createBetRequestId();
     pendingBetAmountsRef.current.set(clientRequestId, {
@@ -446,7 +484,11 @@ export function useGreedyGame(
         return updated;
       });
 
-      queueBetLanding(response.bet_id, response.option_id);
+      queueBetLanding(response.bet_id, response.option_id, {
+        amount: response.amount,
+        acceptedAt: response.accepted_at,
+        isMine: true,
+      });
       pushNotice("success", `${amount} coins placed on ${optionDisplayName}`);
       return true;
     } catch (error) {
@@ -476,7 +518,16 @@ export function useGreedyGame(
         syncPendingBets();
       }
     }
-  }, [api, displayName, pushNotice, queueBetLanding, recover, serverOffsetMs, syncPendingBets]);
+  }, [
+    api,
+    displayName,
+    pushNotice,
+    queueBetLanding,
+    recover,
+    serverOffsetMs,
+    singleOptionPerRound,
+    syncPendingBets,
+  ]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -529,6 +580,7 @@ export function useGreedyGame(
             result: {
               round_id: payload.round_id,
               winning_option: { ...winningOption, ...payload.winning_option },
+              winning_slot_index: payload.winning_slot_index,
               revealed_at: payload.revealed_at,
               top_winners: payload.top_winners ?? [],
             },
@@ -632,7 +684,13 @@ export function useGreedyGame(
         const acceptedTime = new Date(payload.accepted_at).getTime();
         const eventAgeMs = Date.now() + serverOffsetRef.current - acceptedTime;
         if (Number.isFinite(acceptedTime) && eventAgeMs >= -1_000 && eventAgeMs <= 2_500) {
-          queueBetLanding(payload.bet_id, payload.option_id);
+          queueBetLanding(payload.bet_id, payload.option_id, {
+            amount: payload.amount,
+            acceptedAt: payload.accepted_at,
+            bettor: payload.bettor,
+            isMine:
+              payload.bettor.user_id === snapshotRef.current?.wallet.user_id,
+          });
         }
         if (existing && aggregateRecency(eventAggregate, existing) <= 0) return;
         setSnapshot((current) => {

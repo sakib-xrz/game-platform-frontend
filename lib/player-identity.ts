@@ -15,6 +15,12 @@ function normalizeUserId(value: string | null | undefined): string {
   return value?.trim().slice(0, 128) || "";
 }
 
+/** Read `?user=` from a Server Component `searchParams` value. */
+export function userIdFromSearchParam(value: string | string[] | undefined): string {
+  const raw = Array.isArray(value) ? value[0] : value;
+  return normalizeUserId(raw);
+}
+
 function readQueryUserId(): string {
   if (typeof window === "undefined") return "";
   try {
@@ -91,7 +97,11 @@ export function getPlayerUserId(): string {
   return capturePlayerIdentity();
 }
 
-/** Append `?user=` so full page / WebView navigations keep identity. */
+/**
+ * Append `?user=` so full page / WebView navigations keep identity.
+ * Do not call during render with the default user id — that reads `window` on
+ * the client and hydrates differently from the server. Use `usePlayerHref`.
+ */
 export function withPlayerQuery(href: string, userId = getPlayerUserId()): string {
   if (!href || !userId) return href;
   try {

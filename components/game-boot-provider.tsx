@@ -32,6 +32,7 @@ const TARGET_PATH: Record<BootGame, string> = {
   greedy: "/games/greedy",
   "greedy-classic": "/games/greedy-classic",
   "teen-patti": "/games/teen-patti",
+  "lucky-77": "/games/lucky-77",
 };
 
 function isTargetPath(pathname: string, target: string) {

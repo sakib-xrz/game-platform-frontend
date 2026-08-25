@@ -25,7 +25,7 @@ import { ResultModal } from "@/components/greedy/result-modal";
 import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
-import { withPlayerQuery } from "@/lib/player-identity";
+import { usePlayerHref } from "@/hooks/use-player-href";
 import type { PublicBetAggregate } from "@/types/greedy";
 
 // A 129px orbit keeps every node circular and evenly spaced while reserving
@@ -188,6 +188,7 @@ export function GreedyGameScreen() {
     placeBet,
   } = useGreedyGame();
   const { bootGame, hideBoot } = useGameBoot();
+  const homeHref = usePlayerHref("/") ?? "/";
 
   useEffect(() => {
     if (snapshot || fatalError) hideBoot();
@@ -344,7 +345,7 @@ export function GreedyGameScreen() {
           </p>
           <div className="mt-6 grid grid-cols-2 gap-3">
             <Link
-              href={withPlayerQuery("/")}
+              href={homeHref}
               className="rounded-2xl bg-white/10 px-4 py-3 text-sm font-black"
             >
               Back
@@ -390,7 +391,7 @@ export function GreedyGameScreen() {
         <MachineIllustration />
 
         <nav className="machine-toolbar" aria-label="Game controls">
-          <Link href={withPlayerQuery("/")} className="machine-control" aria-label="Home">
+          <Link href={homeHref} className="machine-control" aria-label="Home">
             <House />
           </Link>
           <button

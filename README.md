@@ -105,7 +105,10 @@ Default development environment:
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
 NEXT_PUBLIC_SOCKET_URL=http://localhost:8000
 NEXT_PUBLIC_DEV_USER_ID=user-001
+NEXT_PUBLIC_PAYMENT_LOCK=false
 ```
+
+Set `NEXT_PUBLIC_PAYMENT_LOCK=true` to show a root-level payment unlock overlay on all game and admin pages.
 
 The backend must have:
 
@@ -145,6 +148,7 @@ Example:
 ```env
 NEXT_PUBLIC_API_BASE_URL=https://api.example.com/api/v1
 NEXT_PUBLIC_SOCKET_URL=https://api.example.com
+NEXT_PUBLIC_PAYMENT_LOCK=false
 ```
 
 Build:
@@ -162,6 +166,7 @@ Docker:
 docker build -t greedy-mobile-frontend \
   --build-arg NEXT_PUBLIC_API_BASE_URL=https://api.example.com/api/v1 \
   --build-arg NEXT_PUBLIC_SOCKET_URL=https://api.example.com \
+  --build-arg NEXT_PUBLIC_PAYMENT_LOCK=false \
   .
 
 docker run --rm -p 3000:3000 greedy-mobile-frontend

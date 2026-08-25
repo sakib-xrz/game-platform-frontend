@@ -12,10 +12,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  ConfigEditor,
-  // newConfigDefaults,
-} from "@/components/admin/config-editor";
+import { ConfigEditor } from "@/components/admin/config-editor";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -122,28 +119,28 @@ function saveLabel(config?: AdminConfigVersion) {
   return config.status === "published" ? "Save changes" : "Save draft";
 }
 
-export function GreedyClassicAdminPanel() {
+const GAME_LABEL = "Lucky 77";
+const PUBLISH_ACTION = "lucky_77.config.publish";
+
+export function Lucky77AdminPanel() {
   const identity = useAdminIdentity();
   const queryClient = useQueryClient();
-  const game = "greedy-classic";
-  const gameLabel = "Greedy Classic";
-  const gameClient = adminClient.greedyClassic;
-  const publishAction = "greedy_classic.config.publish";
+  const gameClient = adminClient.lucky77;
   const [editor, setEditor] = useState<EditorState | null>(null);
   const [publishTarget, setPublishTarget] = useState<AdminConfigVersion | null>(
     null,
   );
   const runtime = useQuery({
-    queryKey: ["admin", game, "runtime"],
+    queryKey: ["admin", "lucky-77", "runtime"],
     queryFn: gameClient.runtime,
     refetchInterval: 5000,
   });
   const configs = useQuery({
-    queryKey: ["admin", game, "configs"],
+    queryKey: ["admin", "lucky-77", "configs"],
     queryFn: gameClient.configs,
   });
   const approvals = useQuery({
-    queryKey: ["admin", "approvals", game],
+    queryKey: ["admin", "approvals", "lucky-77"],
     queryFn: () => adminClient.approvalsPaged("?page=1&limit=100"),
     refetchInterval: 8000,
   });
@@ -152,27 +149,25 @@ export function GreedyClassicAdminPanel() {
   const gameApprovals = useMemo(
     () =>
       (approvals.data?.data || []).filter(
-        (item) => item.action_type === publishAction,
+        (item) => item.action_type === PUBLISH_ACTION,
       ),
-    [approvals.data, publishAction],
+    [approvals.data],
   );
 
   async function refresh() {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["admin", game] }),
+      queryClient.invalidateQueries({ queryKey: ["admin", "lucky-77"] }),
       queryClient.invalidateQueries({ queryKey: ["admin", "approvals"] }),
     ]);
   }
   const action = useMutation({
     mutationFn: async (next: "resume" | "pause") =>
-      next === "resume"
-        ? gameClient.resume()
-        : gameClient.pause(),
+      next === "resume" ? gameClient.resume() : gameClient.pause(),
     onSuccess: async (_data, next) => {
       toast.success(
         next === "resume"
-          ? `${gameLabel} resumed`
-          : `${gameLabel} paused safely`,
+          ? `${GAME_LABEL} resumed`
+          : `${GAME_LABEL} paused safely`,
       );
       await refresh();
     },
@@ -208,8 +203,8 @@ export function GreedyClassicAdminPanel() {
       decision: "approve" | "reject";
     }) =>
       decision === "approve"
-        ? adminClient.approve(approval.id, `Reviewed from Manage ${gameLabel}`)
-        : adminClient.reject(approval.id, `Rejected from Manage ${gameLabel}`),
+        ? adminClient.approve(approval.id, `Reviewed from Manage ${GAME_LABEL}`)
+        : adminClient.reject(approval.id, `Rejected from Manage ${GAME_LABEL}`),
     onSuccess: async (_data, variables) => {
       toast.success(`Publish request ${variables.decision}d`);
       await refresh();
@@ -222,7 +217,7 @@ export function GreedyClassicAdminPanel() {
   const applyApproved = useMutation({
     mutationFn: gameClient.publishApproved,
     onSuccess: async () => {
-      toast.success(`Approved ${gameLabel} configuration is now live`);
+      toast.success(`Approved ${GAME_LABEL} configuration is now live`);
       await refresh();
     },
     onError: (reason) =>
@@ -235,8 +230,7 @@ export function GreedyClassicAdminPanel() {
 
   async function save(payload: CreateAdminConfigInput) {
     if (!editor) return;
-    if (editor.mode === "create")
-      await gameClient.createConfig(payload);
+    if (editor.mode === "create") await gameClient.createConfig(payload);
     else await gameClient.updateConfig(editor.config.id, payload);
     toast.success(
       editor.mode === "create"
@@ -257,7 +251,7 @@ export function GreedyClassicAdminPanel() {
     : "closed";
   const editorTitle =
     editor?.mode === "create"
-      ? `Create ${gameLabel} configuration`
+      ? `Create ${GAME_LABEL} configuration`
       : `Manage version ${editingConfig?.version}`;
   const editorDescription =
     editor?.mode === "create"
@@ -275,7 +269,7 @@ export function GreedyClassicAdminPanel() {
   if (runtime.isError || configs.isError)
     return (
       <Alert variant="destructive">
-        <AlertTitle>{gameLabel} administration is unavailable</AlertTitle>
+        <AlertTitle>{GAME_LABEL} administration is unavailable</AlertTitle>
         <AlertDescription>
           {(runtime.error || (configs.error as Error))?.message ||
             "The backend could not be reached."}
@@ -291,7 +285,7 @@ export function GreedyClassicAdminPanel() {
             Game administration
           </p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight">
-            Manage {gameLabel}
+            Manage {GAME_LABEL}
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-500">
             Control the runtime and publish versioned settings. The player
@@ -307,7 +301,7 @@ export function GreedyClassicAdminPanel() {
           <ShieldCheck />
           <AlertTitle>Read-only access</AlertTitle>
           <AlertDescription>
-            Your admin role can inspect {gameLabel} configuration but cannot
+            Your admin role can inspect {GAME_LABEL} configuration but cannot
             change runtime or settings.
           </AlertDescription>
         </Alert>
@@ -382,8 +376,7 @@ export function GreedyClassicAdminPanel() {
           <div>
             <CardTitle>Configuration versions</CardTitle>
             <CardDescription>
-              Create, manage, clone and publish complete {gameLabel}
-              configurations.
+              Manage, clone and publish complete {GAME_LABEL} configurations.
             </CardDescription>
           </div>
         </CardHeader>
@@ -474,7 +467,7 @@ export function GreedyClassicAdminPanel() {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>{gameLabel} publish approvals</CardTitle>
+          <CardTitle>{GAME_LABEL} publish approvals</CardTitle>
           <CardDescription>
             Publication requires review by another eligible administrator. The
             requester can apply an approved request from this page.
@@ -570,7 +563,7 @@ export function GreedyClassicAdminPanel() {
             </Table>
           ) : (
             <p className="text-sm text-slate-500">
-              No {gameLabel} publish approval requests are visible to this
+              No {GAME_LABEL} publish approval requests are visible to this
               account.
             </p>
           )}
@@ -604,7 +597,8 @@ export function GreedyClassicAdminPanel() {
                 onSave={save}
                 validateConfig={gameClient.validateConfig}
                 uploadAsset={gameClient.uploadAsset}
-                gameLabel={gameLabel}
+                gameLabel={GAME_LABEL}
+                lockOptionCodes
               />
             </div>
           )}
@@ -623,8 +617,8 @@ export function GreedyClassicAdminPanel() {
             </DialogTitle>
             <DialogDescription>
               This submits the complete draft for independent approval. Once
-              approved and applied, the {gameLabel} user panel updates from
-              its authoritative snapshot.
+              approved and applied, the {GAME_LABEL} user panel updates from its
+              authoritative snapshot.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

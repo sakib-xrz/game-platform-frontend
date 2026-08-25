@@ -85,7 +85,9 @@ async function request<T>(path: string, init: RequestInit = {}, timeoutMs = 8_00
   }
 }
 
-function createGreedyGameApi(path: "greedy" | "greedy-classic"): GreedyGameApi {
+function createGreedyGameApi(
+  path: "greedy" | "greedy-classic" | "lucky-77",
+): GreedyGameApi {
   const basePath = `/games/${path}`;
   return Object.freeze({
     getSnapshot: () => request<GreedySnapshot>(`${basePath}/snapshot`),
@@ -101,6 +103,7 @@ function createGreedyGameApi(path: "greedy" | "greedy-classic"): GreedyGameApi {
 
 export const greedyApi = createGreedyGameApi("greedy");
 export const greedyClassicApi = createGreedyGameApi("greedy-classic");
+export const lucky77Api = createGreedyGameApi("lucky-77");
 
 export const teenPattiApi = {
   getSnapshot: () => request<TeenPattiSnapshot>("/games/teen-patti/snapshot"),
