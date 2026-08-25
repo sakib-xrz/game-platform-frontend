@@ -49,16 +49,6 @@
     0 17px 36px rgba(20, 0, 2, 0.42);
 }
 
-.game-select-page .game-card--teen-patti {
-  background: linear-gradient(
-    135deg,
-    #390009 0%,
-    #74101b 47%,
-    #a43720 76%,
-    #5b090d 100%
-  );
-}
-
 .game-select-page .game-card--soon {
   border-color: rgba(255, 204, 104, 0.2);
   background: linear-gradient(135deg, #310008 0%, #5a1119 52%, #6f301e 100%);
@@ -75,66 +65,8 @@
   background: #fff0c9;
 }
 
-.game-card--greedy-classic {
-  border-color: rgba(255, 210, 92, 0.48);
-  background: linear-gradient(
-    135deg,
-    #2a000d 0%,
-    #650516 42%,
-    #ad151f 72%,
-    #f28c16 100%
-  );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 235, 177, 0.48),
-    inset 0 -1px 0 rgba(40, 0, 2, 0.5),
-    0 18px 38px rgba(19, 0, 2, 0.48),
-    0 0 24px rgba(238, 113, 26, 0.12);
-}
-
-.game-card--greedy-classic .game-card__status {
-  color: #ffda62;
-  text-shadow: 0 0 12px rgba(255, 174, 34, 0.62);
-}
-
-.game-card--greedy-classic .game-card__status svg {
-  color: #ffc536;
-  filter: drop-shadow(0 0 5px rgba(255, 197, 54, 0.65));
-}
-
-.game-card--greedy-classic h2 {
-  text-shadow:
-    0 3px 0 rgba(90, 8, 8, 0.9),
-    0 8px 20px rgba(20, 0, 1, 0.55);
-}
-
-.game-card--greedy-classic .game-card__meta i {
-  border-color: rgba(255, 216, 111, 0.26);
-  background: rgba(48, 0, 6, 0.45);
-  color: #fff5d6;
-}
-
-.game-card--greedy-classic .game-card__cta {
-  background: linear-gradient(180deg, #fff8d8, #ffc85a);
-  color: #4b0609;
-  box-shadow:
-    inset 0 1px 0 white,
-    0 5px 0 #9d320f,
-    0 10px 20px rgba(26, 0, 2, 0.35);
-}
-
 .game-card--greedy-classic .game-card__hero img {
   object-position: 53% center;
-}
-
-.game-card--greedy-classic .game-card__hero span {
-  background:
-    linear-gradient(
-      90deg,
-      rgba(42, 0, 13, 0.99) 0%,
-      rgba(42, 0, 13, 0.75) 25%,
-      rgba(42, 0, 13, 0.06) 70%
-    ),
-    linear-gradient(0deg, rgba(28, 0, 3, 0.35), transparent 60%);
 }
 
 /* Greedy Classic route and boot screen */

@@ -7213,7 +7213,9 @@ body:has(.game-select-page) {
     filter 180ms ease;
 }
 
-.game-card--greedy {
+.game-card--greedy,
+.game-card--greedy-classic,
+.game-card--teen-patti {
   background: linear-gradient(
     135deg,
     #44091a 0%,
@@ -7228,38 +7230,44 @@ body:has(.game-select-page) {
     0 16px 36px rgba(0, 0, 0, 0.32);
 }
 
-.game-card--greedy .game-card__status {
+.game-card--greedy .game-card__status,
+.game-card--greedy-classic .game-card__status,
+.game-card--teen-patti .game-card__status {
   color: #ffd27a;
   text-shadow: 0 0 12px rgba(255, 170, 0, 0.45);
 }
 
-.game-card--greedy .game-card__status svg {
+.game-card--greedy .game-card__status svg,
+.game-card--greedy-classic .game-card__status svg,
+.game-card--teen-patti .game-card__status svg {
   color: #ffbe40;
   filter: drop-shadow(0 0 4px rgba(255, 190, 64, 0.6));
 }
 
-.game-card--greedy h2 {
+.game-card.game-card--greedy h2,
+.game-card.game-card--greedy-classic h2,
+.game-card.game-card--teen-patti h2 {
   text-shadow:
     0 2px 8px rgba(0, 0, 0, 0.5),
     0 0 24px rgba(255, 60, 90, 0.3);
 }
 
-.game-card--greedy .game-card__meta i {
+.game-card--greedy .game-card__meta i,
+.game-card--greedy-classic .game-card__meta i,
+.game-card--teen-patti .game-card__meta i {
   border-color: rgba(255, 200, 150, 0.28);
   background: rgba(45, 8, 18, 0.48);
   color: rgba(255, 240, 230, 0.92);
 }
 
-.game-card--greedy .game-card__cta {
+.game-card--greedy .game-card__cta,
+.game-card--greedy-classic .game-card__cta,
+.game-card--teen-patti .game-card__cta {
   background: linear-gradient(180deg, #ffffff 0%, #fff7eb 100%);
   color: #240a12;
   box-shadow:
     0 5px 14px rgba(0, 0, 0, 0.28),
     0 0 16px rgba(255, 140, 40, 0.22);
-}
-
-.game-card--teen-patti {
-  background: linear-gradient(135deg, #7e281f 0%, #a8442c 52%, #522016 100%);
 }
 
 .game-card--soon {
@@ -7450,33 +7458,11 @@ body:has(.game-select-page) {
   background:
     linear-gradient(
       90deg,
-      rgba(112, 36, 27, 0.99) 0%,
-      rgba(112, 36, 27, 0.68) 22%,
-      transparent 60%
-    ),
-    linear-gradient(0deg, rgba(61, 18, 13, 0.23), transparent 55%);
-}
-
-.game-card--greedy .game-card__hero span {
-  background:
-    linear-gradient(
-      90deg,
       rgba(68, 9, 26, 0.99) 0%,
       rgba(68, 9, 26, 0.7) 22%,
       transparent 60%
     ),
     linear-gradient(0deg, rgba(30, 4, 11, 0.35), transparent 55%);
-}
-
-.game-card--teen-patti .game-card__hero span {
-  background:
-    linear-gradient(
-      90deg,
-      rgba(112, 36, 27, 0.99) 0%,
-      rgba(112, 36, 27, 0.68) 22%,
-      transparent 60%
-    ),
-    linear-gradient(0deg, rgba(61, 18, 13, 0.23), transparent 55%);
 }
 
 .game-card__orbit {

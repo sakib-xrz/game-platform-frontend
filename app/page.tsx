@@ -34,7 +34,7 @@ export default function GameSelectionPage() {
             variant="greedy-classic"
             statusLabel="Classic arcade"
             meta={["8 foods", "Live rounds"]}
-            accent="linear-gradient(135deg,#2a000d 0%,#650516 42%,#ad151f 72%,#f28c16 100%)"
+            accent="linear-gradient(135deg,#44091a 0%,#73132e 45%,#a61c3c 78%,#d9561c 100%)"
             heroImage={{ src: "/assets/greedy-classic/lobby-hero.png", alt: "" }}
           />
           <GameCard
@@ -45,7 +45,7 @@ export default function GameSelectionPage() {
             variant="teen-patti"
             statusLabel="Royal table"
             meta={["3 hands", "Live reveal"]}
-            accent="linear-gradient(135deg,#b7492d 0%,#d7782e 48%,#6f241c 100%)"
+            accent="linear-gradient(135deg,#44091a 0%,#73132e 45%,#a61c3c 78%,#d9561c 100%)"
             heroImage={{ src: "/assets/teen-patti/game-card.png", alt: "" }}
           />
           <GameCard
