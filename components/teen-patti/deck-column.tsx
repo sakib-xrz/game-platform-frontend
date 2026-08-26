@@ -7,7 +7,6 @@ import { handCategoryLabel } from "@/lib/playing-cards";
 import { PlayingCard } from "@/components/teen-patti/playing-card";
 import { SeatAvatar } from "@/components/teen-patti/seat-avatar";
 import { PlayerAvatar } from "@/components/greedy/player-avatar";
-import { teenPattiPlayerName } from "@/lib/teen-patti-player-display";
 import type { DealtHand, PublicBetAggregate, PublicDeck } from "@/types/teen-patti";
 
 export type DeckVisualPhase = "opening" | "idle" | "dealing" | "turning" | "flipping" | "winner" | "settled";
@@ -49,7 +48,6 @@ export function DeckColumn({
   bettors,
   phase,
   onPress,
-  onViewBettors,
 }: {
   deck: PublicDeck;
   deckIndex: number;
@@ -63,7 +61,6 @@ export function DeckColumn({
   bettors: PublicBetAggregate[];
   phase: DeckVisualPhase;
   onPress: () => void;
-  onViewBettors: () => void;
 }) {
   const opening = phase === "opening";
   const dealing = phase === "dealing" || opening;
@@ -79,8 +76,7 @@ export function DeckColumn({
   const art = DECK_ART_BY_CODE[deck.code.toUpperCase()] ?? DECK_ART[deckIndex % DECK_ART.length];
 
   const flipBaseDelay = deckIndex * 340;
-  const visibleBettors = bettors.slice(0, 2);
-  const hiddenBettors = Math.max(0, bettors.length - visibleBettors.length);
+  const visibleBettors = bettors.slice(0, 3);
 
   return (
     <div className="tp-deck-wrap">
@@ -173,24 +169,16 @@ export function DeckColumn({
         </span>
       </button>
 
-      {bettors.length > 0 && (
-        <button
-          type="button"
-          className="tp-deck-bettors"
-          onClick={onViewBettors}
-          aria-label={`View all ${bettors.length} ${deck.name} ${bettors.length === 1 ? "bettor" : "bettors"}`}
-        >
+      {visibleBettors.length > 0 && (
+        <span className="tp-deck-bettors" aria-hidden="true">
           {visibleBettors.map((bettor) => (
-            <span className="tp-deck-bettor" key={bettor.user_id}>
-              <PlayerAvatar player={bettor} />
-              <span>
-                <b>{teenPattiPlayerName(bettor)}</b>
-                <small>◆ {formatCompactAmount(bettor.total_amount)}</small>
-              </span>
-            </span>
+            <PlayerAvatar
+              key={bettor.user_id}
+              player={bettor}
+              className="tp-deck-bettor-avatar"
+            />
           ))}
-          {hiddenBettors > 0 && <strong>+{hiddenBettors}</strong>}
-        </button>
+        </span>
       )}
     </div>
   );

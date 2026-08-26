@@ -490,29 +490,36 @@
 
 .l77-option__players {
   display: flex;
+  flex: 0 0 auto;
+  max-width: 42%;
   align-items: center;
-  gap: 0.5cqw;
-  padding: 0.3cqw 1cqw;
+  justify-content: flex-end;
+  overflow: hidden;
+  pointer-events: none;
+  padding: 0;
   border: 0;
-  border-radius: 99px;
+  border-radius: 0;
   color: #d9c8ed;
-  background: rgba(0, 0, 0, 0.28);
+  background: transparent;
   font-size: min(2cqw, 8.8px);
   font-weight: 900;
   line-height: 1;
-  cursor: pointer;
 }
 
-.l77-option__players-icon {
-  width: min(2.4cqw, 10px);
-  height: min(2.4cqw, 10px);
-  color: #88f3a4;
-  stroke-width: 2.5;
+.l77-option__avatars {
+  display: flex;
+  align-items: center;
 }
 
-.l77-option__players:disabled {
-  opacity: 0.45;
-  cursor: default;
+.l77-option__avatars .player-avatar {
+  width: min(3.6cqw, 16px);
+  height: min(3.6cqw, 16px);
+  margin-left: -0.8cqw;
+  border-width: 0.25cqw;
+}
+
+.l77-option__avatars .player-avatar:first-child {
+  margin-left: 0;
 }
 
 .l77-option__bet {
@@ -1124,132 +1131,6 @@
 .l77-sheet-backdrop {
   align-items: end;
   padding: 0;
-}
-
-.l77-bettor-sheet {
-  position: relative;
-  width: 100%;
-  max-height: 73%;
-  padding: 7cqw 4.5cqw max(5cqw, env(safe-area-inset-bottom));
-  border: 0.7cqw solid #d3a14c;
-  border-bottom: 0;
-  border-radius: 6cqw 6cqw 0 0;
-  background:
-    radial-gradient(circle at 12% 0, rgba(228, 105, 255, 0.25), transparent 30%),
-    linear-gradient(180deg, #571195, #2e055d);
-  box-shadow: 0 -3cqw 8cqw rgba(18, 0, 42, 0.64);
-  animation: l77-sheet-up 280ms ease-out both;
-}
-
-.l77-bettor-sheet__handle {
-  position: absolute;
-  top: 2cqw;
-  left: 50%;
-  width: 13cqw;
-  height: 1cqw;
-  border-radius: 99px;
-  background: rgba(255, 255, 255, 0.32);
-  transform: translateX(-50%);
-}
-
-.l77-bettor-sheet header {
-  display: grid;
-  grid-template-columns: 13cqw 1fr 8cqw;
-  align-items: center;
-  gap: 2.4cqw;
-}
-
-.l77-bettor-sheet header > .l77-symbol {
-  width: 12cqw;
-  height: 12cqw;
-  padding: 0.8cqw;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.l77-bettor-sheet header .l77-symbol--77 {
-  font-size: 6.5cqw;
-}
-
-.l77-bettor-sheet header small {
-  color: #cfa9df;
-  font-size: 2.3cqw;
-}
-
-.l77-bettor-sheet header h2 {
-  margin: 0.3cqw 0;
-  color: #fff;
-  font-size: 5cqw;
-}
-
-.l77-bettor-sheet header p {
-  margin: 0;
-  color: #ffdd63;
-  font-size: 2.5cqw;
-  font-weight: 900;
-}
-
-.l77-bettor-sheet header button {
-  display: grid;
-  width: 8cqw;
-  height: 8cqw;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.l77-bettor-sheet ol {
-  max-height: 45dvh;
-  margin: 4cqw 0 0;
-  padding: 0;
-  overflow: auto;
-  list-style: none;
-}
-
-.l77-bettor-sheet li {
-  display: grid;
-  grid-template-columns: 11cqw 1fr auto;
-  align-items: center;
-  min-height: 14cqw;
-  padding: 1.5cqw 1cqw;
-  border-bottom: 0.3cqw solid rgba(255, 255, 255, 0.09);
-  gap: 2.2cqw;
-}
-
-.l77-bettor-sheet__avatar {
-  width: 10cqw;
-  height: 10cqw;
-  border-color: #d7a5f0;
-  background: #7b42a1;
-}
-
-.l77-bettor-sheet li span strong,
-.l77-bettor-sheet li span small {
-  display: block;
-}
-
-.l77-bettor-sheet li span strong {
-  font-size: 3.2cqw;
-}
-
-.l77-bettor-sheet li span small {
-  margin-top: 0.6cqw;
-  color: #c59dd3;
-  font-size: 2.25cqw;
-}
-
-.l77-bettor-sheet li > b {
-  color: #ffe173;
-  font-size: 3.2cqw;
-}
-
-.l77-bettor-sheet li.is-empty {
-  display: block;
-  color: #c7a4d2;
-  text-align: center;
 }
 
 .l77-help {

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import clsx from "clsx";
-import { playerInitials } from "@/lib/player-display";
+import { UserRound } from "lucide-react";
 import type { PlayerIdentity } from "@/types/greedy";
 
 export function PlayerAvatar({
@@ -36,7 +36,7 @@ export function PlayerAvatar({
           onError={() => setFailedUrl(avatarUrl)}
         />
       ) : (
-        <span>{playerInitials(player)}</span>
+        <UserRound aria-hidden="true" className="player-avatar__fallback" />
       )}
     </span>
   );

@@ -1,6 +1,5 @@
 "use client";
 
-import { Users } from "lucide-react";
 import { PlayerAvatar } from "@/components/greedy/player-avatar";
 import type { BetLanding } from "@/hooks/use-greedy-game";
 import { Lucky77Symbol, lucky77DisplayName } from "@/lib/lucky-77-art";
@@ -19,7 +18,6 @@ export function Lucky77OptionCard({
   winner,
   landings = [],
   onBet,
-  onViewBettors,
 }: {
   option: PublicOption;
   bettors: PublicBetAggregate[];
@@ -32,7 +30,6 @@ export function Lucky77OptionCard({
   winner: boolean;
   landings?: BetLanding[];
   onBet: () => void;
-  onViewBettors: () => void;
 }) {
   const name = lucky77DisplayName(option.code, option.name);
   const multiplier = option.payout_multiplier || formatMultiplier(
@@ -43,7 +40,7 @@ export function Lucky77OptionCard({
     (sum, bettor) => sum + bettor.bet_count,
     0,
   )));
-  const playerCount = bettors.length;
+  const visibleBettors = bettors.slice(0, 3);
 
   return (
     <article
@@ -55,23 +52,15 @@ export function Lucky77OptionCard({
           <small>Pool</small>
           <b>{formatCompactAmount(totalAmount)}</b>
         </span>
-        <button
-          type="button"
-          className="l77-option__players"
-          onClick={onViewBettors}
-          disabled={playerCount === 0}
-          aria-label={`View ${playerCount} ${name} ${playerCount === 1 ? "bettor" : "bettors"}`}
-        >
-          <span className="l77-option__avatars" aria-hidden="true">
-            {bettors.slice(0, 3).map((bettor) => (
-              <PlayerAvatar key={bettor.user_id} player={bettor} />
-            ))}
+        {visibleBettors.length > 0 ? (
+          <span className="l77-option__players" aria-hidden="true">
+            <span className="l77-option__avatars">
+              {visibleBettors.map((bettor) => (
+                <PlayerAvatar key={bettor.user_id} player={bettor} />
+              ))}
+            </span>
           </span>
-          {playerCount === 0 ? (
-            <Users className="l77-option__players-icon" aria-hidden="true" />
-          ) : null}
-          <b>{playerCount}</b>
-        </button>
+        ) : null}
       </div>
 
       <button

@@ -200,9 +200,7 @@ a:focus-visible {
 
 .machine-control:focus-visible,
 .machine-chip:focus-visible,
-.option-node__bettors:focus-visible,
 .dashboard-refresh:focus-visible,
-.bettor-sheet__header > button:focus-visible,
 .result-sheet__close:focus-visible,
 .game-help-card > button:focus-visible {
   outline: max(2px, 0.55cqw) solid white;
@@ -503,9 +501,6 @@ a:focus-visible {
   border-radius: 9999px;
   background: linear-gradient(135deg, #1b75bb, #173f71);
   color: white;
-  font-size: 13px;
-  font-weight: 950;
-  letter-spacing: -0.04em;
   box-shadow: 0 2px 5px rgba(19, 49, 79, 0.2);
 }
 
@@ -513,6 +508,12 @@ a:focus-visible {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.player-avatar__fallback {
+  width: 58%;
+  height: 58%;
+  stroke-width: 2.4;
 }
 
 .option-node__payout-half {
@@ -529,6 +530,8 @@ a:focus-visible {
 }
 
 .option-node__multiplier {
+  position: relative;
+  z-index: 6;
   display: grid;
   place-items: center;
   min-inline-size: 5.2cqw;
@@ -599,107 +602,69 @@ a:focus-visible {
 }
 
 .option-node__bettors {
-  --bettor-marker-x: 0px;
-  --bettor-marker-y: 0px;
+  /* Keep markers in the art half / rim — never over the payout "5x" band. */
+  --bettor-marker-x: 0%;
+  --bettor-marker-y: 10%;
   position: absolute;
-  z-index: 7;
-  top: 50%;
-  left: 50%;
+  z-index: 4;
+  top: var(--bettor-marker-y);
+  left: var(--bettor-marker-x);
   display: flex;
-  min-width: 44px;
-  min-height: 44px;
   align-items: center;
-  gap: 0.55cqw;
-  isolation: isolate;
-  padding: 10px 0.75cqw;
-  border: 0;
-  border-radius: 9999px;
-  background: transparent;
-  color: #173f59;
-  transform: translate(
-    calc(-50% + var(--bettor-marker-x)),
-    calc(-50% + var(--bettor-marker-y))
-  );
+  pointer-events: none;
+  transform: translate(-50%, -50%);
 }
 
 .option-node__bettors--n {
-  --bettor-marker-x: 0cqw;
-  --bettor-marker-y: -6.5cqw;
+  --bettor-marker-x: 50%;
+  --bettor-marker-y: 4%;
 }
 
 .option-node__bettors--ne {
-  --bettor-marker-x: 6cqw;
-  --bettor-marker-y: -6cqw;
+  --bettor-marker-x: 82%;
+  --bettor-marker-y: 14%;
 }
 
 .option-node__bettors--e {
-  --bettor-marker-x: 6.5cqw;
+  --bettor-marker-x: 90%;
+  --bettor-marker-y: 30%;
 }
 
 .option-node__bettors--se {
-  --bettor-marker-x: 6cqw;
-  --bettor-marker-y: 6cqw;
+  --bettor-marker-x: 82%;
+  --bettor-marker-y: 30%;
 }
 
 .option-node__bettors--s {
-  --bettor-marker-x: 0cqw;
-  --bettor-marker-y: 6.5cqw;
+  --bettor-marker-x: 50%;
+  --bettor-marker-y: 4%;
 }
 
 .option-node__bettors--sw {
-  --bettor-marker-x: -6cqw;
-  --bettor-marker-y: 6cqw;
+  --bettor-marker-x: 18%;
+  --bettor-marker-y: 30%;
 }
 
 .option-node__bettors--w {
-  --bettor-marker-x: -6.5cqw;
+  --bettor-marker-x: 10%;
+  --bettor-marker-y: 30%;
 }
 
 .option-node__bettors--nw {
-  --bettor-marker-x: -6cqw;
-  --bettor-marker-y: -6cqw;
+  --bettor-marker-x: 18%;
+  --bettor-marker-y: 14%;
 }
 
-.option-node__bettors::before {
-  position: absolute;
-  z-index: -1;
-  inset: 8px 0;
-  border: 0.35cqw solid #173f59;
-  border-radius: inherit;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 0.65cqw 1.2cqw rgba(48, 38, 16, 0.28);
-  content: "";
-}
-
-.option-node__bettor {
-  display: flex;
-  align-items: center;
-  gap: 0.25cqw;
-}
-
-.option-node__bettor .player-avatar {
+.option-node__bettor-avatar {
   width: 3.5cqw;
   height: 3.5cqw;
   border-width: 0.25cqw;
-  font-size: clamp(5px, 1.65cqw, 7px);
+  margin-left: -1cqw;
+  box-shadow: 0 0.35cqw 0.7cqw rgba(19, 49, 79, 0.28);
 }
 
-.option-node__bettor b,
-.option-node__bettor-more {
-  font-size: clamp(6px, 1.9cqw, 8px);
-  font-weight: 950;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.option-node__bettor-more {
-  display: grid;
-  min-width: 3.7cqw;
-  height: 3.7cqw;
-  place-items: center;
-  border-radius: 9999px;
-  background: #173f59;
-  color: white;
+.option-node__bettor-avatar:first-child {
+  margin-left: 0;
 }
 
 .center-stage {
@@ -1274,152 +1239,6 @@ a:focus-visible {
 
 .toast-in {
   animation: toastIn 180ms ease-out both;
-}
-
-.bettor-sheet-backdrop {
-  position: fixed;
-  z-index: 105;
-  inset: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  background: rgba(8, 18, 32, 0.66);
-  backdrop-filter: blur(2px);
-}
-
-.bettor-sheet {
-  position: relative;
-  width: min(100%, 414px);
-  max-height: min(72dvh, 590px);
-  overflow: hidden;
-  padding: 12px 16px max(18px, env(safe-area-inset-bottom));
-  border: 2px solid #1a4b77;
-  border-bottom: 0;
-  border-radius: 24px 24px 0 0;
-  background: #fff7d9;
-  box-shadow: 0 -16px 45px rgba(0, 0, 0, 0.3);
-  animation: resultPop 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-
-.bettor-sheet__handle {
-  width: 44px;
-  height: 5px;
-  margin: 0 auto 12px;
-  border-radius: 999px;
-  background: rgba(23, 63, 89, 0.2);
-}
-
-.bettor-sheet__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 0 2px 13px;
-  border-bottom: 1px solid rgba(23, 63, 89, 0.15);
-}
-
-.bettor-sheet__header > div > span {
-  color: #e5534f;
-  font-size: 10px;
-  font-weight: 950;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.bettor-sheet__header h2 {
-  margin: 2px 0 0;
-  color: #173f59;
-  font-size: 23px;
-  font-weight: 950;
-  letter-spacing: -0.04em;
-}
-
-.bettor-sheet__header p {
-  margin: 2px 0 0;
-  color: #718091;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.bettor-sheet__header > button {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 0;
-  border-radius: 999px;
-  background: white;
-  color: #173f59;
-  box-shadow: 0 3px 10px rgba(23, 63, 89, 0.12);
-}
-
-.bettor-sheet__header > button svg {
-  width: 19px;
-  height: 19px;
-}
-
-.bettor-sheet__list {
-  display: grid;
-  max-height: calc(min(72dvh, 590px) - 112px);
-  gap: 8px;
-  margin: 0;
-  padding: 12px 1px 0;
-  overflow-y: auto;
-  list-style: none;
-  overscroll-behavior: contain;
-}
-
-.bettor-sheet__list:focus-visible {
-  outline: 3px solid #173f59;
-  outline-offset: -3px;
-}
-
-.bettor-sheet__list li {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) auto;
-  min-height: 54px;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 10px;
-  border: 1px solid rgba(23, 63, 89, 0.12);
-  border-radius: 15px;
-  background: rgba(255, 255, 255, 0.86);
-}
-
-.bettor-sheet__avatar {
-  width: 42px;
-  height: 42px;
-  border-color: #dce8ef;
-}
-
-.bettor-sheet__list li > div {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-}
-
-.bettor-sheet__list li > div strong {
-  overflow: hidden;
-  color: #203d5b;
-  font-size: 13px;
-  font-weight: 900;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.bettor-sheet__list li > div span {
-  margin-top: 2px;
-  color: #7f8b97;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.bettor-sheet__list li > b {
-  color: #173f71;
-  font-size: 14px;
-  font-weight: 950;
-  white-space: nowrap;
 }
 
 .result-backdrop {

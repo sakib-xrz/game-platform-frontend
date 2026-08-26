@@ -344,8 +344,9 @@
   border-radius: inherit;
 }
 
-.tp-player-profile__avatar > .player-avatar > span {
-  font-size: 11px;
+.tp-player-profile__avatar > .player-avatar > .player-avatar__fallback {
+  width: 55%;
+  height: 55%;
 }
 
 .tp-player-profile__avatar i {
@@ -540,6 +541,15 @@
   opacity: .56;
 }
 
+.tp-control--static {
+  cursor: default;
+  pointer-events: none;
+}
+
+.tp-control--static::before {
+  content: none;
+}
+
 .tp-control:active:not(:disabled) {
   transform: scale(.93);
   filter: brightness(.9);
@@ -549,7 +559,6 @@
 .tp-round-badge:focus-visible,
 .tp-control:focus-visible,
 .tp-deck:focus-visible,
-.tp-deck-bettors:focus-visible,
 .tp-chip:focus-visible,
 .tp-repeat:focus-visible,
 .tp-result-close:focus-visible,
@@ -1163,89 +1172,27 @@
 .tp-deck-bettors {
   position: absolute;
   z-index: 12;
-  right: 7px;
-  bottom: 31px;
-  left: 7px;
+  top: 4px;
+  right: 6px;
+  left: auto;
+  bottom: auto;
   display: flex;
-  min-width: 0;
-  min-height: 24px;
-  flex-direction: column;
-  justify-content: center;
-  gap: 1px;
-  padding: 3px 18px 3px 4px;
-  overflow: visible;
-  border: 1px solid rgba(255, 226, 158, .52);
-  border-radius: 10px;
-  background: linear-gradient(180deg, rgba(71, 40, 25, .96), rgba(28, 17, 14, .97));
-  color: #fff0c8;
-  box-shadow: 0 4px 9px rgba(0, 0, 0, .38);
-  backdrop-filter: blur(5px);
-  touch-action: manipulation;
-}
-
-.tp-deck-bettors::before {
-  position: absolute;
-  inset: -10px 0;
-  border-radius: 16px;
-  content: "";
-}
-
-.tp-deck-bettor {
-  display: flex;
-  min-width: 0;
   align-items: center;
-  gap: 3px;
+  justify-content: flex-end;
+  pointer-events: none;
 }
 
-.tp-deck-bettor .player-avatar {
-  width: 15px;
-  height: 15px;
-  flex: 0 0 15px;
+.tp-deck-bettor-avatar {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
   border-width: 1px;
-  font-size: 5px;
+  margin-left: -4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
 }
 
-.tp-deck-bettor > span {
-  display: grid;
-  min-width: 0;
-  flex: 1;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 2px;
-}
-
-.tp-deck-bettor b,
-.tp-deck-bettor small {
-  overflow: hidden;
-  line-height: 1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tp-deck-bettor b {
-  color: #fff0c8;
-  font-size: 6px;
-  font-weight: 850;
-}
-
-.tp-deck-bettor small {
-  color: #f2ce79;
-  font-size: 6px;
-  font-weight: 900;
-}
-
-.tp-deck-bettors > strong {
-  position: absolute;
-  right: 4px;
-  display: grid;
-  width: 15px;
-  height: 15px;
-  place-items: center;
-  border-radius: 50%;
-  background: #b07932;
-  color: #fff4d3;
-  font-size: 6px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .24);
+.tp-deck-bettor-avatar:first-child {
+  margin-left: 0;
 }
 
 .tp-arena__rule {
@@ -1809,37 +1756,6 @@
 .tp-help-card h2 { color: #ffe4a0; font-family: Georgia, serif; font-size: 24px; }
 .tp-help-card li { color: rgba(249, 239, 214, .74); font-size: 12px; line-height: 1.55; }
 
-.tp-bettor-sheet-backdrop {
-  z-index: 92;
-  background: rgba(2, 9, 7, .82);
-  backdrop-filter: blur(8px);
-}
-
-.tp-bettor-sheet {
-  border-color: rgba(240, 200, 115, .56);
-  background:
-    radial-gradient(75% 40% at 50% 0%, rgba(44, 137, 95, .3), transparent 75%),
-    linear-gradient(180deg, #153c30, #071d17 64%, #2d1416 120%);
-  color: #f8eac8;
-}
-
-.tp-bettor-sheet .bettor-sheet__header > div > span,
-.tp-bettor-sheet .bettor-sheet__list li > div span { color: rgba(249, 239, 214, .55); }
-.tp-bettor-sheet .bettor-sheet__header h2,
-.tp-bettor-sheet .bettor-sheet__list li > div strong { color: #fff0c9; }
-.tp-bettor-sheet .bettor-sheet__header p,
-.tp-bettor-sheet .bettor-sheet__list li > b { color: #f1cd77; }
-.tp-bettor-sheet .bettor-sheet__list li {
-  border-color: rgba(240, 200, 115, .15);
-  background: rgba(3, 24, 18, .56);
-}
-.tp-bettor-sheet__empty {
-  justify-content: center !important;
-  color: rgba(249, 239, 214, .56);
-  font-size: 11px;
-  text-align: center;
-}
-
 /* Historical round detail sheet; intentionally independent of global dialog skins. */
 .tp-history-sheet-backdrop {
   position: fixed;
@@ -2288,9 +2204,8 @@
   .tp-deck__cards .tp-card-scene:nth-child(2),
   .tp-deck__cards .tp-card-scene:nth-child(3) { width: 28px; height: 43px; flex-basis: 28px; }
   .tp-deck__ribbon { min-height: 20px; padding-top: 3px; padding-bottom: 3px; }
-  .tp-deck-bettors { bottom: 28px; min-height: 24px; flex-direction: row; padding: 2px 15px 2px 3px; }
-  .tp-deck-bettor > span { display: none; }
-  .tp-deck-bettor .player-avatar { width: 16px; height: 16px; flex-basis: 16px; }
+  .tp-deck-bettors { top: 2px; right: 4px; bottom: auto; left: auto; }
+  .tp-deck-bettor-avatar { width: 15px; height: 15px; flex-basis: 15px; }
   .tp-arena__rule { display: none; }
   .tp-bet-console { margin-top: 9px; padding-top: 6px; padding-bottom: 5px; }
   .tp-bet-console__status { min-height: 35px; }

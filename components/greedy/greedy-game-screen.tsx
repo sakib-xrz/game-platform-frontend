@@ -17,7 +17,6 @@ import { useGreedyGame } from "@/hooks/use-greedy-game";
 import { formatInteger } from "@/lib/format";
 import { getOptionDisplayName, OptionArtwork } from "@/lib/option-art";
 import { BetOptionNode } from "@/components/greedy/bet-option-node";
-import { BettorListSheet } from "@/components/greedy/bettor-list-sheet";
 import { CenterStage } from "@/components/greedy/center-stage";
 import { ChipTray } from "@/components/greedy/chip-tray";
 import { RecentResults } from "@/components/greedy/recent-results";
@@ -212,10 +211,6 @@ export function GreedyGameScreen() {
   );
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
-  const [bettorSheetSelection, setBettorSheetSelection] = useState<{
-    roundId: string;
-    optionId: string;
-  } | null>(null);
   const helpCloseRef = useRef<HTMLButtonElement>(null);
   const disabledChipAmounts = useMemo(() => {
     const disabled = new Set<string>();
@@ -294,16 +289,6 @@ export function GreedyGameScreen() {
     const roundNumber = snapshot?.round?.round_number;
     return roundNumber ? `Today’s ${roundNumber} Round` : "Today’s Round";
   }, [snapshot?.round?.round_number]);
-
-  const bettorSheetOption =
-    bettorSheetSelection?.roundId === snapshot?.round?.id
-      ? (options.find(
-          (option) => option.id === bettorSheetSelection?.optionId,
-        ) ?? null)
-      : null;
-  const bettorSheetBettors = bettorSheetOption
-    ? (bettorsByOption.get(bettorSheetOption.id) ?? [])
-    : [];
 
   useEffect(() => {
     if (!helpOpen) return;
@@ -498,13 +483,6 @@ export function GreedyGameScreen() {
                 .filter((landing) => landing.optionId === option.id)
                 .map((landing) => landing.id)}
               onPress={() => void placeBet(option, effectiveSelectedChip)}
-              onViewBettors={() => {
-                if (!snapshot.round) return;
-                setBettorSheetSelection({
-                  roundId: snapshot.round.id,
-                  optionId: option.id,
-                });
-              }}
             />
           );
         })}
@@ -625,10 +603,6 @@ export function GreedyGameScreen() {
                 tap places another bet immediately.
               </li>
               <li>
-                Tap the player markers on an option to see everyone who selected
-                it.
-              </li>
-              <li>
                 The highlighted draw is visual only; the server publishes the
                 verified winner.
               </li>
@@ -636,13 +610,6 @@ export function GreedyGameScreen() {
           </div>
         </div>
       )}
-
-      <BettorListSheet
-        option={bettorSheetOption}
-        bettors={bettorSheetBettors}
-        open={Boolean(bettorSheetOption) && !resultModalOpen}
-        onClose={() => setBettorSheetSelection(null)}
-      />
 
       <ResultModal
         snapshot={snapshot}

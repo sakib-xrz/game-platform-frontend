@@ -7,7 +7,6 @@ import {
   getClassicOptionDisplayName,
 } from "@/lib/greedy-classic-art";
 import {
-  formatCompactAmount,
   formatInteger,
   formatMultiplier,
 } from "@/lib/format";
@@ -30,7 +29,6 @@ export function ClassicOptionCard({
   bettors,
   landingIds,
   onPress,
-  onViewBettors,
 }: {
   option: PublicOption;
   left: number;
@@ -43,7 +41,6 @@ export function ClassicOptionCard({
   bettors: PublicBetAggregate[];
   landingIds: string[];
   onPress: () => void;
-  onViewBettors: () => void;
 }) {
   const hasBet = BigInt(myBet || "0") > 0n;
   const multiplier = multiplierFor(option);
@@ -52,8 +49,7 @@ export function ClassicOptionCard({
     option.name,
     option.image_url,
   );
-  const visibleBettors = bettors.slice(0, 1);
-  const hiddenBettors = Math.max(0, bettors.length - visibleBettors.length);
+  const visibleBettors = bettors.slice(0, 3);
   const details = [
     hasBet ? `your bet is ${formatInteger(myBet)} coins` : null,
     winner ? "winning option" : null,
@@ -118,23 +114,16 @@ export function ClassicOptionCard({
         ) : null}
       </button>
 
-      {bettors.length > 0 ? (
-        <button
-          type="button"
-          className="gc-option__bettors"
-          onClick={onViewBettors}
-          aria-label={`View all ${bettors.length} ${displayName} ${bettors.length === 1 ? "bettor" : "bettors"}`}
-        >
+      {visibleBettors.length > 0 ? (
+        <span className="gc-option__bettors" aria-hidden="true">
           {visibleBettors.map((bettor) => (
-            <span className="gc-option__bettor" key={bettor.user_id}>
-              <PlayerAvatar player={bettor} />
-              <b>{formatCompactAmount(bettor.total_amount)}</b>
-            </span>
+            <PlayerAvatar
+              key={bettor.user_id}
+              player={bettor}
+              className="gc-option__bettor-avatar"
+            />
           ))}
-          {hiddenBettors > 0 ? (
-            <span className="gc-option__bettor-more">+{hiddenBettors}</span>
-          ) : null}
-        </button>
+        </span>
       ) : null}
     </div>
   );

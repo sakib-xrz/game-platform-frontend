@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import { PlayerAvatar } from "@/components/greedy/player-avatar";
 import { getOptionDisplayName, OptionArtwork } from "@/lib/option-art";
-import { formatCompactAmount, formatInteger, formatMultiplier } from "@/lib/format";
+import { formatInteger, formatMultiplier } from "@/lib/format";
 import type { PublicBetAggregate, PublicOption } from "@/types/greedy";
 
 function optionMultiplier(option: PublicOption): string {
@@ -24,7 +24,6 @@ export function BetOptionNode({
   bettors,
   landingIds,
   onPress,
-  onViewBettors,
 }: {
   option: PublicOption;
   left: number;
@@ -38,7 +37,6 @@ export function BetOptionNode({
   bettors: PublicBetAggregate[];
   landingIds: string[];
   onPress: () => void;
-  onViewBettors: () => void;
 }) {
   const hasBet = BigInt(myBet || "0") > 0n;
   const multiplier = optionMultiplier(option);
@@ -59,8 +57,7 @@ export function BetOptionNode({
     .filter(Boolean)
     .join("; ");
 
-  const visibleBettors = bettors.slice(0, 2);
-  const hiddenBettors = Math.max(0, bettors.length - visibleBettors.length);
+  const visibleBettors = bettors.slice(0, 3);
 
   return (
     <div
@@ -118,23 +115,19 @@ export function BetOptionNode({
         </span>
       </button>
 
-      {bettors.length > 0 && (
-        <button
-          type="button"
+      {visibleBettors.length > 0 && (
+        <span
           className={`option-node__bettors option-node__bettors--${bettorPlacement}`}
-          onClick={onViewBettors}
-          aria-label={`View all ${bettors.length} ${displayName} ${bettors.length === 1 ? "bettor" : "bettors"}`}
+          aria-hidden="true"
         >
           {visibleBettors.map((bettor) => (
-            <span className="option-node__bettor" key={bettor.user_id}>
-              <PlayerAvatar player={bettor} />
-              <b>{formatCompactAmount(bettor.total_amount)}</b>
-            </span>
+            <PlayerAvatar
+              key={bettor.user_id}
+              player={bettor}
+              className="option-node__bettor-avatar"
+            />
           ))}
-          {hiddenBettors > 0 && (
-            <span className="option-node__bettor-more">+{hiddenBettors}</span>
-          )}
-        </button>
+        </span>
       )}
     </div>
   );

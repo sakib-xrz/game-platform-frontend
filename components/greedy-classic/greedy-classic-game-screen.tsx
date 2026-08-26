@@ -13,7 +13,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
-import { ClassicBettorSheet } from "@/components/greedy-classic/classic-bettor-sheet";
 import { ClassicCenterDial } from "@/components/greedy-classic/classic-center-dial";
 import { ClassicChipTray } from "@/components/greedy-classic/classic-chip-tray";
 import { ClassicHistorySheet } from "@/components/greedy-classic/classic-history-sheet";
@@ -62,10 +61,6 @@ export function GreedyClassicGameScreen() {
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [bettorSelection, setBettorSelection] = useState<{
-    roundId: string;
-    optionId: string;
-  } | null>(null);
   const helpCloseRef = useRef<HTMLButtonElement>(null);
   const holdHomeRef = useRef<HTMLAnchorElement>(null);
   const holdRetryRef = useRef<HTMLButtonElement>(null);
@@ -180,15 +175,6 @@ export function GreedyClassicGameScreen() {
   const fullHold = Boolean(operatorHeld && !roundStillFinishing);
   const fullHoldVisible = fullHold && !resultModalOpen;
   const helpVisible = helpOpen && !resultModalOpen && !fullHoldVisible;
-
-  const bettorOption =
-    bettorSelection && bettorSelection.roundId === snapshot?.round?.id
-      ? (options.find((option) => option.id === bettorSelection.optionId) ??
-        null)
-      : null;
-  const selectedBettors = bettorOption
-    ? (bettorsByOption.get(bettorOption.id) ?? [])
-    : [];
 
   useEffect(() => {
     if (!helpVisible) return;
@@ -403,13 +389,6 @@ export function GreedyClassicGameScreen() {
                   ),
                 )
               }
-              onViewBettors={() => {
-                if (!snapshot.round) return;
-                setBettorSelection({
-                  roundId: snapshot.round.id,
-                  optionId: option.id,
-                });
-              }}
             />
           );
         })}
@@ -559,17 +538,6 @@ export function GreedyClassicGameScreen() {
         history={snapshot.recent_history}
         open={historyOpen && !resultModalOpen && !fullHoldVisible}
         onClose={() => setHistoryOpen(false)}
-      />
-      <ClassicBettorSheet
-        option={bettorOption}
-        bettors={selectedBettors}
-        open={
-          Boolean(bettorOption) &&
-          !resultModalOpen &&
-          !historyOpen &&
-          !fullHoldVisible
-        }
-        onClose={() => setBettorSelection(null)}
       />
       <ClassicResultModal
         snapshot={snapshot}

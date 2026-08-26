@@ -6,7 +6,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { PlayerAvatar } from "@/components/greedy/player-avatar";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
-import { Lucky77BettorSheet } from "@/components/lucky-77/lucky-77-bettor-sheet";
 import { Lucky77ChipTray } from "@/components/lucky-77/lucky-77-chip-tray";
 import { Lucky77OptionCard } from "@/components/lucky-77/lucky-77-option-card";
 import { Lucky77ResultModal } from "@/components/lucky-77/lucky-77-result-modal";
@@ -47,7 +46,6 @@ export function Lucky77GameScreen() {
   const { soundEnabled, toggleSound, playSound } = useLucky77Sound();
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
-  const [bettorOptionId, setBettorOptionId] = useState<string | null>(null);
   const [lastBet, setLastBet] = useState<LastBet | null>(null);
   const previousStatusRef = useRef<string | null>(null);
   const soundedResultRoundRef = useRef<string | null>(null);
@@ -178,7 +176,6 @@ export function Lucky77GameScreen() {
       effectiveSelectedChip,
   );
 
-  const selectedBettorOption = options.find((option) => option.id === bettorOptionId) ?? null;
   const runtimeHeld = snapshot?.runtime.status !== "running";
   const gameUnavailable = Boolean(snapshot && snapshot.game.status !== "active");
   const roundStillFinishing = Boolean(
@@ -304,7 +301,6 @@ export function Lucky77GameScreen() {
                 winner={winnerId === option.id}
                 landings={betLandings.filter((landing) => landing.optionId === option.id)}
                 onBet={() => void handleBet(option, effectiveSelectedChip)}
-                onViewBettors={() => setBettorOptionId(option.id)}
               />
             );
           })}
@@ -368,12 +364,6 @@ export function Lucky77GameScreen() {
         </div>
       ) : null}
 
-      <Lucky77BettorSheet
-        option={selectedBettorOption}
-        bettors={selectedBettorOption ? bettorsByOption.get(selectedBettorOption.id) ?? [] : []}
-        open={Boolean(selectedBettorOption) && !resultModalOpen && !fullHold}
-        onClose={() => setBettorOptionId(null)}
-      />
       <Lucky77ResultModal
         snapshot={snapshot}
         open={resultModalOpen && !fullHold}
