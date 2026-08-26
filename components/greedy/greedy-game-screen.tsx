@@ -30,14 +30,14 @@ import type { PublicBetAggregate } from "@/types/greedy";
 // A 129px orbit keeps every node circular and evenly spaced while reserving
 // a 9px visual safety gap below the toolbar and round banner at 414px.
 const NODE_POSITIONS = [
-  { left: 50, top: 18.392857, markerPlacement: "n" },
-  { left: 72.033037, top: 25.139862, markerPlacement: "ne" },
-  { left: 81.15942, top: 41.428571, markerPlacement: "e" },
-  { left: 72.033037, top: 57.717281, markerPlacement: "se" },
-  { left: 50, top: 64.464286, markerPlacement: "s" },
-  { left: 27.966963, top: 57.717281, markerPlacement: "sw" },
-  { left: 18.84058, top: 41.428571, markerPlacement: "w" },
-  { left: 27.966963, top: 25.139862, markerPlacement: "nw" },
+  { left: 50, top: 18.392857 },
+  { left: 72.033037, top: 25.139862 },
+  { left: 81.15942, top: 41.428571 },
+  { left: 72.033037, top: 57.717281 },
+  { left: 50, top: 64.464286 },
+  { left: 27.966963, top: 57.717281 },
+  { left: 18.84058, top: 41.428571 },
+  { left: 27.966963, top: 25.139862 },
 ] as const;
 
 const SPOKE_POINTS = [
@@ -469,7 +469,6 @@ export function GreedyGameScreen() {
               option={option}
               left={position.left}
               top={position.top}
-              bettorPlacement={position.markerPlacement}
               myBet={(
                 (optionBetTotals.get(option.id) ?? 0n) +
                 (pendingOptionAmounts.get(option.id) ?? 0n)

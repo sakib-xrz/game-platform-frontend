@@ -1,8 +1,9 @@
 "use client";
 
 import clsx from "clsx";
-import { PlayerAvatar } from "@/components/greedy/player-avatar";
+import { BettorAvatarScatter } from "@/components/greedy/bettor-avatar-scatter";
 import { getOptionDisplayName, OptionArtwork } from "@/lib/option-art";
+import { GREEDY_AVATAR_BOUNDS } from "@/lib/bettor-avatar-layout";
 import { formatInteger, formatMultiplier } from "@/lib/format";
 import type { PublicBetAggregate, PublicOption } from "@/types/greedy";
 
@@ -15,7 +16,6 @@ export function BetOptionNode({
   option,
   left,
   top,
-  bettorPlacement,
   myBet,
   winner,
   drawingHighlighted,
@@ -28,7 +28,6 @@ export function BetOptionNode({
   option: PublicOption;
   left: number;
   top: number;
-  bettorPlacement: "n" | "ne" | "e" | "se" | "s" | "sw" | "w" | "nw";
   myBet: string;
   winner: boolean;
   drawingHighlighted?: boolean;
@@ -56,8 +55,6 @@ export function BetOptionNode({
   ]
     .filter(Boolean)
     .join("; ");
-
-  const visibleBettors = bettors.slice(0, 3);
 
   return (
     <div
@@ -115,20 +112,14 @@ export function BetOptionNode({
         </span>
       </button>
 
-      {visibleBettors.length > 0 && (
-        <span
-          className={`option-node__bettors option-node__bettors--${bettorPlacement}`}
-          aria-hidden="true"
-        >
-          {visibleBettors.map((bettor) => (
-            <PlayerAvatar
-              key={bettor.user_id}
-              player={bettor}
-              className="option-node__bettor-avatar"
-            />
-          ))}
-        </span>
-      )}
+      <BettorAvatarScatter
+        optionId={option.id}
+        bettors={bettors}
+        bounds={GREEDY_AVATAR_BOUNDS}
+        containerClassName="option-node__bettors"
+        avatarClassName="option-node__bettor-avatar"
+        slotClassName="option-node__bettor-slot"
+      />
     </div>
   );
 }

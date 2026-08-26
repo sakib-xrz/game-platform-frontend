@@ -602,69 +602,26 @@ a:focus-visible {
 }
 
 .option-node__bettors {
-  /* Keep markers in the art half / rim — never over the payout "5x" band. */
-  --bettor-marker-x: 0%;
-  --bettor-marker-y: 10%;
+  /* Horizontal band below food icon, above the payout "5x" pill. */
   position: absolute;
   z-index: 4;
-  top: var(--bettor-marker-y);
-  left: var(--bettor-marker-x);
-  display: flex;
-  align-items: center;
+  top: 46%;
+  right: 12%;
+  bottom: auto;
+  left: 12%;
+  height: 8%;
   pointer-events: none;
-  transform: translate(-50%, -50%);
 }
 
-.option-node__bettors--n {
-  --bettor-marker-x: 50%;
-  --bettor-marker-y: 4%;
-}
-
-.option-node__bettors--ne {
-  --bettor-marker-x: 82%;
-  --bettor-marker-y: 14%;
-}
-
-.option-node__bettors--e {
-  --bettor-marker-x: 90%;
-  --bettor-marker-y: 30%;
-}
-
-.option-node__bettors--se {
-  --bettor-marker-x: 82%;
-  --bettor-marker-y: 30%;
-}
-
-.option-node__bettors--s {
-  --bettor-marker-x: 50%;
-  --bettor-marker-y: 4%;
-}
-
-.option-node__bettors--sw {
-  --bettor-marker-x: 18%;
-  --bettor-marker-y: 30%;
-}
-
-.option-node__bettors--w {
-  --bettor-marker-x: 10%;
-  --bettor-marker-y: 30%;
-}
-
-.option-node__bettors--nw {
-  --bettor-marker-x: 18%;
-  --bettor-marker-y: 14%;
+.option-node__bettor-slot {
+  z-index: 1;
 }
 
 .option-node__bettor-avatar {
   width: 3.5cqw;
   height: 3.5cqw;
   border-width: 0.25cqw;
-  margin-left: -1cqw;
   box-shadow: 0 0.35cqw 0.7cqw rgba(19, 49, 79, 0.28);
-}
-
-.option-node__bettor-avatar:first-child {
-  margin-left: 0;
 }
 
 .center-stage {

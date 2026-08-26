@@ -28,7 +28,8 @@ export function bettorAvatarSpot(
   const leftSpan = Math.max(0, bounds.maxLeft - bounds.minLeft);
   const topSpan = Math.max(0, bounds.maxTop - bounds.minTop);
   const left = bounds.minLeft + ((hash % 1000) / 999) * leftSpan;
-  const top = bounds.minTop + (((Math.floor(hash / 1000) % 1000) / 999) * topSpan);
+  const top =
+    bounds.minTop + ((Math.floor(hash / 1000) % 1000) / 999) * topSpan;
   return { left, top };
 }
 
@@ -39,34 +40,34 @@ export function bettorAvatarStyle(spot: BettorAvatarSpot): CSSProperties {
   };
 }
 
-/** Greedy wheel: percentages of the art half — payout band stays above. */
+/** Greedy: left/right scatter inside the mid-pod horizontal band. */
 export const GREEDY_AVATAR_BOUNDS = {
-  minLeft: 14,
-  maxLeft: 86,
-  minTop: 10,
-  maxTop: 72,
+  minLeft: 12,
+  maxLeft: 88,
+  minTop: 40,
+  maxTop: 60,
 } as const;
 
-/** Classic cards: upper art area above "Win Nx". */
+/** Classic: left/right scatter inside the top-interior band. */
 export const CLASSIC_AVATAR_BOUNDS = {
   minLeft: 12,
   maxLeft: 88,
-  minTop: 8,
-  maxTop: 48,
+  minTop: 40,
+  maxTop: 60,
 } as const;
 
-/** Lucky 77: mid art zone inside the bet button, clear of Pays. */
+/** Lucky 77: left/right scatter inside the card header (former Pool row). */
 export const LUCKY77_AVATAR_BOUNDS = {
-  minLeft: 14,
-  maxLeft: 86,
-  minTop: 22,
-  maxTop: 58,
+  minLeft: 10,
+  maxLeft: 90,
+  minTop: 40,
+  maxTop: 60,
 } as const;
 
-/** Teen Patti: middle of the hand cabinet, away from pot + stake. */
+/** Teen Patti: left/right scatter inside the cabinet mid-top band. */
 export const TEEN_PATTI_AVATAR_BOUNDS = {
-  minLeft: 14,
-  maxLeft: 86,
-  minTop: 34,
-  maxTop: 68,
+  minLeft: 12,
+  maxLeft: 88,
+  minTop: 40,
+  maxTop: 60,
 } as const;

@@ -660,25 +660,23 @@
 .gc-option__bettors {
   position: absolute;
   z-index: 3;
-  top: -5px;
-  left: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  top: 4%;
+  right: 8%;
+  bottom: auto;
+  left: 8%;
+  height: 12%;
   pointer-events: none;
-  transform: translateX(-50%);
+}
+
+.gc-option__bettor-slot {
+  z-index: 1;
 }
 
 .gc-option__bettor-avatar {
   width: 3.4cqw;
   height: 3.4cqw;
   border-width: 0.25cqw;
-  margin-left: -1cqw;
   box-shadow: 0 0.35cqw 0.7cqw rgba(35, 0, 2, 0.35);
-}
-
-.gc-option__bettor-avatar:first-child {
-  margin-left: 0;
 }
 
 .gc-option__coin-landing {

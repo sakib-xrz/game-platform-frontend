@@ -127,17 +127,6 @@ export function Lucky77GameScreen() {
     return groups;
   }, [snapshot?.round?.bettors]);
 
-  const publicTotals = useMemo(() => {
-    const totals = new Map<string, bigint>();
-    for (const bettor of snapshot?.round?.bettors ?? []) {
-      totals.set(
-        bettor.option_id,
-        (totals.get(bettor.option_id) ?? 0n) + BigInt(bettor.total_amount),
-      );
-    }
-    return totals;
-  }, [snapshot?.round?.bettors]);
-
   const backedOptionId = snapshot?.my_bets.find(
     (bet) => bet.round_id === snapshot.round?.id,
   )?.option.id ?? pendingOptionIds.values().next().value ?? null;
@@ -292,7 +281,6 @@ export function Lucky77GameScreen() {
                 key={option.id}
                 option={option}
                 bettors={bettorsByOption.get(option.id) ?? []}
-                totalAmount={publicTotals.get(option.id) ?? 0n}
                 myBet={myBet}
                 selected={backedOptionId === option.id}
                 locked={locked}

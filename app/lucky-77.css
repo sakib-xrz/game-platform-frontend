@@ -543,54 +543,27 @@
 .l77-option__header {
   position: relative;
   z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   width: 100%;
+  min-height: min(5.2cqw, 22px);
   padding: 1.2cqw 1.6cqw 0;
   line-height: 1;
 }
 
-.l77-option__total {
-  color: #f8ddbc;
-  font-size: min(2.4cqw, 10.5px);
-  font-weight: 900;
-  text-shadow: 0 0.3cqw 0.6cqw #2c0046;
-  white-space: nowrap;
-}
-
-.l77-option__players {
-  display: flex;
-  flex: 0 0 auto;
-  max-width: 42%;
-  align-items: center;
-  justify-content: flex-end;
-  overflow: hidden;
+.l77-option__bettors {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
   pointer-events: none;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  color: #d9c8ed;
-  background: transparent;
-  font-size: min(2cqw, 8.8px);
-  font-weight: 900;
-  line-height: 1;
 }
 
-.l77-option__avatars {
-  display: flex;
-  align-items: center;
+.l77-option__bettor-slot {
+  z-index: 1;
 }
 
-.l77-option__avatars .player-avatar {
+.l77-option__bettor-avatar {
   width: min(3.6cqw, 16px);
   height: min(3.6cqw, 16px);
-  margin-left: -0.8cqw;
   border-width: 0.25cqw;
-}
-
-.l77-option__avatars .player-avatar:first-child {
-  margin-left: 0;
 }
 
 .l77-option__bet {
