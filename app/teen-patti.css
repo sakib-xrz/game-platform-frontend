@@ -343,7 +343,7 @@
 /* Player, history and utility rail */
 .tp-status-rail {
   display: grid;
-  min-height: 54px;
+  min-height: 44px;
   grid-template-columns: 76px minmax(0, 1fr) 104px;
   align-items: center;
   gap: 6px;

@@ -602,7 +602,6 @@ export function TeenPattiGameScreen() {
           </div>
 
           <div className="tp-history-panel">
-            <span className="tp-history-panel__label">Recent winners</span>
             <div className="tp-history" aria-label="Recent winning hands">
               {historySlots.map((item, index) => {
                 const option = item?.result?.winning_option;
@@ -882,11 +881,7 @@ export function TeenPattiGameScreen() {
       />
       <TeenPattiHistorySheet
         round={selectedHistoryRound}
-        open={
-          historyRoundId !== null &&
-          !helpOpen &&
-          !resultModalOpen
-        }
+        open={historyRoundId !== null && !helpOpen && !resultModalOpen}
         onClose={() => setHistoryRoundId(null)}
       />
     </main>
