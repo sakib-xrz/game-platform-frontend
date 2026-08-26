@@ -27,32 +27,32 @@ export default async function GameSelectionPage({
             href="/games/greedy"
             playerUserId={playerUserId}
             variant="greedy"
-            image={{ src: "/assets/game-lobby/greedy.webp", alt: "Greedy" }}
-            priority
+            image={{ src: "/assets/game-lobby/greedy.webp" }}
+            preload
           />
           <GameCard
             title="Greedy Classic"
             href="/games/greedy-classic"
             playerUserId={playerUserId}
             variant="greedy-classic"
-            image={{
-              src: "/assets/game-lobby/greedy-classic.webp",
-              alt: "Greedy Classic",
-            }}
+            image={{ src: "/assets/game-lobby/greedy-classic.webp" }}
+            preload
           />
           <GameCard
             title="Teen Patti"
             href="/games/teen-patti"
             playerUserId={playerUserId}
             variant="teen-patti"
-            image={{ src: "/assets/game-lobby/teen-patti.webp", alt: "Teen Patti" }}
+            image={{ src: "/assets/game-lobby/teen-patti.webp" }}
+            preload
           />
           <GameCard
             title="Lucky 77"
             href="/games/lucky-77"
             playerUserId={playerUserId}
             variant="lucky-77"
-            image={{ src: "/assets/game-lobby/lucky-77.webp", alt: "Lucky 77" }}
+            image={{ src: "/assets/game-lobby/lucky-77.webp" }}
+            preload
           />
         </div>
       </section>

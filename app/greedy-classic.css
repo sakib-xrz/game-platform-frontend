@@ -33,14 +33,6 @@
   padding-bottom: 28px;
 }
 
-.game-select-page .game-select__card-skeleton:nth-child(4) {
-  height: 160px;
-}
-
-.game-select-page .game-select__card-skeleton:nth-child(3) {
-  height: 190px;
-}
-
 .game-select-page .game-card {
   border-color: rgba(255, 214, 100, 0.36);
   box-shadow:

@@ -7,7 +7,6 @@ import { usePlayerHref } from "@/hooks/use-player-href";
 
 type GameCardImage = {
   src: string;
-  alt: string;
 };
 
 export type GameCardProps = {
@@ -16,7 +15,7 @@ export type GameCardProps = {
   playerUserId?: string;
   variant: "greedy" | "greedy-classic" | "teen-patti" | "lucky-77";
   image: GameCardImage;
-  priority?: boolean;
+  preload?: boolean;
 };
 
 export function GameCard({
@@ -25,7 +24,7 @@ export function GameCard({
   playerUserId = "",
   variant,
   image,
-  priority = false,
+  preload = false,
 }: GameCardProps) {
   const { showBoot } = useGameBoot();
   const resolvedHref = usePlayerHref(href, playerUserId);
@@ -39,14 +38,14 @@ export function GameCard({
       className="block overflow-hidden rounded-[22px] bg-[#160b24] shadow-lg transition-transform duration-150 active:scale-[0.985] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-900/20"
       onNavigate={() => showBoot(variant satisfies BootGame)}
     >
-      <span className="relative block aspect-[20/7] w-full">
+      <span className="relative block aspect-20/7 w-full">
         <Image
           src={image.src}
-          alt={image.alt}
+          alt=""
           fill
           sizes="(max-width: 480px) calc(100vw - 30px), 450px"
           className="object-cover"
-          priority={priority}
+          preload={preload}
           draggable={false}
         />
       </span>

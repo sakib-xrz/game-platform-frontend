@@ -7711,17 +7711,13 @@ body:has(.game-select-page) {
 }
 
 .game-select__card-skeleton {
-  height: 190px;
+  aspect-ratio: 20 / 7;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 30px;
+  border-radius: 22px;
 }
 
 .game-select-page .game-select__card-skeleton {
   border-color: rgba(80, 48, 16, 0.1);
-}
-
-.game-select__card-skeleton:nth-child(3) {
-  height: 160px;
 }
 
 .game-select__footnote-skeleton {
@@ -8477,10 +8473,6 @@ body:has(.game-select-page) {
 
   .game-card--locked .game-card__orbit {
     transform: scale(0.76);
-  }
-
-  .game-select__card-skeleton:not(:nth-child(3)) {
-    height: 204px;
   }
 
   .game-boot__panel {
