@@ -7,6 +7,7 @@ import {
   House,
   RefreshCw,
   ShieldCheck,
+  Users,
   Volume2,
   VolumeX,
   X,
@@ -350,6 +351,15 @@ export function GreedyGameScreen() {
     }
     return grouped;
   }, [snapshot?.round]);
+
+  const joinedPlayerCount = useMemo(() => {
+    const ids = new Set<string>();
+    for (const bettor of snapshot?.round?.bettors ?? []) {
+      ids.add(bettor.user_id);
+    }
+    return ids.size;
+  }, [snapshot?.round?.bettors]);
+
   const canBet =
     snapshot?.game.status === "active" &&
     snapshot?.round?.status === "betting_open" &&
@@ -469,6 +479,14 @@ export function GreedyGameScreen() {
           >
             {soundEnabled ? <Volume2 /> : <VolumeX />}
           </button>
+          <span
+            className="machine-control machine-control--players"
+            aria-label={`${joinedPlayerCount} players in this round`}
+            title="Players who joined this round"
+          >
+            <Users aria-hidden="true" />
+            <strong className="machine-players-count">{joinedPlayerCount}</strong>
+          </span>
         </nav>
 
         <div className="machine-round-label">

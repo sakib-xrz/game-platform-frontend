@@ -198,6 +198,32 @@ a:focus-visible {
     0 0.15cqw 0 #a87715;
 }
 
+.machine-control--players {
+  cursor: default;
+  pointer-events: none;
+}
+
+.machine-players-count {
+  position: absolute;
+  top: -1.1cqw;
+  right: -1.1cqw;
+  z-index: 1;
+  display: grid;
+  min-width: 4.4cqw;
+  height: 4.4cqw;
+  place-items: center;
+  padding: 0 0.7cqw;
+  border: clamp(1px, 0.35cqw, 1.5px) solid #fff6c8;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #ff6b4a, #d93a2a);
+  box-shadow: 0 0.4cqw 0.8cqw rgba(120, 28, 12, 0.28);
+  font-size: clamp(8px, 2.3cqw, 11px);
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
 .machine-control:focus-visible,
 .machine-chip:focus-visible,
 .dashboard-refresh:focus-visible,
@@ -514,6 +540,33 @@ a:focus-visible {
   width: 58%;
   height: 58%;
   stroke-width: 2.4;
+}
+
+.player-avatar__coin {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  border: 0.09em solid #bd7f0c;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle at 35% 28%,
+    #fff6a4 0 16%,
+    #ffd53c 21% 59%,
+    #eda81d 76% 100%
+  );
+  box-shadow:
+    inset 0 0 0 0.08em rgba(255, 255, 255, 0.48),
+    0 0.08em 0.1em rgba(96, 57, 0, 0.22);
+}
+
+.player-avatar__coin-mark {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.55em;
+  font-weight: 700;
+  line-height: 1;
+  color: #7a4a05;
+  text-shadow: 0 0.04em 0 rgba(255, 246, 180, 0.7);
 }
 
 .option-node__payout-half {
