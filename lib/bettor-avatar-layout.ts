@@ -64,10 +64,10 @@ export const LUCKY77_AVATAR_BOUNDS = {
   maxTop: 60,
 } as const;
 
-/** Teen Patti: left/right scatter inside the cabinet mid-top band. */
+/** Teen Patti: coins sit in the strip under "Tap to bet". */
 export const TEEN_PATTI_AVATAR_BOUNDS = {
-  minLeft: 12,
-  maxLeft: 88,
-  minTop: 40,
-  maxTop: 60,
+  minLeft: 8,
+  maxLeft: 92,
+  minTop: 8,
+  maxTop: 72,
 } as const;

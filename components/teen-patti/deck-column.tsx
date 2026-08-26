@@ -187,6 +187,16 @@ export function DeckColumn({
                           ? "Next round"
                           : "Tap to bet"}
           </span>
+
+          <BettorAvatarScatter
+            optionId={deck.id}
+            bettors={bettors}
+            bounds={TEEN_PATTI_AVATAR_BOUNDS}
+            layout="row"
+            containerClassName="tp-deck-bettors"
+            avatarClassName="tp-deck-bettor-avatar"
+            slotClassName="tp-deck-bettor-slot"
+          />
         </span>
 
         <span
@@ -200,15 +210,6 @@ export function DeckColumn({
           <b>{formatInteger(stake)}</b>
         </span>
       </button>
-
-      <BettorAvatarScatter
-        optionId={deck.id}
-        bettors={bettors}
-        bounds={TEEN_PATTI_AVATAR_BOUNDS}
-        containerClassName="tp-deck-bettors"
-        avatarClassName="tp-deck-bettor-avatar"
-        slotClassName="tp-deck-bettor-slot"
-      />
     </div>
   );
 }
