@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft, Volume2, VolumeX, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PlayerAvatar } from "@/components/greedy/player-avatar";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
@@ -11,14 +11,16 @@ import { Lucky77OptionCard } from "@/components/lucky-77/lucky-77-option-card";
 import { Lucky77ResultModal } from "@/components/lucky-77/lucky-77-result-modal";
 import { Lucky77Wheel } from "@/components/lucky-77/lucky-77-wheel";
 import { useCountdown } from "@/hooks/use-countdown";
+import { useGameSound } from "@/hooks/use-game-sound";
 import { useLucky77Game } from "@/hooks/use-lucky-77-game";
-import { useLucky77Sound } from "@/hooks/use-lucky-77-sound";
 import { Lucky77Symbol, lucky77DisplayName } from "@/lib/lucky-77-art";
 import { usePlayerHref } from "@/hooks/use-player-href";
 import type { PublicBetAggregate, PublicOption } from "@/types/greedy";
 
 const OPTION_ORDER = ["APPLE", "SEVENTY_SEVEN", "WATERMELON"];
 const LAST_BET_KEY = "lucky-77:last-bet";
+const LIVE_RESULT_SOUND_MAX_AGE_MS = 2_000;
+const SPIN_TICK_MS = 69;
 
 type LastBet = { optionCode: string; amount: string };
 
@@ -43,7 +45,8 @@ export function Lucky77GameScreen() {
   } = useLucky77Game();
   const { bootGame, hideBoot } = useGameBoot();
   const homeHref = usePlayerHref("/") ?? "/";
-  const { soundEnabled, toggleSound, playSound } = useLucky77Sound();
+  const { soundEnabled, toggleSound, playSound, startLoop, stopLoop } =
+    useGameSound();
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
   const [lastBet, setLastBet] = useState<LastBet | null>(null);
@@ -69,7 +72,9 @@ export function Lucky77GameScreen() {
   useEffect(() => {
     const status = snapshot?.round?.status ?? null;
     if (status === "drawing" && previousStatusRef.current !== "drawing") {
-      playSound("spin");
+      startLoop("tick", SPIN_TICK_MS);
+    } else if (status !== "drawing" && previousStatusRef.current === "drawing") {
+      stopLoop();
     } else if (
       status === "betting_locked" &&
       previousStatusRef.current === "betting_open"
@@ -77,15 +82,36 @@ export function Lucky77GameScreen() {
       playSound("lock");
     }
     previousStatusRef.current = status;
-  }, [playSound, snapshot?.round?.status]);
+  }, [playSound, snapshot?.round?.status, startLoop, stopLoop]);
+
+  useEffect(() => () => stopLoop(), [stopLoop]);
 
   useEffect(() => {
-    const resultRoundId = snapshot?.round?.result?.round_id;
-    if (resultRoundId && soundedResultRoundRef.current !== resultRoundId) {
-      soundedResultRoundRef.current = resultRoundId;
-      playSound("win");
+    const result = snapshot?.round?.result;
+    const resultRoundId = result?.round_id;
+    if (!resultRoundId || soundedResultRoundRef.current === resultRoundId) {
+      return;
     }
-  }, [playSound, snapshot?.round?.result?.round_id]);
+    soundedResultRoundRef.current = resultRoundId;
+    const revealedAtMs = result.revealed_at
+      ? new Date(result.revealed_at).getTime()
+      : Number.NaN;
+    const resultAgeMs = Number.isFinite(revealedAtMs)
+      ? Math.max(0, Date.now() + serverOffsetMs - revealedAtMs)
+      : 0;
+    if (resultAgeMs > LIVE_RESULT_SOUND_MAX_AGE_MS) return;
+    const winningOptionId = result.winning_option.id;
+    const playerWon =
+      (optionBetTotals.get(winningOptionId) ?? 0n) > 0n ||
+      (pendingOptionAmounts.get(winningOptionId) ?? 0n) > 0n;
+    playSound(playerWon ? "win" : "lose");
+  }, [
+    optionBetTotals,
+    pendingOptionAmounts,
+    playSound,
+    serverOffsetMs,
+    snapshot?.round?.result,
+  ]);
 
   const options = useMemo(
     () =>
@@ -199,7 +225,7 @@ export function Lucky77GameScreen() {
       lucky77DisplayName(option.code, option.name),
     );
     if (!accepted) return false;
-    playSound("chip");
+    playSound("bet");
     const next = { optionCode: option.code, amount };
     setLastBet(next);
     try {
@@ -209,6 +235,14 @@ export function Lucky77GameScreen() {
     }
     return true;
   }
+
+  const handleChipSelect = useCallback(
+    (amount: string) => {
+      setSelectedChip(amount);
+      playSound("chip");
+    },
+    [playSound],
+  );
 
   function repeatBet() {
     const target = backedOptionId
@@ -391,7 +425,7 @@ export function Lucky77GameScreen() {
           !repeatTarget ||
           !(lastBet?.amount || effectiveSelectedChip)
         }
-        onChange={setSelectedChip}
+        onChange={handleChipSelect}
         onRepeat={repeatBet}
       />
 

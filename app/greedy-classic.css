@@ -468,7 +468,7 @@
 
 .gc-arena__spoke {
   fill: none;
-  stroke: rgba(198, 43, 37, 0.76);
+  stroke: rgba(255, 162, 0, 0.76);
   stroke-linecap: round;
   stroke-width: 16;
 }

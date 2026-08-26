@@ -32,7 +32,7 @@ import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
 import { PlayerAvatar } from "@/components/greedy/player-avatar";
 import { usePlayerHref } from "@/hooks/use-player-href";
-import { useTeenPattiSound } from "@/hooks/use-teen-patti-sound";
+import { useGameSound } from "@/hooks/use-game-sound";
 import type { PublicDeck } from "@/types/teen-patti";
 
 const CHIP_FLY_COLORS = [
@@ -121,7 +121,8 @@ export function TeenPattiGameScreen() {
   } = useTeenPattiGame();
   const { bootGame, hideBoot } = useGameBoot();
   const homeHref = usePlayerHref("/") ?? "/";
-  const { soundEnabled, toggleSound, playSound } = useTeenPattiSound();
+  const { soundEnabled, toggleSound, playSound } = useGameSound();
+  const previousStatusRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (snapshot || fatalError) hideBoot();
@@ -259,6 +260,17 @@ export function TeenPattiGameScreen() {
   }, [serverOffsetMs]);
 
   useEffect(() => {
+    const status = round?.status ?? null;
+    if (
+      status === "betting_locked" &&
+      previousStatusRef.current === "betting_open"
+    ) {
+      playSound("lock");
+    }
+    previousStatusRef.current = status;
+  }, [playSound, round?.status]);
+
+  useEffect(() => {
     if (!round?.id || round.status !== "betting_open" || hasResult) {
       const clearFrame = window.requestAnimationFrame(() =>
         setOpeningRoundId(null),
@@ -310,7 +322,7 @@ export function TeenPattiGameScreen() {
         window.setTimeout(() => {
           setWinnerReadyResultKey(resultKey);
           setPayoutReadyResultKey(resultKey);
-          playSound("winner");
+          playSound("win");
         }, WINNER_REVEAL_MS),
       );
       timers.push(
