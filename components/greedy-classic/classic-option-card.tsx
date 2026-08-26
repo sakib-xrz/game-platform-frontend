@@ -1,21 +1,20 @@
 "use client";
 
 import clsx from "clsx";
-import { PlayerAvatar } from "@/components/greedy/player-avatar";
+import { BettorAvatarScatter } from "@/components/greedy/bettor-avatar-scatter";
 import {
   ClassicOptionArtwork,
   getClassicOptionDisplayName,
 } from "@/lib/greedy-classic-art";
-import {
-  formatCompactAmount,
-  formatInteger,
-  formatMultiplier,
-} from "@/lib/format";
+import { CLASSIC_AVATAR_BOUNDS } from "@/lib/bettor-avatar-layout";
+import { formatInteger, formatMultiplier } from "@/lib/format";
 import type { PublicBetAggregate, PublicOption } from "@/types/greedy";
 
 function multiplierFor(option: PublicOption): string {
-  return option.payout_multiplier
-    || formatMultiplier(option.payout_numerator, option.payout_denominator);
+  return (
+    option.payout_multiplier ||
+    formatMultiplier(option.payout_numerator, option.payout_denominator)
+  );
 }
 
 export function ClassicOptionCard({
@@ -30,7 +29,6 @@ export function ClassicOptionCard({
   bettors,
   landingIds,
   onPress,
-  onViewBettors,
 }: {
   option: PublicOption;
   left: number;
@@ -43,7 +41,6 @@ export function ClassicOptionCard({
   bettors: PublicBetAggregate[];
   landingIds: string[];
   onPress: () => void;
-  onViewBettors: () => void;
 }) {
   const hasBet = BigInt(myBet || "0") > 0n;
   const multiplier = multiplierFor(option);
@@ -52,8 +49,6 @@ export function ClassicOptionCard({
     option.name,
     option.image_url,
   );
-  const visibleBettors = bettors.slice(0, 1);
-  const hiddenBettors = Math.max(0, bettors.length - visibleBettors.length);
   const details = [
     hasBet ? `your bet is ${formatInteger(myBet)} coins` : null,
     winner ? "winning option" : null,
@@ -63,7 +58,9 @@ export function ClassicOptionCard({
     bettors.length
       ? `${bettors.length} ${bettors.length === 1 ? "player has" : "players have"} selected this option`
       : null,
-  ].filter(Boolean).join("; ");
+  ]
+    .filter(Boolean)
+    .join("; ");
 
   return (
     <div
@@ -74,11 +71,13 @@ export function ClassicOptionCard({
         drawingHighlighted && "gc-option-wrap--drawing",
         busy && "gc-option-wrap--busy",
       )}
-      style={{
-        "--gc-option-left": `${left}%`,
-        "--gc-option-top": `${top}%`,
-        zIndex: drawingHighlighted ? 30 : winner ? 29 : hasBet ? 20 : 10,
-      } as React.CSSProperties}
+      style={
+        {
+          "--gc-option-left": `${left}%`,
+          "--gc-option-top": `${top}%`,
+          zIndex: drawingHighlighted ? 30 : winner ? 29 : hasBet ? 20 : 10,
+        } as React.CSSProperties
+      }
     >
       <button
         type="button"
@@ -88,7 +87,9 @@ export function ClassicOptionCard({
         aria-label={`Bet on ${displayName}, win ${multiplier}${details ? `; ${details}` : ""}`}
       >
         <span className="gc-option__shine" aria-hidden="true" />
-        {winner ? <span className="gc-option__winner-badge">Winner</span> : null}
+        {winner ? (
+          <span className="gc-option__winner-badge">Winner</span>
+        ) : null}
 
         {landingIds.map((landingId, index) => (
           <span
@@ -118,24 +119,14 @@ export function ClassicOptionCard({
         ) : null}
       </button>
 
-      {bettors.length > 0 ? (
-        <button
-          type="button"
-          className="gc-option__bettors"
-          onClick={onViewBettors}
-          aria-label={`View all ${bettors.length} ${displayName} ${bettors.length === 1 ? "bettor" : "bettors"}`}
-        >
-          {visibleBettors.map((bettor) => (
-            <span className="gc-option__bettor" key={bettor.user_id}>
-              <PlayerAvatar player={bettor} />
-              <b>{formatCompactAmount(bettor.total_amount)}</b>
-            </span>
-          ))}
-          {hiddenBettors > 0 ? (
-            <span className="gc-option__bettor-more">+{hiddenBettors}</span>
-          ) : null}
-        </button>
-      ) : null}
+      <BettorAvatarScatter
+        optionId={option.id}
+        bettors={bettors}
+        bounds={CLASSIC_AVATAR_BOUNDS}
+        containerClassName="gc-option__bettors"
+        avatarClassName="gc-option__bettor-avatar"
+        slotClassName="gc-option__bettor-slot"
+      />
     </div>
   );
 }

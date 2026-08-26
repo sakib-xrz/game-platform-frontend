@@ -1,23 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  CircleHelp,
   Gift,
-  History,
   House,
   RefreshCw,
   ShieldCheck,
+  Volume2,
   VolumeX,
   X,
 } from "lucide-react";
 import { useCountdown } from "@/hooks/use-countdown";
+import { useGameSound } from "@/hooks/use-game-sound";
 import { useGreedyGame } from "@/hooks/use-greedy-game";
 import { formatInteger } from "@/lib/format";
 import { getOptionDisplayName, OptionArtwork } from "@/lib/option-art";
 import { BetOptionNode } from "@/components/greedy/bet-option-node";
-import { BettorListSheet } from "@/components/greedy/bettor-list-sheet";
 import { CenterStage } from "@/components/greedy/center-stage";
 import { ChipTray } from "@/components/greedy/chip-tray";
 import { RecentResults } from "@/components/greedy/recent-results";
@@ -26,19 +25,21 @@ import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
 import { usePlayerHref } from "@/hooks/use-player-href";
-import type { PublicBetAggregate } from "@/types/greedy";
+import type { PublicBetAggregate, PublicOption } from "@/types/greedy";
+
+const LIVE_RESULT_SOUND_MAX_AGE_MS = 2_000;
 
 // A 129px orbit keeps every node circular and evenly spaced while reserving
 // a 9px visual safety gap below the toolbar and round banner at 414px.
 const NODE_POSITIONS = [
-  { left: 50, top: 18.392857, markerPlacement: "n" },
-  { left: 72.033037, top: 25.139862, markerPlacement: "ne" },
-  { left: 81.15942, top: 41.428571, markerPlacement: "e" },
-  { left: 72.033037, top: 57.717281, markerPlacement: "se" },
-  { left: 50, top: 64.464286, markerPlacement: "s" },
-  { left: 27.966963, top: 57.717281, markerPlacement: "sw" },
-  { left: 18.84058, top: 41.428571, markerPlacement: "w" },
-  { left: 27.966963, top: 25.139862, markerPlacement: "nw" },
+  { left: 50, top: 18.392857 },
+  { left: 72.033037, top: 25.139862 },
+  { left: 81.15942, top: 41.428571 },
+  { left: 72.033037, top: 57.717281 },
+  { left: 50, top: 64.464286 },
+  { left: 27.966963, top: 57.717281 },
+  { left: 18.84058, top: 41.428571 },
+  { left: 27.966963, top: 25.139862 },
 ] as const;
 
 const SPOKE_POINTS = [
@@ -189,28 +190,33 @@ export function GreedyGameScreen() {
   } = useGreedyGame();
   const { bootGame, hideBoot } = useGameBoot();
   const homeHref = usePlayerHref("/") ?? "/";
+  const { soundEnabled, toggleSound, playSound } = useGameSound();
+  const previousStatusRef = useRef<string | null>(null);
+  const soundedResultRoundRef = useRef<string | null>(null);
+  const previousDrawingFocusRef = useRef(-1);
 
   useEffect(() => {
     if (snapshot || fatalError) hideBoot();
   }, [fatalError, hideBoot, snapshot]);
 
   const chips = useMemo(
-    () => (snapshot?.round?.chip_values ?? snapshot?.active_config?.chip_values ?? [])
-      .filter((chip) => chip.is_enabled !== false),
+    () =>
+      (
+        snapshot?.round?.chip_values ??
+        snapshot?.active_config?.chip_values ??
+        []
+      ).filter((chip) => chip.is_enabled !== false),
     [snapshot?.active_config?.chip_values, snapshot?.round?.chip_values],
   );
   const options = useMemo(
-    () => [...(snapshot?.round?.options ?? snapshot?.active_config?.options ?? [])]
-      .filter((option) => option.is_enabled !== false)
-      .sort((a, b) => a.display_order - b.display_order),
+    () =>
+      [...(snapshot?.round?.options ?? snapshot?.active_config?.options ?? [])]
+        .filter((option) => option.is_enabled !== false)
+        .sort((a, b) => a.display_order - b.display_order),
     [snapshot?.active_config?.options, snapshot?.round?.options],
   );
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
-  const [bettorSheetSelection, setBettorSheetSelection] = useState<{
-    roundId: string;
-    optionId: string;
-  } | null>(null);
   const helpCloseRef = useRef<HTMLButtonElement>(null);
   const disabledChipAmounts = useMemo(() => {
     const disabled = new Set<string>();
@@ -223,10 +229,10 @@ export function GreedyGameScreen() {
     for (const chip of chips) {
       const amount = BigInt(chip.amount);
       if (
-        amount < minBet
-        || amount > maxSingleBet
-        || amount > balance
-        || exposure + amount > maxRoundBet
+        amount < minBet ||
+        amount > maxSingleBet ||
+        amount > balance ||
+        exposure + amount > maxRoundBet
       ) {
         disabled.add(chip.amount);
       }
@@ -235,16 +241,18 @@ export function GreedyGameScreen() {
   }, [chips, pendingBetTotal, roundBetTotal, snapshot]);
 
   const optimisticWalletBalance = snapshot
-    ? (BigInt(snapshot.wallet.balance) > pendingBetTotal
-        ? BigInt(snapshot.wallet.balance) - pendingBetTotal
-        : 0n)
+    ? BigInt(snapshot.wallet.balance) > pendingBetTotal
+      ? BigInt(snapshot.wallet.balance) - pendingBetTotal
+      : 0n
     : 0n;
   const optimisticRoundBetTotal = BigInt(roundBetTotal) + pendingBetTotal;
   const effectiveSelectedChip = chips.some(
-    (chip) => chip.amount === selectedChip && !disabledChipAmounts.has(chip.amount),
+    (chip) =>
+      chip.amount === selectedChip && !disabledChipAmounts.has(chip.amount),
   )
     ? selectedChip
-    : (chips.find((chip) => !disabledChipAmounts.has(chip.amount))?.amount ?? "");
+    : (chips.find((chip) => !disabledChipAmounts.has(chip.amount))?.amount ??
+      "");
 
   const isDrawing = snapshot?.round?.status === "drawing";
   const drawingMs = useCountdown(
@@ -262,6 +270,71 @@ export function GreedyGameScreen() {
       ? Math.abs(Math.floor(drawingMs / 360)) % Math.min(options.length, 8)
       : -1;
   const winnerId = snapshot?.round?.result?.winning_option.id ?? null;
+
+  useEffect(() => {
+    const status = snapshot?.round?.status ?? null;
+    if (
+      status === "betting_locked" &&
+      previousStatusRef.current === "betting_open"
+    ) {
+      playSound("lock");
+    }
+    previousStatusRef.current = status;
+  }, [playSound, snapshot?.round?.status]);
+
+  useEffect(() => {
+    if (
+      drawingFocusIndex >= 0 &&
+      previousDrawingFocusRef.current !== drawingFocusIndex
+    ) {
+      playSound("tick");
+    }
+    previousDrawingFocusRef.current = drawingFocusIndex;
+  }, [drawingFocusIndex, playSound]);
+
+  useEffect(() => {
+    const result = snapshot?.round?.result;
+    const resultRoundId = result?.round_id;
+    if (!resultRoundId || soundedResultRoundRef.current === resultRoundId) {
+      return;
+    }
+    soundedResultRoundRef.current = resultRoundId;
+    const revealedAtMs = result.revealed_at
+      ? new Date(result.revealed_at).getTime()
+      : Number.NaN;
+    const resultAgeMs = Number.isFinite(revealedAtMs)
+      ? Math.max(0, Date.now() + serverOffsetMs - revealedAtMs)
+      : 0;
+    if (resultAgeMs > LIVE_RESULT_SOUND_MAX_AGE_MS) return;
+    const winningOptionId = result.winning_option.id;
+    const playerWon =
+      (optionBetTotals.get(winningOptionId) ?? 0n) > 0n ||
+      (pendingOptionAmounts.get(winningOptionId) ?? 0n) > 0n;
+    playSound(playerWon ? "win" : "lose");
+  }, [
+    optionBetTotals,
+    pendingOptionAmounts,
+    playSound,
+    serverOffsetMs,
+    snapshot?.round?.result,
+  ]);
+
+  const handleChipSelect = useCallback(
+    (amount: string) => {
+      setSelectedChip(amount);
+      playSound("chip");
+    },
+    [playSound],
+  );
+
+  const handlePlaceBet = useCallback(
+    async (option: PublicOption, amount: string) => {
+      const accepted = await placeBet(option, amount);
+      if (accepted) playSound("bet");
+    },
+    [placeBet, playSound],
+  );
+
   const bettorsByOption = useMemo(() => {
     const grouped = new Map<string, PublicBetAggregate[]>();
     for (const bettor of snapshot?.round?.bettors ?? []) {
@@ -270,9 +343,10 @@ export function GreedyGameScreen() {
       grouped.set(bettor.option_id, bettors);
     }
     for (const bettors of grouped.values()) {
-      bettors.sort((a, b) => (
-        new Date(b.last_bet_at).getTime() - new Date(a.last_bet_at).getTime()
-      ));
+      bettors.sort(
+        (a, b) =>
+          new Date(b.last_bet_at).getTime() - new Date(a.last_bet_at).getTime(),
+      );
     }
     return grouped;
   }, [snapshot?.round]);
@@ -286,15 +360,6 @@ export function GreedyGameScreen() {
     const roundNumber = snapshot?.round?.round_number;
     return roundNumber ? `Today’s ${roundNumber} Round` : "Today’s Round";
   }, [snapshot?.round?.round_number]);
-
-  const bettorSheetOption = (
-    bettorSheetSelection?.roundId === snapshot?.round?.id
-  )
-    ? options.find((option) => option.id === bettorSheetSelection?.optionId) ?? null
-    : null;
-  const bettorSheetBettors = bettorSheetOption
-    ? bettorsByOption.get(bettorSheetOption.id) ?? []
-    : [];
 
   useEffect(() => {
     if (!helpOpen) return;
@@ -397,31 +462,12 @@ export function GreedyGameScreen() {
           <button
             type="button"
             className="machine-control"
-            aria-label="Sound is unavailable"
-            title="Sound is unavailable in this build"
-            disabled
+            aria-label={soundEnabled ? "Mute sound" : "Enable sound"}
+            title={soundEnabled ? "Mute game sounds" : "Enable game sounds"}
+            aria-pressed={soundEnabled}
+            onClick={toggleSound}
           >
-            <VolumeX />
-          </button>
-          <button
-            type="button"
-            className="machine-control"
-            aria-label="How to play"
-            onClick={() => setHelpOpen(true)}
-          >
-            <CircleHelp />
-          </button>
-          <button
-            type="button"
-            className="machine-control"
-            aria-label="Jump to recent results"
-            onClick={() =>
-              document
-                .getElementById("greedy-history")
-                ?.scrollIntoView({ behavior: "smooth" })
-            }
-          >
-            <History />
+            {soundEnabled ? <Volume2 /> : <VolumeX />}
           </button>
         </nav>
 
@@ -475,10 +521,9 @@ export function GreedyGameScreen() {
               option={option}
               left={position.left}
               top={position.top}
-              bettorPlacement={position.markerPlacement}
               myBet={(
-                (optionBetTotals.get(option.id) ?? 0n)
-                + (pendingOptionAmounts.get(option.id) ?? 0n)
+                (optionBetTotals.get(option.id) ?? 0n) +
+                (pendingOptionAmounts.get(option.id) ?? 0n)
               ).toString()}
               winner={winnerId === option.id}
               drawingHighlighted={drawingFocusIndex === index}
@@ -488,14 +533,9 @@ export function GreedyGameScreen() {
               landingIds={betLandings
                 .filter((landing) => landing.optionId === option.id)
                 .map((landing) => landing.id)}
-              onPress={() => void placeBet(option, effectiveSelectedChip)}
-              onViewBettors={() => {
-                if (!snapshot.round) return;
-                setBettorSheetSelection({
-                  roundId: snapshot.round.id,
-                  optionId: option.id,
-                });
-              }}
+              onPress={() =>
+                void handlePlaceBet(option, effectiveSelectedChip)
+              }
             />
           );
         })}
@@ -505,7 +545,7 @@ export function GreedyGameScreen() {
         <ChipTray
           chips={chips}
           selected={effectiveSelectedChip}
-          onChange={setSelectedChip}
+          onChange={handleChipSelect}
           disabledAmounts={disabledChipAmounts}
           disabled={
             !snapshot.round ||
@@ -611,8 +651,10 @@ export function GreedyGameScreen() {
             <h2 id="greedy-help-title">How to play</h2>
             <ol>
               <li>Choose a coin value on the blue stand.</li>
-              <li>Tap one or several options before the timer reaches zero. Every tap places another bet immediately.</li>
-              <li>Tap the player markers on an option to see everyone who selected it.</li>
+              <li>
+                Tap one or several options before the timer reaches zero. Every
+                tap places another bet immediately.
+              </li>
               <li>
                 The highlighted draw is visual only; the server publishes the
                 verified winner.
@@ -621,13 +663,6 @@ export function GreedyGameScreen() {
           </div>
         </div>
       )}
-
-      <BettorListSheet
-        option={bettorSheetOption}
-        bettors={bettorSheetBettors}
-        open={Boolean(bettorSheetOption) && !resultModalOpen}
-        onClose={() => setBettorSheetSelection(null)}
-      />
 
       <ResultModal
         snapshot={snapshot}

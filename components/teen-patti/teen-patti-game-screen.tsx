@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  CircleHelp,
   ChevronLeft,
   RefreshCw,
   UsersRound,
@@ -26,7 +25,6 @@ import {
 import { TeenPattiChipTray } from "@/components/teen-patti/teen-patti-chip-tray";
 import { TeenPattiPhaseRing } from "@/components/teen-patti/teen-patti-phase-ring";
 import { TeenPattiResultModal } from "@/components/teen-patti/teen-patti-result-modal";
-import { TeenPattiBettorListSheet } from "@/components/teen-patti/teen-patti-bettor-list-sheet";
 import { TeenPattiHistorySheet } from "@/components/teen-patti/teen-patti-history-sheet";
 import { TeenPattiPayoutLayer } from "@/components/teen-patti/teen-patti-payout-layer";
 import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
@@ -34,7 +32,7 @@ import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
 import { PlayerAvatar } from "@/components/greedy/player-avatar";
 import { usePlayerHref } from "@/hooks/use-player-href";
-import { useTeenPattiSound } from "@/hooks/use-teen-patti-sound";
+import { useGameSound } from "@/hooks/use-game-sound";
 import type { PublicDeck } from "@/types/teen-patti";
 
 const CHIP_FLY_COLORS = [
@@ -123,7 +121,8 @@ export function TeenPattiGameScreen() {
   } = useTeenPattiGame();
   const { bootGame, hideBoot } = useGameBoot();
   const homeHref = usePlayerHref("/") ?? "/";
-  const { soundEnabled, toggleSound, playSound } = useTeenPattiSound();
+  const { soundEnabled, toggleSound, playSound } = useGameSound();
+  const previousStatusRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (snapshot || fatalError) hideBoot();
@@ -152,9 +151,6 @@ export function TeenPattiGameScreen() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [flyChips, setFlyChips] = useState<FlyChip[]>([]);
   const [repeatBet, setRepeatBet] = useState<RepeatBet | null>(null);
-  const [bettorSheetDeckId, setBettorSheetDeckId] = useState<
-    string | "table" | null
-  >(null);
   const [historyRoundId, setHistoryRoundId] = useState<string | null>(null);
   const [openingRoundId, setOpeningRoundId] = useState<string | null>(null);
   const [winnerReadyResultKey, setWinnerReadyResultKey] = useState<
@@ -242,18 +238,6 @@ export function TeenPattiGameScreen() {
     ? `${round.id}:${round.result.revealed_at ?? "revealed"}`
     : null;
   const resultRevealedAt = round?.result?.revealed_at ?? null;
-  const allRoundBettors = useMemo(
-    () =>
-      (round?.bettors ?? []).filter((bettor) => bettor.round_id === round?.id),
-    [round?.bettors, round?.id],
-  );
-  const bettorSheetDeck =
-    bettorSheetDeckId && bettorSheetDeckId !== "table"
-      ? (decks.find((deck) => deck.id === bettorSheetDeckId) ?? null)
-      : null;
-  const bettorSheetBettors = bettorSheetDeck
-    ? (bettorsByOption.get(bettorSheetDeck.id) ?? [])
-    : allRoundBettors;
   const payoutSources = useMemo(
     () =>
       decks.slice(0, 3).map((deck) => {
@@ -274,6 +258,17 @@ export function TeenPattiGameScreen() {
   useEffect(() => {
     serverOffsetRef.current = serverOffsetMs;
   }, [serverOffsetMs]);
+
+  useEffect(() => {
+    const status = round?.status ?? null;
+    if (
+      status === "betting_locked" &&
+      previousStatusRef.current === "betting_open"
+    ) {
+      playSound("lock");
+    }
+    previousStatusRef.current = status;
+  }, [playSound, round?.status]);
 
   useEffect(() => {
     if (!round?.id || round.status !== "betting_open" || hasResult) {
@@ -327,7 +322,7 @@ export function TeenPattiGameScreen() {
         window.setTimeout(() => {
           setWinnerReadyResultKey(resultKey);
           setPayoutReadyResultKey(resultKey);
-          playSound("winner");
+          playSound("win");
         }, WINNER_REVEAL_MS),
       );
       timers.push(
@@ -341,17 +336,9 @@ export function TeenPattiGameScreen() {
   }, [playSound, resultKey, resultRevealedAt]);
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() =>
-      setBettorSheetDeckId(null),
-    );
-    return () => window.cancelAnimationFrame(frame);
-  }, [round?.id]);
-
-  useEffect(() => {
     if (!resultModalOpen) return;
     const frame = window.requestAnimationFrame(() => {
       setHelpOpen(false);
-      setBettorSheetDeckId(null);
       setHistoryRoundId(null);
     });
     return () => window.cancelAnimationFrame(frame);
@@ -626,7 +613,6 @@ export function TeenPattiGameScreen() {
           </div>
 
           <div className="tp-history-panel">
-            <span className="tp-history-panel__label">Recent winners</span>
             <div className="tp-history" aria-label="Recent winning hands">
               {historySlots.map((item, index) => {
                 const option = item?.result?.winning_option;
@@ -655,7 +641,6 @@ export function TeenPattiGameScreen() {
                     aria-label={`Round ${item.round_number}: ${option?.name ?? "winning hand"}, total bet ${formatInteger(item.total_bet_amount)}. Open details.`}
                     onClick={() => {
                       setHelpOpen(false);
-                      setBettorSheetDeckId(null);
                       setHistoryRoundId(item.id);
                     }}
                   >
@@ -677,18 +662,16 @@ export function TeenPattiGameScreen() {
           </div>
 
           <nav className="tp-controls" aria-label="Game controls">
-            <button
-              type="button"
-              className="tp-control"
-              aria-label={`${playerCount} ${playerCount === 1 ? "player" : "players"} betting in this round. View all.`}
-              title="View live players"
-              onClick={() => setBettorSheetDeckId("table")}
+            <span
+              className="tp-control tp-control--static"
+              aria-label={`${playerCount} ${playerCount === 1 ? "player" : "players"} betting in this round`}
+              title={`${playerCount} live ${playerCount === 1 ? "player" : "players"}`}
             >
               <UsersRound />
               <span className="tp-control__count" aria-hidden="true">
                 {playerCount}
               </span>
-            </button>
+            </span>
             <button
               type="button"
               className="tp-control"
@@ -698,14 +681,6 @@ export function TeenPattiGameScreen() {
               onClick={toggleSound}
             >
               {soundEnabled ? <Volume2 /> : <VolumeX />}
-            </button>
-            <button
-              type="button"
-              className="tp-control"
-              aria-label="How to play"
-              onClick={() => setHelpOpen(true)}
-            >
-              <CircleHelp />
             </button>
           </nav>
         </div>
@@ -758,7 +733,6 @@ export function TeenPattiGameScreen() {
                   bettors={bettors}
                   phase={deckPhase}
                   onPress={() => handleDeckPress(deck)}
-                  onViewBettors={() => setBettorSheetDeckId(deck.id)}
                 />
               );
             })}
@@ -898,10 +872,6 @@ export function TeenPattiGameScreen() {
                 Ranking (high → low): Trail · Pure sequence · Sequence · Color ·
                 Pair · High card. A-2-3 is the top sequence.
               </li>
-              <li>
-                Tap the player markers under a hand to see its complete bettor
-                list.
-              </li>
             </ol>
           </div>
         </div>
@@ -912,25 +882,9 @@ export function TeenPattiGameScreen() {
         open={resultModalOpen}
         onClose={() => setResultModalOpen(false)}
       />
-      <TeenPattiBettorListSheet
-        deck={bettorSheetDeck}
-        bettors={bettorSheetBettors}
-        open={
-          bettorSheetDeckId !== null &&
-          !helpOpen &&
-          !resultModalOpen &&
-          historyRoundId === null
-        }
-        onClose={() => setBettorSheetDeckId(null)}
-      />
       <TeenPattiHistorySheet
         round={selectedHistoryRound}
-        open={
-          historyRoundId !== null &&
-          !helpOpen &&
-          !resultModalOpen &&
-          bettorSheetDeckId === null
-        }
+        open={historyRoundId !== null && !helpOpen && !resultModalOpen}
         onClose={() => setHistoryRoundId(null)}
       />
     </main>

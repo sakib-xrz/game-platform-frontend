@@ -1,9 +1,10 @@
 "use client";
 
 import clsx from "clsx";
-import { PlayerAvatar } from "@/components/greedy/player-avatar";
+import { BettorAvatarScatter } from "@/components/greedy/bettor-avatar-scatter";
 import { getOptionDisplayName, OptionArtwork } from "@/lib/option-art";
-import { formatCompactAmount, formatInteger, formatMultiplier } from "@/lib/format";
+import { GREEDY_AVATAR_BOUNDS } from "@/lib/bettor-avatar-layout";
+import { formatInteger, formatMultiplier } from "@/lib/format";
 import type { PublicBetAggregate, PublicOption } from "@/types/greedy";
 
 function optionMultiplier(option: PublicOption): string {
@@ -15,7 +16,6 @@ export function BetOptionNode({
   option,
   left,
   top,
-  bettorPlacement,
   myBet,
   winner,
   drawingHighlighted,
@@ -24,12 +24,10 @@ export function BetOptionNode({
   bettors,
   landingIds,
   onPress,
-  onViewBettors,
 }: {
   option: PublicOption;
   left: number;
   top: number;
-  bettorPlacement: "n" | "ne" | "e" | "se" | "s" | "sw" | "w" | "nw";
   myBet: string;
   winner: boolean;
   drawingHighlighted?: boolean;
@@ -38,7 +36,6 @@ export function BetOptionNode({
   bettors: PublicBetAggregate[];
   landingIds: string[];
   onPress: () => void;
-  onViewBettors: () => void;
 }) {
   const hasBet = BigInt(myBet || "0") > 0n;
   const multiplier = optionMultiplier(option);
@@ -58,9 +55,6 @@ export function BetOptionNode({
   ]
     .filter(Boolean)
     .join("; ");
-
-  const visibleBettors = bettors.slice(0, 2);
-  const hiddenBettors = Math.max(0, bettors.length - visibleBettors.length);
 
   return (
     <div
@@ -118,24 +112,14 @@ export function BetOptionNode({
         </span>
       </button>
 
-      {bettors.length > 0 && (
-        <button
-          type="button"
-          className={`option-node__bettors option-node__bettors--${bettorPlacement}`}
-          onClick={onViewBettors}
-          aria-label={`View all ${bettors.length} ${displayName} ${bettors.length === 1 ? "bettor" : "bettors"}`}
-        >
-          {visibleBettors.map((bettor) => (
-            <span className="option-node__bettor" key={bettor.user_id}>
-              <PlayerAvatar player={bettor} />
-              <b>{formatCompactAmount(bettor.total_amount)}</b>
-            </span>
-          ))}
-          {hiddenBettors > 0 && (
-            <span className="option-node__bettor-more">+{hiddenBettors}</span>
-          )}
-        </button>
-      )}
+      <BettorAvatarScatter
+        optionId={option.id}
+        bettors={bettors}
+        bounds={GREEDY_AVATAR_BOUNDS}
+        containerClassName="option-node__bettors"
+        avatarClassName="option-node__bettor-avatar"
+        slotClassName="option-node__bettor-slot"
+      />
     </div>
   );
 }

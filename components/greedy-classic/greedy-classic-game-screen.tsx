@@ -1,30 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import {
-  CircleHelp,
-  History,
-  House,
-  RefreshCw,
-  VolumeX,
-  X,
-} from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { House, RefreshCw, Volume2, VolumeX, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
-import { ClassicBettorSheet } from "@/components/greedy-classic/classic-bettor-sheet";
 import { ClassicCenterDial } from "@/components/greedy-classic/classic-center-dial";
 import { ClassicChipTray } from "@/components/greedy-classic/classic-chip-tray";
 import { ClassicHistorySheet } from "@/components/greedy-classic/classic-history-sheet";
 import { ClassicOptionCard } from "@/components/greedy-classic/classic-option-card";
 import { ClassicResultModal } from "@/components/greedy-classic/classic-result-modal";
 import { useCountdown } from "@/hooks/use-countdown";
+import { useGameSound } from "@/hooks/use-game-sound";
 import { useGreedyClassicGame } from "@/hooks/use-greedy-classic-game";
 import { formatCompactAmount, formatInteger } from "@/lib/format";
 import { getClassicOptionDisplayName } from "@/lib/greedy-classic-art";
 import { usePlayerHref } from "@/hooks/use-player-href";
-import type { PublicBetAggregate } from "@/types/greedy";
+import type { PublicBetAggregate, PublicOption } from "@/types/greedy";
+
+const LIVE_RESULT_SOUND_MAX_AGE_MS = 2_000;
 
 const CLASSIC_OPTION_POSITIONS = [
   { left: 50, top: 12 },
@@ -59,16 +54,16 @@ export function GreedyClassicGameScreen() {
   } = useGreedyClassicGame();
   const { bootGame, hideBoot } = useGameBoot();
   const homeHref = usePlayerHref("/") ?? "/";
+  const { soundEnabled, toggleSound, playSound } = useGameSound();
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [bettorSelection, setBettorSelection] = useState<{
-    roundId: string;
-    optionId: string;
-  } | null>(null);
   const helpCloseRef = useRef<HTMLButtonElement>(null);
   const holdHomeRef = useRef<HTMLAnchorElement>(null);
   const holdRetryRef = useRef<HTMLButtonElement>(null);
+  const previousStatusRef = useRef<string | null>(null);
+  const soundedResultRoundRef = useRef<string | null>(null);
+  const previousDrawingFocusRef = useRef(-1);
 
   useEffect(() => {
     if (snapshot || fatalError) hideBoot();
@@ -146,6 +141,78 @@ export function GreedyClassicGameScreen() {
       : -1;
   const winnerId = snapshot?.round?.result?.winning_option.id ?? null;
 
+  useEffect(() => {
+    const status = snapshot?.round?.status ?? null;
+    if (
+      status === "betting_locked" &&
+      previousStatusRef.current === "betting_open"
+    ) {
+      playSound("lock");
+    }
+    previousStatusRef.current = status;
+  }, [playSound, snapshot?.round?.status]);
+
+  useEffect(() => {
+    if (
+      drawingFocusIndex >= 0 &&
+      previousDrawingFocusRef.current !== drawingFocusIndex
+    ) {
+      playSound("tick");
+    }
+    previousDrawingFocusRef.current = drawingFocusIndex;
+  }, [drawingFocusIndex, playSound]);
+
+  useEffect(() => {
+    const result = snapshot?.round?.result;
+    const resultRoundId = result?.round_id;
+    if (!resultRoundId || soundedResultRoundRef.current === resultRoundId) {
+      return;
+    }
+    soundedResultRoundRef.current = resultRoundId;
+    const revealedAtMs = result.revealed_at
+      ? new Date(result.revealed_at).getTime()
+      : Number.NaN;
+    const resultAgeMs = Number.isFinite(revealedAtMs)
+      ? Math.max(0, Date.now() + serverOffsetMs - revealedAtMs)
+      : 0;
+    if (resultAgeMs > LIVE_RESULT_SOUND_MAX_AGE_MS) return;
+    const winningOptionId = result.winning_option.id;
+    const playerWon =
+      (optionBetTotals.get(winningOptionId) ?? 0n) > 0n ||
+      (pendingOptionAmounts.get(winningOptionId) ?? 0n) > 0n;
+    playSound(playerWon ? "win" : "lose");
+  }, [
+    optionBetTotals,
+    pendingOptionAmounts,
+    playSound,
+    serverOffsetMs,
+    snapshot?.round?.result,
+  ]);
+
+  const handleChipSelect = useCallback(
+    (amount: string) => {
+      setSelectedChip(amount);
+      playSound("chip");
+    },
+    [playSound],
+  );
+
+  const handlePlaceBet = useCallback(
+    async (option: PublicOption, amount: string) => {
+      const accepted = await placeBet(
+        option,
+        amount,
+        getClassicOptionDisplayName(
+          option.code,
+          option.name,
+          option.image_url,
+        ),
+      );
+      if (accepted) playSound("bet");
+    },
+    [placeBet, playSound],
+  );
+
   const bettorsByOption = useMemo(() => {
     const grouped = new Map<string, PublicBetAggregate[]>();
     for (const bettor of snapshot?.round?.bettors ?? []) {
@@ -180,15 +247,6 @@ export function GreedyClassicGameScreen() {
   const fullHold = Boolean(operatorHeld && !roundStillFinishing);
   const fullHoldVisible = fullHold && !resultModalOpen;
   const helpVisible = helpOpen && !resultModalOpen && !fullHoldVisible;
-
-  const bettorOption =
-    bettorSelection && bettorSelection.roundId === snapshot?.round?.id
-      ? (options.find((option) => option.id === bettorSelection.optionId) ??
-        null)
-      : null;
-  const selectedBettors = bettorOption
-    ? (bettorsByOption.get(bettorOption.id) ?? [])
-    : [];
 
   useEffect(() => {
     if (!helpVisible) return;
@@ -301,27 +359,16 @@ export function GreedyClassicGameScreen() {
           <button
             type="button"
             className="gc-toolbar__button"
-            aria-label="Sound is unavailable"
-            title="Sound is unavailable in this build"
-            disabled
+            aria-label={soundEnabled ? "Mute sound" : "Enable sound"}
+            title={soundEnabled ? "Mute game sounds" : "Enable game sounds"}
+            aria-pressed={soundEnabled}
+            onClick={toggleSound}
           >
-            <VolumeX aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            className="gc-toolbar__button"
-            aria-label="How to play"
-            onClick={() => setHelpOpen(true)}
-          >
-            <CircleHelp aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            className="gc-toolbar__button"
-            aria-label="Recent results"
-            onClick={() => setHistoryOpen(true)}
-          >
-            <History aria-hidden="true" />
+            {soundEnabled ? (
+              <Volume2 aria-hidden="true" />
+            ) : (
+              <VolumeX aria-hidden="true" />
+            )}
           </button>
         </nav>
 
@@ -393,23 +440,8 @@ export function GreedyClassicGameScreen() {
                 .filter((landing) => landing.optionId === option.id)
                 .map((landing) => landing.id)}
               onPress={() =>
-                void placeBet(
-                  option,
-                  effectiveSelectedChip,
-                  getClassicOptionDisplayName(
-                    option.code,
-                    option.name,
-                    option.image_url,
-                  ),
-                )
+                void handlePlaceBet(option, effectiveSelectedChip)
               }
-              onViewBettors={() => {
-                if (!snapshot.round) return;
-                setBettorSelection({
-                  roundId: snapshot.round.id,
-                  optionId: option.id,
-                });
-              }}
             />
           );
         })}
@@ -465,7 +497,7 @@ export function GreedyClassicGameScreen() {
         <ClassicChipTray
           chips={chips}
           selected={effectiveSelectedChip}
-          onChange={setSelectedChip}
+          onChange={handleChipSelect}
           disabled={
             snapshot.game.status !== "active" ||
             !snapshot.round ||
@@ -559,17 +591,6 @@ export function GreedyClassicGameScreen() {
         history={snapshot.recent_history}
         open={historyOpen && !resultModalOpen && !fullHoldVisible}
         onClose={() => setHistoryOpen(false)}
-      />
-      <ClassicBettorSheet
-        option={bettorOption}
-        bettors={selectedBettors}
-        open={
-          Boolean(bettorOption) &&
-          !resultModalOpen &&
-          !historyOpen &&
-          !fullHoldVisible
-        }
-        onClose={() => setBettorSelection(null)}
       />
       <ClassicResultModal
         snapshot={snapshot}

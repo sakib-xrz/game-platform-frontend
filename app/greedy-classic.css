@@ -33,14 +33,6 @@
   padding-bottom: 28px;
 }
 
-.game-select-page .game-select__card-skeleton:nth-child(4) {
-  height: 160px;
-}
-
-.game-select-page .game-select__card-skeleton:nth-child(3) {
-  height: 190px;
-}
-
 .game-select-page .game-card {
   border-color: rgba(255, 214, 100, 0.36);
   box-shadow:
@@ -346,7 +338,6 @@
 .gc-deck__refresh:focus-visible,
 .gc-chip:focus-visible,
 .gc-option:focus-visible,
-.gc-option__bettors:focus-visible,
 .gc-sheet__close:focus-visible,
 .gc-result__close:focus-visible,
 .gc-hold a:focus-visible,
@@ -477,7 +468,7 @@
 
 .gc-arena__spoke {
   fill: none;
-  stroke: rgba(198, 43, 37, 0.76);
+  stroke: rgba(255, 162, 0, 0.76);
   stroke-linecap: round;
   stroke-width: 16;
 }
@@ -567,7 +558,7 @@
 
 .gc-option__payout {
   position: relative;
-  z-index: 2;
+  z-index: 4;
   max-width: 100%;
   color: #fffdf1;
   font-size: clamp(9px, 2.9cqw, 12px);
@@ -668,73 +659,24 @@
 
 .gc-option__bettors {
   position: absolute;
-  z-index: 8;
-  top: -11px;
-  left: 0;
-  display: flex;
-  width: 100%;
-  max-width: 100%;
-  min-width: 44px;
-  min-height: 44px;
-  align-items: center;
-  justify-content: center;
-  gap: 0.55cqw;
-  padding: 9px 1cqw;
-  transform: none;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: #4f0a0a;
-  overflow: hidden;
+  z-index: 3;
+  top: 4%;
+  right: 8%;
+  bottom: auto;
+  left: 8%;
+  height: 12%;
+  pointer-events: none;
 }
 
-.gc-option__bettors::before {
-  position: absolute;
-  z-index: -1;
-  inset: 11px 0;
-  border: 0.35cqw solid #7c260e;
-  border-radius: inherit;
-  background: linear-gradient(180deg, #f5f9ff, #b6c7df);
-  box-shadow: 0 0.55cqw 1cqw rgba(35, 0, 2, 0.36);
-  content: "";
+.gc-option__bettor-slot {
+  z-index: 1;
 }
 
-.gc-option__bettor {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 0.25cqw;
-}
-
-.gc-option__bettor .player-avatar {
-  width: 3.8cqw;
-  height: 3.8cqw;
+.gc-option__bettor-avatar {
+  width: 3.4cqw;
+  height: 3.4cqw;
   border-width: 0.25cqw;
-  font-size: clamp(5px, 1.5cqw, 7px);
-}
-
-.gc-option__bettor b,
-.gc-option__bettor-more {
-  font-size: clamp(6px, 1.75cqw, 8px);
-  font-weight: 1000;
-  line-height: 1;
-}
-
-.gc-option__bettor b {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.gc-option__bettor-more {
-  display: grid;
-  min-width: 3.9cqw;
-  height: 3.9cqw;
-  place-items: center;
-  border-radius: 50%;
-  background: #741319;
-  color: white;
+  box-shadow: 0 0.35cqw 0.7cqw rgba(35, 0, 2, 0.35);
 }
 
 .gc-option__coin-landing {
@@ -1545,7 +1487,6 @@
   width: 20px;
 }
 
-.gc-bettor-sheet__list,
 .gc-history-sheet__list {
   display: grid;
   max-height: calc(min(78dvh, 640px) - 115px);
@@ -1557,14 +1498,12 @@
   outline: 0;
 }
 
-.gc-bettor-sheet__list:focus-visible,
 .gc-history-sheet__list:focus-visible,
 .gc-history-sheet__empty:focus-visible {
   outline: 2px solid #ffe28a;
   outline-offset: 2px;
 }
 
-.gc-bettor-sheet__list li,
 .gc-history-sheet__list li {
   display: flex;
   min-height: 56px;
@@ -1576,7 +1515,6 @@
   background: rgba(45, 0, 4, 0.32);
 }
 
-.gc-bettor-sheet__avatar,
 .gc-result__avatar {
   width: 38px;
   height: 38px;
@@ -1584,7 +1522,6 @@
   background: linear-gradient(145deg, #bd301f, #671019);
 }
 
-.gc-bettor-sheet__list li > div,
 .gc-history-sheet__list li > span:nth-child(2) {
   display: flex;
   min-width: 0;
@@ -1592,7 +1529,6 @@
   flex-direction: column;
 }
 
-.gc-bettor-sheet__list strong,
 .gc-history-sheet__list strong {
   overflow: hidden;
   font-size: 11px;
@@ -1602,7 +1538,6 @@
   white-space: nowrap;
 }
 
-.gc-bettor-sheet__list span,
 .gc-history-sheet__list small {
   margin-top: 3px;
   color: rgba(255, 247, 222, 0.55);
@@ -1610,14 +1545,12 @@
   font-weight: 700;
 }
 
-.gc-bettor-sheet__list li > b,
 .gc-history-sheet__list li > b {
   color: #ffe07d;
   font-size: 12px;
   font-weight: 1000;
 }
 
-.gc-bettor-sheet__empty,
 .gc-history-sheet__empty {
   display: grid !important;
   min-height: 120px !important;
