@@ -195,14 +195,19 @@ export function GreedyGameScreen() {
   }, [fatalError, hideBoot, snapshot]);
 
   const chips = useMemo(
-    () => (snapshot?.round?.chip_values ?? snapshot?.active_config?.chip_values ?? [])
-      .filter((chip) => chip.is_enabled !== false),
+    () =>
+      (
+        snapshot?.round?.chip_values ??
+        snapshot?.active_config?.chip_values ??
+        []
+      ).filter((chip) => chip.is_enabled !== false),
     [snapshot?.active_config?.chip_values, snapshot?.round?.chip_values],
   );
   const options = useMemo(
-    () => [...(snapshot?.round?.options ?? snapshot?.active_config?.options ?? [])]
-      .filter((option) => option.is_enabled !== false)
-      .sort((a, b) => a.display_order - b.display_order),
+    () =>
+      [...(snapshot?.round?.options ?? snapshot?.active_config?.options ?? [])]
+        .filter((option) => option.is_enabled !== false)
+        .sort((a, b) => a.display_order - b.display_order),
     [snapshot?.active_config?.options, snapshot?.round?.options],
   );
   const [selectedChip, setSelectedChip] = useState("");
@@ -223,10 +228,10 @@ export function GreedyGameScreen() {
     for (const chip of chips) {
       const amount = BigInt(chip.amount);
       if (
-        amount < minBet
-        || amount > maxSingleBet
-        || amount > balance
-        || exposure + amount > maxRoundBet
+        amount < minBet ||
+        amount > maxSingleBet ||
+        amount > balance ||
+        exposure + amount > maxRoundBet
       ) {
         disabled.add(chip.amount);
       }
@@ -235,16 +240,18 @@ export function GreedyGameScreen() {
   }, [chips, pendingBetTotal, roundBetTotal, snapshot]);
 
   const optimisticWalletBalance = snapshot
-    ? (BigInt(snapshot.wallet.balance) > pendingBetTotal
-        ? BigInt(snapshot.wallet.balance) - pendingBetTotal
-        : 0n)
+    ? BigInt(snapshot.wallet.balance) > pendingBetTotal
+      ? BigInt(snapshot.wallet.balance) - pendingBetTotal
+      : 0n
     : 0n;
   const optimisticRoundBetTotal = BigInt(roundBetTotal) + pendingBetTotal;
   const effectiveSelectedChip = chips.some(
-    (chip) => chip.amount === selectedChip && !disabledChipAmounts.has(chip.amount),
+    (chip) =>
+      chip.amount === selectedChip && !disabledChipAmounts.has(chip.amount),
   )
     ? selectedChip
-    : (chips.find((chip) => !disabledChipAmounts.has(chip.amount))?.amount ?? "");
+    : (chips.find((chip) => !disabledChipAmounts.has(chip.amount))?.amount ??
+      "");
 
   const isDrawing = snapshot?.round?.status === "drawing";
   const drawingMs = useCountdown(
@@ -270,9 +277,10 @@ export function GreedyGameScreen() {
       grouped.set(bettor.option_id, bettors);
     }
     for (const bettors of grouped.values()) {
-      bettors.sort((a, b) => (
-        new Date(b.last_bet_at).getTime() - new Date(a.last_bet_at).getTime()
-      ));
+      bettors.sort(
+        (a, b) =>
+          new Date(b.last_bet_at).getTime() - new Date(a.last_bet_at).getTime(),
+      );
     }
     return grouped;
   }, [snapshot?.round]);
@@ -287,13 +295,14 @@ export function GreedyGameScreen() {
     return roundNumber ? `Today’s ${roundNumber} Round` : "Today’s Round";
   }, [snapshot?.round?.round_number]);
 
-  const bettorSheetOption = (
+  const bettorSheetOption =
     bettorSheetSelection?.roundId === snapshot?.round?.id
-  )
-    ? options.find((option) => option.id === bettorSheetSelection?.optionId) ?? null
-    : null;
+      ? (options.find(
+          (option) => option.id === bettorSheetSelection?.optionId,
+        ) ?? null)
+      : null;
   const bettorSheetBettors = bettorSheetOption
-    ? bettorsByOption.get(bettorSheetOption.id) ?? []
+    ? (bettorsByOption.get(bettorSheetOption.id) ?? [])
     : [];
 
   useEffect(() => {
@@ -477,8 +486,8 @@ export function GreedyGameScreen() {
               top={position.top}
               bettorPlacement={position.markerPlacement}
               myBet={(
-                (optionBetTotals.get(option.id) ?? 0n)
-                + (pendingOptionAmounts.get(option.id) ?? 0n)
+                (optionBetTotals.get(option.id) ?? 0n) +
+                (pendingOptionAmounts.get(option.id) ?? 0n)
               ).toString()}
               winner={winnerId === option.id}
               drawingHighlighted={drawingFocusIndex === index}
@@ -611,8 +620,14 @@ export function GreedyGameScreen() {
             <h2 id="greedy-help-title">How to play</h2>
             <ol>
               <li>Choose a coin value on the blue stand.</li>
-              <li>Tap one or several options before the timer reaches zero. Every tap places another bet immediately.</li>
-              <li>Tap the player markers on an option to see everyone who selected it.</li>
+              <li>
+                Tap one or several options before the timer reaches zero. Every
+                tap places another bet immediately.
+              </li>
+              <li>
+                Tap the player markers on an option to see everyone who selected
+                it.
+              </li>
               <li>
                 The highlighted draw is visual only; the server publishes the
                 verified winner.
