@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  CircleHelp,
   ChevronLeft,
   RefreshCw,
   UsersRound,
@@ -670,14 +669,6 @@ export function TeenPattiGameScreen() {
               onClick={toggleSound}
             >
               {soundEnabled ? <Volume2 /> : <VolumeX />}
-            </button>
-            <button
-              type="button"
-              className="tp-control"
-              aria-label="How to play"
-              onClick={() => setHelpOpen(true)}
-            >
-              <CircleHelp />
             </button>
           </nav>
         </div>

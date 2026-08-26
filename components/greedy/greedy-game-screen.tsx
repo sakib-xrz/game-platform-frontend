@@ -2,16 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import {
-  CircleHelp,
-  Gift,
-  History,
-  House,
-  RefreshCw,
-  ShieldCheck,
-  VolumeX,
-  X,
-} from "lucide-react";
+import { Gift, House, RefreshCw, ShieldCheck, VolumeX, X } from "lucide-react";
 import { useCountdown } from "@/hooks/use-countdown";
 import { useGreedyGame } from "@/hooks/use-greedy-game";
 import { formatInteger } from "@/lib/format";
@@ -396,26 +387,6 @@ export function GreedyGameScreen() {
             disabled
           >
             <VolumeX />
-          </button>
-          <button
-            type="button"
-            className="machine-control"
-            aria-label="How to play"
-            onClick={() => setHelpOpen(true)}
-          >
-            <CircleHelp />
-          </button>
-          <button
-            type="button"
-            className="machine-control"
-            aria-label="Jump to recent results"
-            onClick={() =>
-              document
-                .getElementById("greedy-history")
-                ?.scrollIntoView({ behavior: "smooth" })
-            }
-          >
-            <History />
           </button>
         </nav>
 

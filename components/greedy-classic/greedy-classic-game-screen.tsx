@@ -1,14 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  CircleHelp,
-  History,
-  House,
-  RefreshCw,
-  VolumeX,
-  X,
-} from "lucide-react";
+import { House, RefreshCw, VolumeX, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
@@ -292,22 +285,6 @@ export function GreedyClassicGameScreen() {
             disabled
           >
             <VolumeX aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            className="gc-toolbar__button"
-            aria-label="How to play"
-            onClick={() => setHelpOpen(true)}
-          >
-            <CircleHelp aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            className="gc-toolbar__button"
-            aria-label="Recent results"
-            onClick={() => setHistoryOpen(true)}
-          >
-            <History aria-hidden="true" />
           </button>
         </nav>
 
