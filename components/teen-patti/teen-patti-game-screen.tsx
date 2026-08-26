@@ -662,16 +662,6 @@ export function TeenPattiGameScreen() {
           </div>
 
           <nav className="tp-controls" aria-label="Game controls">
-            <span
-              className="tp-control tp-control--static"
-              aria-label={`${playerCount} ${playerCount === 1 ? "player" : "players"} betting in this round`}
-              title={`${playerCount} live ${playerCount === 1 ? "player" : "players"}`}
-            >
-              <UsersRound />
-              <span className="tp-control__count" aria-hidden="true">
-                {playerCount}
-              </span>
-            </span>
             <button
               type="button"
               className="tp-control"
@@ -682,6 +672,16 @@ export function TeenPattiGameScreen() {
             >
               {soundEnabled ? <Volume2 /> : <VolumeX />}
             </button>
+            <span
+              className="tp-control tp-control--static"
+              aria-label={`${playerCount} ${playerCount === 1 ? "player" : "players"} betting in this round`}
+              title={`${playerCount} live ${playerCount === 1 ? "player" : "players"}`}
+            >
+              <UsersRound />
+              <span className="tp-control__count" aria-hidden="true">
+                {playerCount}
+              </span>
+            </span>
           </nav>
         </div>
 

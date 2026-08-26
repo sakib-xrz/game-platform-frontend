@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { House, RefreshCw, Volume2, VolumeX, X } from "lucide-react";
+import { House, RefreshCw, Users, Volume2, VolumeX, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
@@ -230,6 +230,14 @@ export function GreedyClassicGameScreen() {
     return grouped;
   }, [snapshot?.round]);
 
+  const joinedPlayerCount = useMemo(() => {
+    const ids = new Set<string>();
+    for (const bettor of snapshot?.round?.bettors ?? []) {
+      ids.add(bettor.user_id);
+    }
+    return ids.size;
+  }, [snapshot?.round?.bettors]);
+
   const canBet =
     snapshot?.game.status === "active" &&
     snapshot?.round?.status === "betting_open" &&
@@ -370,6 +378,14 @@ export function GreedyClassicGameScreen() {
               <VolumeX aria-hidden="true" />
             )}
           </button>
+          <span
+            className="gc-toolbar__button gc-toolbar__button--players"
+            aria-label={`${joinedPlayerCount} players in this round`}
+            title="Players who joined this round"
+          >
+            <Users aria-hidden="true" />
+            <strong className="gc-toolbar__players-count">{joinedPlayerCount}</strong>
+          </span>
         </nav>
 
         <div

@@ -127,6 +127,33 @@
   transform: scale(0.94);
 }
 
+.l77-toolbar__players {
+  position: relative;
+  cursor: default;
+  pointer-events: none;
+}
+
+.l77-toolbar__players-count {
+  position: absolute;
+  top: -1.1cqw;
+  right: -1.1cqw;
+  z-index: 1;
+  display: grid;
+  min-width: 4.4cqw;
+  height: 4.4cqw;
+  place-items: center;
+  padding: 0 0.7cqw;
+  border: clamp(1px, 0.35cqw, 1.5px) solid #fff6c8;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #ff6b4a, #d93a2a);
+  box-shadow: 0 0.4cqw 0.8cqw rgba(120, 28, 12, 0.28);
+  font-size: clamp(8px, 2.3cqw, 11px);
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
 .l77-toolbar__profile {
   position: relative;
 }
@@ -794,7 +821,26 @@
   cursor: pointer;
 }
 
+.l77-history__refresh-spin {
+  display: grid;
+  width: min(3.4cqw, 14px);
+  height: min(3.4cqw, 14px);
+  place-items: center;
+  transform-origin: 50% 50%;
+}
+
+.l77-history__refresh-spin svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .l77-history > button.is-refreshing {
+  animation: none;
+  pointer-events: none;
+}
+
+.l77-history > button.is-refreshing .l77-history__refresh-spin {
   animation: l77-loader 0.8s linear infinite;
 }
 

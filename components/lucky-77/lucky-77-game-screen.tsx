@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Volume2, VolumeX, X } from "lucide-react";
+import { ArrowLeft, RefreshCw, Users, Volume2, VolumeX, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PlayerAvatar } from "@/components/greedy/player-avatar";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
@@ -160,6 +160,14 @@ export function Lucky77GameScreen() {
       );
     }
     return groups;
+  }, [snapshot?.round?.bettors]);
+
+  const joinedPlayerCount = useMemo(() => {
+    const ids = new Set<string>();
+    for (const bettor of snapshot?.round?.bettors ?? []) {
+      ids.add(bettor.user_id);
+    }
+    return ids.size;
   }, [snapshot?.round?.bettors]);
 
   const backedOptionId =
@@ -326,6 +334,14 @@ export function Lucky77GameScreen() {
             <VolumeX aria-hidden="true" />
           )}
         </button>
+        <span
+          className="l77-toolbar__round-button l77-toolbar__players"
+          aria-label={`${joinedPlayerCount} players in this round`}
+          title="Players who joined this round"
+        >
+          <Users aria-hidden="true" />
+          <strong className="l77-toolbar__players-count">{joinedPlayerCount}</strong>
+        </span>
       </header>
 
       {!connected ? (
@@ -409,7 +425,9 @@ export function Lucky77GameScreen() {
             aria-label="Refresh game state"
             className={refreshing ? "is-refreshing" : ""}
           >
-            ↻
+            <span className="l77-history__refresh-spin" aria-hidden="true">
+              <RefreshCw />
+            </span>
           </button>
         </section>
       </div>

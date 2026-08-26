@@ -334,6 +334,33 @@
   opacity: 0.58;
 }
 
+.gc-toolbar__button--players {
+  position: relative;
+  cursor: default;
+  pointer-events: none;
+}
+
+.gc-toolbar__players-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  z-index: 1;
+  display: grid;
+  min-width: 18px;
+  height: 18px;
+  place-items: center;
+  padding: 0 4px;
+  border: 1.5px solid #fff6c8;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #ff6b4a, #d93a2a);
+  box-shadow: 0 2px 5px rgba(120, 28, 12, 0.28);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
 .gc-toolbar__button:focus-visible,
 .gc-deck__refresh:focus-visible,
 .gc-chip:focus-visible,
