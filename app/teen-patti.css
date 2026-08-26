@@ -347,7 +347,7 @@
   grid-template-columns: 76px minmax(0, 1fr) 104px;
   align-items: center;
   gap: 6px;
-  margin: 8px 0 3px;
+  margin: 0 0 3px;
 }
 
 .tp-player-profile {
