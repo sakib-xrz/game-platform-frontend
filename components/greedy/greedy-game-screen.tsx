@@ -15,6 +15,10 @@ import { useCountdown } from "@/hooks/use-countdown";
 import { useGameSound } from "@/hooks/use-game-sound";
 import { useGreedyGame } from "@/hooks/use-greedy-game";
 import { formatInteger } from "@/lib/format";
+import {
+  greedyDrawFocusIndex,
+  resolveGreedyDrawStopIndex,
+} from "@/lib/greedy-draw-focus";
 import { getOptionDisplayName, OptionArtwork } from "@/lib/option-art";
 import { BetOptionNode } from "@/components/greedy/bet-option-node";
 import { CenterStage } from "@/components/greedy/center-stage";
@@ -265,11 +269,30 @@ export function GreedyGameScreen() {
       : null,
     serverOffsetMs,
   );
-  const drawingFocusIndex =
-    isDrawing && options.length
-      ? Math.abs(Math.floor(drawingMs / 360)) % Math.min(options.length, 8)
-      : -1;
   const winnerId = snapshot?.round?.result?.winning_option.id ?? null;
+  const drawStopIndex = resolveGreedyDrawStopIndex({
+    winningOptionIndex: snapshot?.round?.winning_option_index,
+    winnerId,
+    options,
+  });
+  const drawingFocusIndex = isDrawing
+    ? greedyDrawFocusIndex({
+        isDrawing: true,
+        roundId: snapshot?.round?.id,
+        optionCount: options.length,
+        durationMs:
+          snapshot?.round?.drawing_duration_ms ??
+          snapshot?.active_config?.drawing_duration_ms ??
+          3_000,
+        drawingMs,
+        stopIndex: drawStopIndex,
+        drawingStartedAt: snapshot?.round?.drawing_started_at,
+        resultRevealAt: snapshot?.round?.result_reveal_at,
+        serverOffsetMs,
+      })
+    : drawStopIndex !== null && resultModalOpen
+      ? drawStopIndex
+      : -1;
 
   useEffect(() => {
     const status = snapshot?.round?.status ?? null;
@@ -664,8 +687,8 @@ export function GreedyGameScreen() {
                 tap places another bet immediately.
               </li>
               <li>
-                The highlighted draw is visual only; the server publishes the
-                verified winner.
+                Options flash in a random order during the draw. The last
+                highlight is the verified winner from the server.
               </li>
             </ol>
           </div>

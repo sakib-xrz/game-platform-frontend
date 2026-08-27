@@ -15,6 +15,10 @@ import { useCountdown } from "@/hooks/use-countdown";
 import { useGameSound } from "@/hooks/use-game-sound";
 import { useGreedyClassicGame } from "@/hooks/use-greedy-classic-game";
 import { formatCompactAmount, formatInteger } from "@/lib/format";
+import {
+  greedyDrawFocusIndex,
+  resolveGreedyDrawStopIndex,
+} from "@/lib/greedy-draw-focus";
 import { getClassicOptionDisplayName } from "@/lib/greedy-classic-art";
 import { usePlayerHref } from "@/hooks/use-player-href";
 import type { PublicBetAggregate, PublicOption } from "@/types/greedy";
@@ -135,11 +139,30 @@ export function GreedyClassicGameScreen() {
       : null,
     serverOffsetMs,
   );
-  const drawingFocusIndex =
-    isDrawing && options.length
-      ? Math.abs(Math.floor(drawingMs / 360)) % Math.min(options.length, 8)
-      : -1;
   const winnerId = snapshot?.round?.result?.winning_option.id ?? null;
+  const drawStopIndex = resolveGreedyDrawStopIndex({
+    winningOptionIndex: snapshot?.round?.winning_option_index,
+    winnerId,
+    options,
+  });
+  const drawingFocusIndex = isDrawing
+    ? greedyDrawFocusIndex({
+        isDrawing: true,
+        roundId: snapshot?.round?.id,
+        optionCount: options.length,
+        durationMs:
+          snapshot?.round?.drawing_duration_ms ??
+          snapshot?.active_config?.drawing_duration_ms ??
+          3_000,
+        drawingMs,
+        stopIndex: drawStopIndex,
+        drawingStartedAt: snapshot?.round?.drawing_started_at,
+        resultRevealAt: snapshot?.round?.result_reveal_at,
+        serverOffsetMs,
+      })
+    : drawStopIndex !== null && resultModalOpen
+      ? drawStopIndex
+      : -1;
 
   useEffect(() => {
     const status = snapshot?.round?.status ?? null;

@@ -20,6 +20,7 @@ import type {
   PublicBetAggregate,
   PublicBetPlacedEvent,
   PublicOption,
+  RoundDrawingEvent,
   RoundResultEvent,
   WalletBalanceEvent,
 } from "@/types/greedy";
@@ -559,6 +560,35 @@ export function useGreedyGame(
       onRoundRefresh(payload);
     };
 
+    const onRoundDrawing = (payload: RoundDrawingEvent) => {
+      handleDurableEvent(payload, () => {
+        const current = snapshotRef.current;
+        if (!current?.round || current.round.id !== payload.round_id) {
+          void recover("socket-drawing-missing-snapshot");
+          return;
+        }
+
+        const updated: GreedySnapshot = {
+          ...current,
+          round: {
+            ...current.round,
+            status: "drawing",
+            drawing_started_at:
+              payload.drawing_started_at ?? current.round.drawing_started_at,
+            result_reveal_at:
+              payload.result_reveal_at ?? current.round.result_reveal_at,
+            winning_option_index:
+              typeof payload.winning_option_index === "number"
+                ? payload.winning_option_index
+                : current.round.winning_option_index,
+          },
+        };
+        snapshotRef.current = updated;
+        setSnapshot(updated);
+        void recover("socket-drawing");
+      });
+    };
+
     const onRoundResult = (payload: RoundResultEvent) => {
       handleDurableEvent(payload, () => {
         const current = snapshotRef.current;
@@ -572,15 +602,25 @@ export function useGreedyGame(
           return;
         }
 
+        const winningOptionIndex =
+          typeof payload.winning_option_index === "number"
+            ? payload.winning_option_index
+            : current.round.winning_option_index ?? undefined;
+
         const updated: GreedySnapshot = {
           ...current,
           round: {
             ...current.round,
             status: "result_revealed",
+            winning_option_index:
+              typeof winningOptionIndex === "number"
+                ? winningOptionIndex
+                : current.round.winning_option_index,
             result: {
               round_id: payload.round_id,
               winning_option: { ...winningOption, ...payload.winning_option },
               winning_slot_index: payload.winning_slot_index,
+              winning_option_index: winningOptionIndex,
               revealed_at: payload.revealed_at,
               top_winners: payload.top_winners ?? [],
             },
@@ -767,7 +807,7 @@ export function useGreedyGame(
       socket.on("platform.game.availability_changed", onPlatformGameRefresh);
       socket.on(`${eventPrefix}.round.opened`, onRoundRefresh);
       socket.on(`${eventPrefix}.round.locked`, onRoundRefresh);
-      socket.on(`${eventPrefix}.round.drawing`, onRoundRefresh);
+      socket.on(`${eventPrefix}.round.drawing`, onRoundDrawing);
       socket.on(`${eventPrefix}.round.result`, onRoundResult);
       socket.on(`${eventPrefix}.bet.accepted`, onBetAccepted);
       socket.on(`${eventPrefix}.bet.placed`, onPublicBetPlaced);
@@ -813,7 +853,7 @@ export function useGreedyGame(
         socket.off("platform.game.availability_changed", onPlatformGameRefresh);
         socket.off(`${eventPrefix}.round.opened`, onRoundRefresh);
         socket.off(`${eventPrefix}.round.locked`, onRoundRefresh);
-        socket.off(`${eventPrefix}.round.drawing`, onRoundRefresh);
+        socket.off(`${eventPrefix}.round.drawing`, onRoundDrawing);
         socket.off(`${eventPrefix}.round.result`, onRoundResult);
         socket.off(`${eventPrefix}.bet.accepted`, onBetAccepted);
         socket.off(`${eventPrefix}.bet.placed`, onPublicBetPlaced);

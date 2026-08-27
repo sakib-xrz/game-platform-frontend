@@ -91,6 +91,8 @@ export type RoundResult = {
   winning_option: PublicOption;
   /** Lucky 77 uses the exact revealed wheel segment for deterministic motion. */
   winning_slot_index?: number;
+  /** Greedy / Greedy Classic: 0-based option index the draw highlight lands on. */
+  winning_option_index?: number;
   top_winners: TopWinner[];
 };
 
@@ -113,6 +115,8 @@ export type SnapshotRound = {
   options: PublicOption[];
   chip_values: ChipValue[];
   bettors: PublicBetAggregate[];
+  /** Published from drawing onward so the highlight can land on the winner. */
+  winning_option_index?: number | null;
   result: RoundResult | null;
 };
 
@@ -236,6 +240,7 @@ export type RoundDrawingEvent = {
   round_id: string;
   drawing_started_at: string;
   result_reveal_at: string;
+  winning_option_index?: number;
 };
 
 export type RoundResultEvent = {
@@ -243,6 +248,7 @@ export type RoundResultEvent = {
   round_id: string;
   winning_option: WinningOption;
   winning_slot_index?: number;
+  winning_option_index?: number;
   revealed_at: string;
   top_winners: TopWinner[];
 };

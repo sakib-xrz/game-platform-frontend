@@ -68,7 +68,7 @@ export function BetOptionNode({
       style={{
         left: `${left}%`,
         top: `${top}%`,
-        zIndex: drawingHighlighted ? 35 : winner ? 26 : hasBet ? 25 : 20,
+        zIndex: drawingHighlighted ? 38 : winner ? 40 : hasBet ? 25 : 20,
       }}
     >
       <button

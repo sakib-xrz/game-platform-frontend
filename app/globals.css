@@ -587,7 +587,7 @@ a:focus-visible {
 
 .option-node__badge {
   position: absolute;
-  z-index: 2;
+  z-index: 8;
   top: -2.5cqw;
   right: -1.9cqw;
   padding: 0.35cqw 1.2cqw 0.55cqw;
@@ -598,6 +598,7 @@ a:focus-visible {
   font-size: 2.9cqw;
   font-weight: 950;
   line-height: 1;
+  pointer-events: none;
 }
 
 .option-node__coin-landing {
