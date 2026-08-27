@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  Gift,
   House,
   RefreshCw,
   ShieldCheck,
@@ -485,7 +484,9 @@ export function GreedyGameScreen() {
             title="Players who joined this round"
           >
             <Users aria-hidden="true" />
-            <strong className="machine-players-count">{joinedPlayerCount}</strong>
+            <strong className="machine-players-count">
+              {joinedPlayerCount}
+            </strong>
           </span>
         </nav>
 
@@ -493,15 +494,6 @@ export function GreedyGameScreen() {
           <i className={connected ? "is-online" : ""} aria-hidden="true" />
           <span>{roundLabel}</span>
         </div>
-
-        <button
-          type="button"
-          className="machine-gift"
-          aria-label="Rewards are not available yet"
-          disabled
-        >
-          <Gift />
-        </button>
 
         <span
           className="machine-decoration machine-decoration--carrot"
@@ -551,9 +543,7 @@ export function GreedyGameScreen() {
               landingIds={betLandings
                 .filter((landing) => landing.optionId === option.id)
                 .map((landing) => landing.id)}
-              onPress={() =>
-                void handlePlaceBet(option, effectiveSelectedChip)
-              }
+              onPress={() => void handlePlaceBet(option, effectiveSelectedChip)}
             />
           );
         })}

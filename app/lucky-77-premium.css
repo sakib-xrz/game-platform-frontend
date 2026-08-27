@@ -234,7 +234,7 @@
 .l77-wheel-stage {
   z-index: 3;
   height: min(75cqw, 322px);
-  margin-top: -0.6cqw;
+  margin-top: 16cqw;
   isolation: isolate;
 }
 
@@ -443,7 +443,7 @@
 }
 
 .l77-pointer {
-  top: calc(50% - min(35.2cqw, 151px) - 2.1cqw);
+  top: -6px;
   width: min(10.2cqw, 43px);
   height: min(14cqw, 59px);
   background: linear-gradient(
@@ -1087,9 +1087,6 @@
     transform: translate(-50%, -50%) rotate(var(--l77-slot-angle))
       translateY(min(-21.6cqw, -91px));
   }
-  .l77-pointer {
-    top: calc(50% - min(31.5cqw, 133px) - 2cqw);
-  }
   .l77-wheel-clock {
     width: min(17.5cqw, 73px);
     height: min(17.5cqw, 73px);
@@ -1121,9 +1118,6 @@
     height: min(10.2cqw, 43px);
     transform: translate(-50%, -50%) rotate(var(--l77-slot-angle))
       translateY(min(-18.4cqw, -78px));
-  }
-  .l77-pointer {
-    top: calc(50% - min(27cqw, 114px) - 1.8cqw);
   }
   .l77-wheel-clock {
     width: min(15.4cqw, 65px);

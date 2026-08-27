@@ -268,29 +268,6 @@ a:focus-visible {
   box-shadow: 0 0 0 0.45cqw rgba(70, 185, 107, 0.16);
 }
 
-.machine-gift {
-  position: absolute;
-  z-index: 40;
-  top: 13.1cqw;
-  right: 2.8cqw;
-  display: grid;
-  width: 10.5cqw;
-  height: 10.5cqw;
-  place-items: center;
-  border: 0.8cqw solid rgba(255, 255, 255, 0.33);
-  border-radius: 50%;
-  background: rgba(93, 204, 130, 0.38);
-  color: #f5424b;
-  opacity: 0.92;
-}
-
-.machine-gift svg {
-  width: 5.8cqw;
-  height: 5.8cqw;
-  fill: #fff4b7;
-  stroke-width: 2.4;
-}
-
 .machine-decoration {
   position: absolute;
   z-index: 3;
