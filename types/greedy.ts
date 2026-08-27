@@ -117,6 +117,8 @@ export type SnapshotRound = {
   bettors: PublicBetAggregate[];
   /** Published from drawing onward so the highlight can land on the winner. */
   winning_option_index?: number | null;
+  /** Lucky 77: published from drawing onward so the wheel can land on the slot. */
+  winning_slot_index?: number | null;
   result: RoundResult | null;
 };
 
@@ -241,6 +243,8 @@ export type RoundDrawingEvent = {
   drawing_started_at: string;
   result_reveal_at: string;
   winning_option_index?: number;
+  /** Lucky 77: stop slot for wheel deceleration (winner identity still withheld). */
+  winning_slot_index?: number;
 };
 
 export type RoundResultEvent = {

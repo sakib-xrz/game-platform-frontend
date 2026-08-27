@@ -20,7 +20,6 @@ import type { PublicBetAggregate, PublicOption } from "@/types/greedy";
 const OPTION_ORDER = ["APPLE", "SEVENTY_SEVEN", "WATERMELON"];
 const LAST_BET_KEY = "lucky-77:last-bet";
 const LIVE_RESULT_SOUND_MAX_AGE_MS = 2_000;
-const SPIN_TICK_MS = 69;
 
 type LastBet = { optionCode: string; amount: string };
 
@@ -45,8 +44,7 @@ export function Lucky77GameScreen() {
   } = useLucky77Game();
   const { bootGame, hideBoot } = useGameBoot();
   const homeHref = usePlayerHref("/") ?? "/";
-  const { soundEnabled, toggleSound, playSound, startLoop, stopLoop } =
-    useGameSound();
+  const { soundEnabled, toggleSound, playSound } = useGameSound();
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
   const [lastBet, setLastBet] = useState<LastBet | null>(null);
@@ -71,20 +69,18 @@ export function Lucky77GameScreen() {
 
   useEffect(() => {
     const status = snapshot?.round?.status ?? null;
-    if (status === "drawing" && previousStatusRef.current !== "drawing") {
-      startLoop("tick", SPIN_TICK_MS);
-    } else if (status !== "drawing" && previousStatusRef.current === "drawing") {
-      stopLoop();
-    } else if (
+    if (
       status === "betting_locked" &&
       previousStatusRef.current === "betting_open"
     ) {
       playSound("lock");
     }
     previousStatusRef.current = status;
-  }, [playSound, snapshot?.round?.status, startLoop, stopLoop]);
+  }, [playSound, snapshot?.round?.status]);
 
-  useEffect(() => () => stopLoop(), [stopLoop]);
+  const handleSectorCross = useCallback(() => {
+    playSound("tick");
+  }, [playSound]);
 
   useEffect(() => {
     const result = snapshot?.round?.result;
@@ -359,6 +355,7 @@ export function Lucky77GameScreen() {
           serverOffsetMs={serverOffsetMs}
           slotMap={snapshot.slot_map}
           options={options}
+          onSectorCross={handleSectorCross}
         />
 
         {snapshot.round?.status === "betting_open" ? (

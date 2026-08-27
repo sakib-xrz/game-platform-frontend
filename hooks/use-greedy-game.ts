@@ -581,6 +581,10 @@ export function useGreedyGame(
               typeof payload.winning_option_index === "number"
                 ? payload.winning_option_index
                 : current.round.winning_option_index,
+            winning_slot_index:
+              typeof payload.winning_slot_index === "number"
+                ? payload.winning_slot_index
+                : current.round.winning_slot_index,
           },
         };
         snapshotRef.current = updated;
@@ -616,6 +620,10 @@ export function useGreedyGame(
               typeof winningOptionIndex === "number"
                 ? winningOptionIndex
                 : current.round.winning_option_index,
+            winning_slot_index:
+              typeof payload.winning_slot_index === "number"
+                ? payload.winning_slot_index
+                : current.round.winning_slot_index,
             result: {
               round_id: payload.round_id,
               winning_option: { ...winningOption, ...payload.winning_option },

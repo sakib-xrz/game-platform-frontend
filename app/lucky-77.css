@@ -299,8 +299,8 @@
   inset: 0;
   overflow: hidden;
   border-radius: 50%;
-  animation: l77-idle-spin 19s linear infinite;
   transform-origin: center;
+  will-change: transform;
 }
 
 .l77-wheel__sectors {
@@ -488,12 +488,7 @@
 }
 
 .l77-wheel-stage.is-drawing .l77-wheel {
-  animation: l77-fast-spin 0.62s linear infinite;
   filter: saturate(0.72) brightness(1.08);
-}
-
-.l77-wheel-stage.has-result:not(.is-drawing) .l77-wheel {
-  animation: l77-stop-spin 1.05s cubic-bezier(0.12, 0.76, 0.16, 1) both;
 }
 
 .l77-round-banner {
@@ -1701,27 +1696,6 @@
   }
 }
 
-@keyframes l77-idle-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes l77-fast-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes l77-stop-spin {
-  from {
-    transform: rotate(calc(var(--l77-stop-rotation) - 1080deg));
-  }
-  to {
-    transform: rotate(var(--l77-stop-rotation));
-  }
-}
-
 @keyframes l77-clock-pulse {
   to {
     filter: brightness(1.2);
@@ -1827,9 +1801,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .l77-wheel,
-  .l77-wheel-stage.is-drawing .l77-wheel,
-  .l77-wheel-stage.has-result:not(.is-drawing) .l77-wheel,
   .l77-wheel-clock.is-spinning,
   .l77-option.is-winner,
   .l77-option__flying-coin,
