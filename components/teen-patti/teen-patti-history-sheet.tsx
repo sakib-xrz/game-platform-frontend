@@ -6,6 +6,7 @@ import { Crown, X } from "lucide-react";
 import { PlayingCard } from "@/components/teen-patti/playing-card";
 import { formatInteger } from "@/lib/format";
 import { handCategoryLabel } from "@/lib/playing-cards";
+import { teenPattiPlayerName } from "@/lib/teen-patti-player-display";
 import type { DealtHand, RecentRound } from "@/types/teen-patti";
 
 const DEFAULT_HAND_NAMES: Record<string, string> = {
@@ -163,6 +164,15 @@ export function TeenPattiHistorySheet({
                         ? "Highest hand"
                         : "No completed result was returned for this round."}
                   </p>
+                  {result?.top_winners?.length ? (
+                    <p className="tp-history-sheet__winner-players">
+                      {result.top_winners
+                        .slice()
+                        .sort((left, right) => left.rank - right.rank)
+                        .map((winner) => teenPattiPlayerName(winner))
+                        .join(" · ")}
+                    </p>
+                  ) : null}
                 </div>
               </section>
 

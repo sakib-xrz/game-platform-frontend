@@ -2,10 +2,12 @@
 
 import clsx from "clsx";
 import { useEffect, useRef } from "react";
-import { X } from "lucide-react";
+import { Crown, X } from "lucide-react";
 import { formatInteger } from "@/lib/format";
 import { handCategoryLabel } from "@/lib/playing-cards";
+import { teenPattiPlayerName } from "@/lib/teen-patti-player-display";
 import { PlayingCard } from "@/components/teen-patti/playing-card";
+import { PlayerAvatar } from "@/components/greedy/player-avatar";
 import type { TeenPattiSnapshot } from "@/types/teen-patti";
 
 export function TeenPattiResultModal({
@@ -59,6 +61,9 @@ export function TeenPattiResultModal({
   const winnerId = result.winning_option.id;
   const winningBet = roundBets.some((bet) => bet.option.id === winnerId);
   const winningHand = result.hands?.find((hand) => hand.option_id === winnerId);
+  const topWinners = [...(result.top_winners ?? [])]
+    .sort((left, right) => left.rank - right.rank)
+    .slice(0, 3);
   const payoutPending = roundBets.some((bet) => !bet.settlement)
     && (round.status === "result_revealed" || round.status === "settling");
   const currencySymbol = snapshot.wallet.currency.symbol ?? "●";
@@ -104,6 +109,48 @@ export function TeenPattiResultModal({
         <p className="tp-result-cat">
           {winningHand ? handCategoryLabel(winningHand.category) : "Highest hand"}
         </p>
+
+        {topWinners.length > 0 && (
+          <div className="tp-result-winners">
+            <span className="tp-result-winners__label">Top winners</span>
+            <ol className="result-leaderboard">
+              {topWinners.map((topWinner) => {
+                const isCurrentPlayer = topWinner.user_id === snapshot.wallet.user_id;
+                return (
+                  <li
+                    key={topWinner.user_id}
+                    className={`result-leaderboard__row result-leaderboard__row--${topWinner.rank}`}
+                  >
+                    <span
+                      className="result-leaderboard__rank"
+                      aria-label={`Rank ${topWinner.rank}`}
+                    >
+                      <Crown aria-hidden="true" />
+                      <b>{topWinner.rank}</b>
+                    </span>
+                    <PlayerAvatar player={topWinner} className="result-leaderboard__avatar" />
+                    <span className="result-leaderboard__player">
+                      <strong>
+                        {teenPattiPlayerName(topWinner)}
+                        {isCurrentPlayer ? " (You)" : ""}
+                      </strong>
+                      <small>
+                        {formatInteger(topWinner.winning_stake)} winning stake
+                        {" · "}
+                        {topWinner.bet_count}{" "}
+                        {topWinner.bet_count === 1 ? "bet" : "bets"}
+                      </small>
+                    </span>
+                    <b className="result-leaderboard__payout">
+                      <span className="game-gem" aria-hidden="true">{currencySymbol}</span>
+                      {formatInteger(topWinner.total_payout)}
+                    </b>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        )}
 
         <div className="tp-result-hands">
           {result.hands?.map((hand) => (

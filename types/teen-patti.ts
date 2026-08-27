@@ -78,6 +78,14 @@ export type DealtHand = {
   rank_key: string;
 };
 
+export type TeenPattiTopWinner = PlayerIdentity & {
+  rank: number;
+  winning_stake: string;
+  bet_count: number;
+  total_payout: string;
+  first_bet_at: string;
+};
+
 export type RoundResult = {
   id?: string;
   round_id: string;
@@ -87,6 +95,7 @@ export type RoundResult = {
   deal_attempt_count?: number;
   hands?: DealtHand[] | null;
   winning_option: PublicDeck;
+  top_winners?: TeenPattiTopWinner[];
 };
 
 export type OptionPotTotal = {
@@ -245,6 +254,7 @@ export type RoundResultEvent = {
   winning_option: WinningOption;
   hands?: DealtHand[];
   revealed_at: string;
+  top_winners?: TeenPattiTopWinner[];
 };
 
 export type WalletBalanceEvent = {

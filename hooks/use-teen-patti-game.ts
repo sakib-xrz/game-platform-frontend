@@ -88,6 +88,7 @@ function mergeResultIntoSnapshot(
         revealed_at: payload.revealed_at,
         winning_option: { ...winningDeck, ...payload.winning_option },
         hands,
+        top_winners: payload.top_winners,
       },
     },
   };
