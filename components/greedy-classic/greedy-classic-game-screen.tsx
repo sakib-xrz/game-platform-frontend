@@ -8,8 +8,8 @@ import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
 import { ClassicCenterDial } from "@/components/greedy-classic/classic-center-dial";
 import { ClassicChipTray } from "@/components/greedy-classic/classic-chip-tray";
-import { ClassicHistorySheet } from "@/components/greedy-classic/classic-history-sheet";
 import { ClassicOptionCard } from "@/components/greedy-classic/classic-option-card";
+import { ClassicRecentResults } from "@/components/greedy-classic/classic-recent-results";
 import { ClassicResultModal } from "@/components/greedy-classic/classic-result-modal";
 import { useCountdown } from "@/hooks/use-countdown";
 import { useGameSound } from "@/hooks/use-game-sound";
@@ -61,7 +61,6 @@ export function GreedyClassicGameScreen() {
   const { soundEnabled, toggleSound, playSound } = useGameSound();
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
-  const [historyOpen, setHistoryOpen] = useState(false);
   const helpCloseRef = useRef<HTMLButtonElement>(null);
   const holdHomeRef = useRef<HTMLAnchorElement>(null);
   const holdRetryRef = useRef<HTMLButtonElement>(null);
@@ -374,6 +373,22 @@ export function GreedyClassicGameScreen() {
     return <GameLoadingScreen game="greedy-classic" overlay />;
   }
 
+  const recentHistory =
+    snapshot.round?.result?.winning_option &&
+    !snapshot.recent_history.some((item) => item.id === snapshot.round?.id)
+      ? [
+          {
+            id: snapshot.round.id,
+            round_number: snapshot.round.round_number,
+            status: snapshot.round.status,
+            result_reveal_at: snapshot.round.result_reveal_at,
+            closed_at: null,
+            result: snapshot.round.result,
+          },
+          ...snapshot.recent_history,
+        ]
+      : snapshot.recent_history;
+
   return (
     <main className="mobile-canvas gc-shell">
       <DevPlayerSwitcher variant="compact" />
@@ -533,6 +548,8 @@ export function GreedyClassicGameScreen() {
           </span>
         </div>
 
+        <ClassicRecentResults history={recentHistory} />
+
         <ClassicChipTray
           chips={chips}
           selected={effectiveSelectedChip}
@@ -626,11 +643,6 @@ export function GreedyClassicGameScreen() {
         </div>
       ) : null}
 
-      <ClassicHistorySheet
-        history={snapshot.recent_history}
-        open={historyOpen && !resultModalOpen && !fullHoldVisible}
-        onClose={() => setHistoryOpen(false)}
-      />
       <ClassicResultModal
         snapshot={snapshot}
         open={resultModalOpen}
