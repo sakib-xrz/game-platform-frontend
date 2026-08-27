@@ -393,6 +393,10 @@
   height: 55%;
 }
 
+.tp-player-profile__avatar > .player-avatar > .player-avatar__coin-mark {
+  font-size: 0.62em;
+}
+
 .tp-player-profile__avatar i {
   position: absolute;
   right: 0;
@@ -1260,6 +1264,7 @@
   position: relative;
   z-index: 4;
   display: flex;
+  flex: 0 0 auto;
   min-width: 76px;
   max-width: calc(100% - 8px);
   min-height: 23px;
@@ -1372,18 +1377,27 @@
 }
 
 .tp-deck-bettors {
-  position: absolute;
-  z-index: 12;
-  top: 36%;
-  right: 8%;
-  bottom: auto;
-  left: 8%;
-  height: 8%;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: 18px;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  margin-top: 5px;
+  padding: 0 4px;
+  overflow: visible;
   pointer-events: none;
 }
 
 .tp-deck-bettor-slot {
+  position: relative;
   z-index: 1;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
 }
 
 .tp-deck-bettor-avatar {

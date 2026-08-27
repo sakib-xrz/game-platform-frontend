@@ -45,7 +45,7 @@
   transform: translate(-50%, -50%);
 }
 
-/* Make the result refresh control feel like a real button, and spin only its glyph. */
+/* Make the result refresh control feel like a real button, and spin only its icon. */
 .l77-history > button {
   position: relative;
   display: grid;
@@ -69,15 +69,20 @@
   transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
 }
 
-.l77-history > button::before {
-  content: "⟳";
-  display: block;
-  color: currentColor;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: min(4.15cqw, 17.5px);
-  font-weight: 800;
-  line-height: 1;
+.l77-history__refresh-spin {
+  display: grid;
+  width: min(3.6cqw, 15px);
+  height: min(3.6cqw, 15px);
+  place-items: center;
   transform-origin: 50% 50%;
+}
+
+.l77-history__refresh-spin svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: inherit;
+  stroke: currentColor;
 }
 
 .l77-history > button:hover {
@@ -89,14 +94,22 @@
   box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 .12cqw 0 #2d0750, 0 .35cqw .7cqw rgba(31,0,48,.22);
 }
 
-/* Override the legacy rule that rotates the whole button. */
 .l77-history > button.is-refreshing {
   animation: none;
   pointer-events: none;
 }
 
-.l77-history > button.is-refreshing::before {
-  animation: l77-refinement-refresh .72s linear infinite;
+.l77-history > button.is-refreshing .l77-history__refresh-spin {
+  animation: l77-history-refresh-spin .7s linear infinite;
+}
+
+@keyframes l77-history-refresh-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Give the chip row breathing room so the selected chip never collides with the console trim. */
@@ -188,7 +201,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .l77-history > button.is-refreshing::before {
+  .l77-history > button.is-refreshing .l77-history__refresh-spin {
     animation: none;
   }
 }

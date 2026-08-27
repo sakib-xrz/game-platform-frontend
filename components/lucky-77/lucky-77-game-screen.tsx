@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Volume2, VolumeX, X } from "lucide-react";
+import { ArrowLeft, RefreshCw, Users, Volume2, VolumeX, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PlayerAvatar } from "@/components/greedy/player-avatar";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
@@ -20,7 +20,6 @@ import type { PublicBetAggregate, PublicOption } from "@/types/greedy";
 const OPTION_ORDER = ["APPLE", "SEVENTY_SEVEN", "WATERMELON"];
 const LAST_BET_KEY = "lucky-77:last-bet";
 const LIVE_RESULT_SOUND_MAX_AGE_MS = 2_000;
-const SPIN_TICK_MS = 69;
 
 type LastBet = { optionCode: string; amount: string };
 
@@ -45,8 +44,7 @@ export function Lucky77GameScreen() {
   } = useLucky77Game();
   const { bootGame, hideBoot } = useGameBoot();
   const homeHref = usePlayerHref("/") ?? "/";
-  const { soundEnabled, toggleSound, playSound, startLoop, stopLoop } =
-    useGameSound();
+  const { soundEnabled, toggleSound, playSound } = useGameSound();
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
   const [lastBet, setLastBet] = useState<LastBet | null>(null);
@@ -71,20 +69,18 @@ export function Lucky77GameScreen() {
 
   useEffect(() => {
     const status = snapshot?.round?.status ?? null;
-    if (status === "drawing" && previousStatusRef.current !== "drawing") {
-      startLoop("tick", SPIN_TICK_MS);
-    } else if (status !== "drawing" && previousStatusRef.current === "drawing") {
-      stopLoop();
-    } else if (
+    if (
       status === "betting_locked" &&
       previousStatusRef.current === "betting_open"
     ) {
       playSound("lock");
     }
     previousStatusRef.current = status;
-  }, [playSound, snapshot?.round?.status, startLoop, stopLoop]);
+  }, [playSound, snapshot?.round?.status]);
 
-  useEffect(() => () => stopLoop(), [stopLoop]);
+  const handleSectorCross = useCallback(() => {
+    playSound("tick");
+  }, [playSound]);
 
   useEffect(() => {
     const result = snapshot?.round?.result;
@@ -160,6 +156,14 @@ export function Lucky77GameScreen() {
       );
     }
     return groups;
+  }, [snapshot?.round?.bettors]);
+
+  const joinedPlayerCount = useMemo(() => {
+    const ids = new Set<string>();
+    for (const bettor of snapshot?.round?.bettors ?? []) {
+      ids.add(bettor.user_id);
+    }
+    return ids.size;
   }, [snapshot?.round?.bettors]);
 
   const backedOptionId =
@@ -326,6 +330,14 @@ export function Lucky77GameScreen() {
             <VolumeX aria-hidden="true" />
           )}
         </button>
+        <span
+          className="l77-toolbar__round-button l77-toolbar__players"
+          aria-label={`${joinedPlayerCount} players in this round`}
+          title="Players who joined this round"
+        >
+          <Users aria-hidden="true" />
+          <strong className="l77-toolbar__players-count">{joinedPlayerCount}</strong>
+        </span>
       </header>
 
       {!connected ? (
@@ -343,6 +355,7 @@ export function Lucky77GameScreen() {
           serverOffsetMs={serverOffsetMs}
           slotMap={snapshot.slot_map}
           options={options}
+          onSectorCross={handleSectorCross}
         />
 
         {snapshot.round?.status === "betting_open" ? (
@@ -409,7 +422,9 @@ export function Lucky77GameScreen() {
             aria-label="Refresh game state"
             className={refreshing ? "is-refreshing" : ""}
           >
-            ↻
+            <span className="l77-history__refresh-spin" aria-hidden="true">
+              <RefreshCw />
+            </span>
           </button>
         </section>
       </div>

@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  Gift,
   House,
   RefreshCw,
   ShieldCheck,
+  Users,
   Volume2,
   VolumeX,
   X,
@@ -15,6 +15,10 @@ import { useCountdown } from "@/hooks/use-countdown";
 import { useGameSound } from "@/hooks/use-game-sound";
 import { useGreedyGame } from "@/hooks/use-greedy-game";
 import { formatInteger } from "@/lib/format";
+import {
+  greedyDrawFocusIndex,
+  resolveGreedyDrawStopIndex,
+} from "@/lib/greedy-draw-focus";
 import { getOptionDisplayName, OptionArtwork } from "@/lib/option-art";
 import { BetOptionNode } from "@/components/greedy/bet-option-node";
 import { CenterStage } from "@/components/greedy/center-stage";
@@ -265,11 +269,30 @@ export function GreedyGameScreen() {
       : null,
     serverOffsetMs,
   );
-  const drawingFocusIndex =
-    isDrawing && options.length
-      ? Math.abs(Math.floor(drawingMs / 360)) % Math.min(options.length, 8)
-      : -1;
   const winnerId = snapshot?.round?.result?.winning_option.id ?? null;
+  const drawStopIndex = resolveGreedyDrawStopIndex({
+    winningOptionIndex: snapshot?.round?.winning_option_index,
+    winnerId,
+    options,
+  });
+  const drawingFocusIndex = isDrawing
+    ? greedyDrawFocusIndex({
+        isDrawing: true,
+        roundId: snapshot?.round?.id,
+        optionCount: options.length,
+        durationMs:
+          snapshot?.round?.drawing_duration_ms ??
+          snapshot?.active_config?.drawing_duration_ms ??
+          3_000,
+        drawingMs,
+        stopIndex: drawStopIndex,
+        drawingStartedAt: snapshot?.round?.drawing_started_at,
+        resultRevealAt: snapshot?.round?.result_reveal_at,
+        serverOffsetMs,
+      })
+    : drawStopIndex !== null && resultModalOpen
+      ? drawStopIndex
+      : -1;
 
   useEffect(() => {
     const status = snapshot?.round?.status ?? null;
@@ -350,6 +373,15 @@ export function GreedyGameScreen() {
     }
     return grouped;
   }, [snapshot?.round]);
+
+  const joinedPlayerCount = useMemo(() => {
+    const ids = new Set<string>();
+    for (const bettor of snapshot?.round?.bettors ?? []) {
+      ids.add(bettor.user_id);
+    }
+    return ids.size;
+  }, [snapshot?.round?.bettors]);
+
   const canBet =
     snapshot?.game.status === "active" &&
     snapshot?.round?.status === "betting_open" &&
@@ -469,21 +501,22 @@ export function GreedyGameScreen() {
           >
             {soundEnabled ? <Volume2 /> : <VolumeX />}
           </button>
+          <span
+            className="machine-control machine-control--players"
+            aria-label={`${joinedPlayerCount} players in this round`}
+            title="Players who joined this round"
+          >
+            <Users aria-hidden="true" />
+            <strong className="machine-players-count">
+              {joinedPlayerCount}
+            </strong>
+          </span>
         </nav>
 
         <div className="machine-round-label">
           <i className={connected ? "is-online" : ""} aria-hidden="true" />
           <span>{roundLabel}</span>
         </div>
-
-        <button
-          type="button"
-          className="machine-gift"
-          aria-label="Rewards are not available yet"
-          disabled
-        >
-          <Gift />
-        </button>
 
         <span
           className="machine-decoration machine-decoration--carrot"
@@ -533,9 +566,7 @@ export function GreedyGameScreen() {
               landingIds={betLandings
                 .filter((landing) => landing.optionId === option.id)
                 .map((landing) => landing.id)}
-              onPress={() =>
-                void handlePlaceBet(option, effectiveSelectedChip)
-              }
+              onPress={() => void handlePlaceBet(option, effectiveSelectedChip)}
             />
           );
         })}
@@ -656,8 +687,8 @@ export function GreedyGameScreen() {
                 tap places another bet immediately.
               </li>
               <li>
-                The highlighted draw is visual only; the server publishes the
-                verified winner.
+                Options flash in a random order during the draw. The last
+                highlight is the verified winner from the server.
               </li>
             </ol>
           </div>

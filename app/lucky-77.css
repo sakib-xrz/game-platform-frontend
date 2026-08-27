@@ -127,6 +127,33 @@
   transform: scale(0.94);
 }
 
+.l77-toolbar__players {
+  position: relative;
+  cursor: default;
+  pointer-events: none;
+}
+
+.l77-toolbar__players-count {
+  position: absolute;
+  top: -1.1cqw;
+  right: -1.1cqw;
+  z-index: 1;
+  display: grid;
+  min-width: 4.4cqw;
+  height: 4.4cqw;
+  place-items: center;
+  padding: 0 0.7cqw;
+  border: clamp(1px, 0.35cqw, 1.5px) solid #fff6c8;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #ff6b4a, #d93a2a);
+  box-shadow: 0 0.4cqw 0.8cqw rgba(120, 28, 12, 0.28);
+  font-size: clamp(8px, 2.3cqw, 11px);
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
 .l77-toolbar__profile {
   position: relative;
 }
@@ -272,8 +299,8 @@
   inset: 0;
   overflow: hidden;
   border-radius: 50%;
-  animation: l77-idle-spin 19s linear infinite;
   transform-origin: center;
+  will-change: transform;
 }
 
 .l77-wheel__sectors {
@@ -461,12 +488,7 @@
 }
 
 .l77-wheel-stage.is-drawing .l77-wheel {
-  animation: l77-fast-spin 0.62s linear infinite;
   filter: saturate(0.72) brightness(1.08);
-}
-
-.l77-wheel-stage.has-result:not(.is-drawing) .l77-wheel {
-  animation: l77-stop-spin 1.05s cubic-bezier(0.12, 0.76, 0.16, 1) both;
 }
 
 .l77-round-banner {
@@ -794,7 +816,26 @@
   cursor: pointer;
 }
 
+.l77-history__refresh-spin {
+  display: grid;
+  width: min(3.4cqw, 14px);
+  height: min(3.4cqw, 14px);
+  place-items: center;
+  transform-origin: 50% 50%;
+}
+
+.l77-history__refresh-spin svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .l77-history > button.is-refreshing {
+  animation: none;
+  pointer-events: none;
+}
+
+.l77-history > button.is-refreshing .l77-history__refresh-spin {
   animation: l77-loader 0.8s linear infinite;
 }
 
@@ -1655,27 +1696,6 @@
   }
 }
 
-@keyframes l77-idle-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes l77-fast-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes l77-stop-spin {
-  from {
-    transform: rotate(calc(var(--l77-stop-rotation) - 1080deg));
-  }
-  to {
-    transform: rotate(var(--l77-stop-rotation));
-  }
-}
-
 @keyframes l77-clock-pulse {
   to {
     filter: brightness(1.2);
@@ -1781,9 +1801,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .l77-wheel,
-  .l77-wheel-stage.is-drawing .l77-wheel,
-  .l77-wheel-stage.has-result:not(.is-drawing) .l77-wheel,
   .l77-wheel-clock.is-spinning,
   .l77-option.is-winner,
   .l77-option__flying-coin,
