@@ -47,6 +47,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { adminClient } from "@/lib/admin-client";
+import { canManageGames } from "@/lib/admin-permissions";
 import type {
   AdminApproval,
   AdminConfigVersion,
@@ -144,8 +145,7 @@ export function Lucky77AdminPanel() {
     queryFn: () => adminClient.approvalsPaged("?page=1&limit=100"),
     refetchInterval: 8000,
   });
-  const canManage =
-    identity.role === "super_admin" || identity.role === "game_operator";
+  const canManage = canManageGames(identity.role);
   const gameApprovals = useMemo(
     () =>
       (approvals.data?.data || []).filter(

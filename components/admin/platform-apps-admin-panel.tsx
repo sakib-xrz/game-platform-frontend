@@ -35,6 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { adminClient } from "@/lib/admin-client";
+import { hasAdminPermission } from "@/lib/admin-permissions";
 import type { PlatformAppRecord } from "@/types/admin";
 
 type FormState = {
@@ -63,7 +64,7 @@ function formFromApp(app: PlatformAppRecord): FormState {
 export function PlatformAppsAdminPanel() {
   const identity = useAdminIdentity();
   const queryClient = useQueryClient();
-  const canManage = identity.role === "super_admin";
+  const canManage = hasAdminPermission(identity.role, "platform.app.manage");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<PlatformAppRecord | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm());

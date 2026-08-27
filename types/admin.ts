@@ -1,4 +1,4 @@
-export type AdminRole = "super_admin" | "game_operator" | "finance_operator" | "support" | "auditor";
+export type AdminRole = "dev_super_admin" | "super_admin" | "game_operator" | "finance_operator" | "support" | "auditor";
 
 export type AdminIdentity = {
   id: string;

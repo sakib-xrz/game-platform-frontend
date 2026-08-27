@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Smartphone,
   Spade,
+  UserCog,
   Users,
 } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
@@ -30,6 +31,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { adminFetch } from "@/lib/admin-client";
+import { hasAdminPermission, roleLabel, type AdminPermission } from "@/lib/admin-permissions";
 import { cn } from "@/lib/utils";
 import type { AdminIdentity } from "@/types/admin";
 
@@ -37,35 +39,42 @@ const navigation: Array<{
   href: string;
   label: string;
   icon: ComponentType<{ className?: string }>;
+  permission: AdminPermission;
 }> = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/greedy", label: "Manage Greedy", icon: Dices },
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard, permission: "dashboard.read" },
+  { href: "/admin/greedy", label: "Manage Greedy", icon: Dices, permission: "game.config.draft.create" },
   {
     href: "/admin/greedy-classic",
     label: "Manage Greedy Classic",
     icon: Gamepad2,
+    permission: "game.config.draft.create",
   },
-  { href: "/admin/teen-patti", label: "Manage Teen Patti", icon: Spade },
-  { href: "/admin/lucky-77", label: "Manage Lucky 77", icon: ShieldCheck },
-  { href: "/admin/apps", label: "Platform Apps", icon: Smartphone },
-  { href: "/admin/platform-users", label: "Platform Users", icon: Users },
+  { href: "/admin/teen-patti", label: "Manage Teen Patti", icon: Spade, permission: "game.config.draft.create" },
+  { href: "/admin/lucky-77", label: "Manage Lucky 77", icon: ShieldCheck, permission: "game.config.draft.create" },
+  { href: "/admin/apps", label: "Platform Apps", icon: Smartphone, permission: "platform.app.read" },
+  { href: "/admin/platform-users", label: "Platform Users", icon: Users, permission: "platform.user.read" },
   {
     href: "/admin/balance",
     label: "Adjust User Balance",
     icon: CircleDollarSign,
+    permission: "wallet.adjust.create",
   },
+  { href: "/admin/admins", label: "Create Admin", icon: UserCog, permission: "admin.manage" },
 ];
 
 function Navigation({
   pathname,
+  identity,
   mobile = false,
 }: {
   pathname: string;
+  identity: AdminIdentity;
   mobile?: boolean;
 }) {
+  const items = navigation.filter((item) => hasAdminPermission(identity.role, item.permission));
   return (
     <nav className="grid gap-1 px-3">
-      {navigation.map(({ href, label, icon: Icon }) => {
+      {items.map(({ href, label, icon: Icon }) => {
         const active = pathname === href;
         const link = (
           <Link
@@ -134,7 +143,7 @@ export function AdminShell({
         <Brand />
         <Separator />
         <div className="flex-1 py-4">
-          <Navigation pathname={pathname} />
+          <Navigation pathname={pathname} identity={identity} />
         </div>
         <Separator />
         <div className="space-y-3 p-4">
@@ -147,7 +156,7 @@ export function AdminShell({
                 {identity.display_name}
               </p>
               <Badge variant="secondary" className="mt-1 capitalize">
-                {identity.role.replaceAll("_", " ")}
+                {roleLabel(identity.role)}
               </Badge>
             </div>
           </div>
@@ -177,7 +186,7 @@ export function AdminShell({
               <Brand />
               <Separator />
               <div className="py-4">
-                <Navigation pathname={pathname} mobile />
+                <Navigation pathname={pathname} identity={identity} mobile />
               </div>
             </SheetContent>
           </Sheet>
