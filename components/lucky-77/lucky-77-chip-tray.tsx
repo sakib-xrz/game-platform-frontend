@@ -1,10 +1,22 @@
 "use client";
 
+import clsx from "clsx";
 import { RotateCcw } from "lucide-react";
-import { formatCompactAmount, formatInteger } from "@/lib/format";
+import type { CSSProperties } from "react";
+import { CASINO_CHIP_THEMES } from "@/lib/chip-themes";
+import { formatInteger } from "@/lib/format";
 import type { ChipValue } from "@/types/greedy";
 
-const CHIP_TONES = ["green", "blue", "red", "pink", "violet", "gold"] as const;
+function compactChipAmount(amount: string): string {
+  try {
+    const value = BigInt(amount);
+    if (value >= 1_000_000n && value % 1_000_000n === 0n) return `${value / 1_000_000n}M`;
+    if (value >= 1_000n && value % 1_000n === 0n) return `${value / 1_000n}K`;
+  } catch {
+    return amount;
+  }
+  return formatInteger(amount);
+}
 
 export function Lucky77ChipTray({
   chips,
@@ -31,6 +43,8 @@ export function Lucky77ChipTray({
         {chips.map((chip, index) => {
           const active = chip.amount === selected;
           const unavailable = disabled || disabledAmounts.has(chip.amount);
+          const theme = CASINO_CHIP_THEMES[index % CASINO_CHIP_THEMES.length]!;
+
           return (
             <button
               key={chip.id}
@@ -38,11 +52,19 @@ export function Lucky77ChipTray({
               role="radio"
               aria-checked={active}
               aria-label={`${formatInteger(chip.amount)} coin chip`}
-              className={`l77-chip l77-chip--${CHIP_TONES[index % CHIP_TONES.length]}${active ? " is-active" : ""}`}
+              className={clsx("l77-chip", active && "is-active")}
+              style={
+                {
+                  "--chip-rim": theme.rim,
+                  "--chip-core": theme.core,
+                  "--chip-ink": theme.ink,
+                } as CSSProperties
+              }
               disabled={unavailable}
               onClick={() => onChange(chip.amount)}
             >
-              <span>{formatCompactAmount(chip.amount)}</span>
+              <span className="l77-chip__ring" aria-hidden="true" />
+              <span className="l77-chip__face">{compactChipAmount(chip.amount)}</span>
             </button>
           );
         })}
