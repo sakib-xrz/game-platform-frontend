@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { KeyRound, Loader2, Plus, RefreshCw, Shield, UserCog } from "lucide-react";
+import { AppWindow, KeyRound, Loader2, Plus, RefreshCw, Shield, UserCog } from "lucide-react";
 import { toast } from "sonner";
 import { useAdminIdentity } from "@/components/admin/admin-gate";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -35,20 +35,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { adminClient } from "@/lib/admin-client";
-import { ASSIGNABLE_ROLES, hasAdminPermission, roleLabel } from "@/lib/admin-permissions";
+import { hasAdminPermission, roleLabel } from "@/lib/admin-permissions";
 import type { AdminRole, AdminUserRecord } from "@/types/admin";
 
 type CreateFormState = {
   email: string;
   display_name: string;
-  role: AdminRole;
+  platform_app_id: string;
   password: string;
 };
 
-const emptyCreateForm = (defaultRole: AdminRole): CreateFormState => ({
+const emptyCreateForm = (): CreateFormState => ({
   email: "",
   display_name: "",
-  role: defaultRole,
+  platform_app_id: "",
   password: "",
 });
 
@@ -62,16 +62,20 @@ export function AdminUsersPanel() {
   const identity = useAdminIdentity();
   const queryClient = useQueryClient();
   const canManage = hasAdminPermission(identity.role, "admin.manage");
-  const assignableRoles = ASSIGNABLE_ROLES[identity.role];
-  const defaultRole = assignableRoles[0] ?? "game_operator";
   const [createOpen, setCreateOpen] = useState(false);
-  const [createForm, setCreateForm] = useState<CreateFormState>(() => emptyCreateForm(defaultRole));
+  const [createForm, setCreateForm] = useState<CreateFormState>(() => emptyCreateForm());
   const [resetTarget, setResetTarget] = useState<AdminUserRecord | null>(null);
   const [resetPassword, setResetPassword] = useState("");
 
   const admins = useQuery({
     queryKey: ["admin", "admin-users"],
     queryFn: () => adminClient.adminUsers(),
+    enabled: canManage,
+  });
+
+  const platformApps = useQuery({
+    queryKey: ["admin", "platform-apps"],
+    queryFn: () => adminClient.platformApps(),
     enabled: canManage,
   });
 
@@ -85,18 +89,31 @@ export function AdminUsersPanel() {
   };
 
   const create = useMutation({
-    mutationFn: () =>
-      adminClient.createAdminUser({
+    mutationFn: () => {
+      if (!createForm.email.trim()) {
+        throw new Error("Email is mandatory");
+      }
+      if (!createForm.display_name.trim()) {
+        throw new Error("Display name is mandatory");
+      }
+      if (!createForm.platform_app_id.trim()) {
+        throw new Error("Platform app selection is mandatory");
+      }
+      if (!createForm.password) {
+        throw new Error("Temporary password is mandatory");
+      }
+      return adminClient.createAdminUser({
         email: createForm.email.trim(),
         display_name: createForm.display_name.trim(),
-        role: createForm.role,
+        platform_app_id: createForm.platform_app_id.trim(),
         password: createForm.password,
         force_password_change: true,
-      }),
+      });
+    },
     onSuccess: async () => {
-      toast.success("Admin account created");
+      toast.success("Admin account created and assigned to platform app");
       setCreateOpen(false);
-      setCreateForm(emptyCreateForm(defaultRole));
+      setCreateForm(emptyCreateForm());
       await refresh();
     },
     onError: (reason) =>
@@ -137,7 +154,7 @@ export function AdminUsersPanel() {
   });
 
   function openCreate() {
-    setCreateForm(emptyCreateForm(defaultRole));
+    setCreateForm(emptyCreateForm());
     setCreateOpen(true);
   }
 
@@ -167,9 +184,7 @@ export function AdminUsersPanel() {
           <p className="text-sm font-medium text-slate-500">Account administration</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight">Create Admin</h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-500">
-            {identity.role === "super_admin"
-              ? "Create game admin accounts with access to the four game management consoles only."
-              : "Create and manage admin accounts across the platform."}
+            Create and manage administrator accounts assigned to your registered platform apps.
           </p>
         </div>
         <Button onClick={openCreate}>
@@ -187,16 +202,16 @@ export function AdminUsersPanel() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Active game admins</CardDescription>
+            <CardDescription>Active platform app admins</CardDescription>
             <CardTitle className="text-3xl">
-              {visibleAdmins.filter((item) => item.role === "game_operator" && item.status === "active").length}
+              {visibleAdmins.filter((item) => item.status === "active").length}
             </CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Your role</CardDescription>
-            <CardTitle className="text-xl capitalize">{roleLabel(identity.role)}</CardTitle>
+            <CardDescription>Platform apps available</CardDescription>
+            <CardTitle className="text-3xl">{(platformApps.data || []).length}</CardTitle>
           </CardHeader>
         </Card>
       </div>
@@ -209,7 +224,7 @@ export function AdminUsersPanel() {
               Admin accounts
             </CardTitle>
             <CardDescription>
-              Super admins can only manage game operator accounts. Dev super admins can manage all roles.
+              Administrators assigned to platform apps with console access.
             </CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={() => refresh()} disabled={admins.isFetching}>
@@ -228,7 +243,7 @@ export function AdminUsersPanel() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Admin</TableHead>
-                  <TableHead>Role</TableHead>
+                  <TableHead>Assigned Platform App</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -243,9 +258,19 @@ export function AdminUsersPanel() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="capitalize">
-                        {roleLabel(record.role)}
-                      </Badge>
+                      {record.platform_app ? (
+                        <div>
+                          <Badge variant="secondary" className="font-medium">
+                            <AppWindow className="mr-1 size-3" />
+                            {record.platform_app.app_name}
+                          </Badge>
+                          <p className="mt-0.5 text-xs text-slate-500">{record.platform_app.package_name}</p>
+                        </div>
+                      ) : (
+                        <Badge variant="outline" className="text-slate-400 capitalize">
+                          {roleLabel(record.role)}
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -304,25 +329,31 @@ export function AdminUsersPanel() {
           <DialogHeader>
             <DialogTitle>Create admin account</DialogTitle>
             <DialogDescription>
-              New accounts must use a strong password and will be forced to change it on first login.
+              Assign the new administrator to a registered platform app. All fields are mandatory.
             </DialogDescription>
           </DialogHeader>
           <form className="space-y-4" onSubmit={submitCreate}>
             <div className="space-y-2">
-              <Label htmlFor="admin-email">Email</Label>
+              <Label htmlFor="admin-email">
+                Email <span className="text-rose-500">*</span>
+              </Label>
               <Input
                 id="admin-email"
                 type="email"
                 required
+                placeholder="admin@example.com"
                 value={createForm.email}
                 onChange={(event) => setCreateForm((current) => ({ ...current, email: event.target.value }))}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="admin-name">Display name</Label>
+              <Label htmlFor="admin-name">
+                Display name <span className="text-rose-500">*</span>
+              </Label>
               <Input
                 id="admin-name"
                 required
+                placeholder="e.g. John Doe"
                 value={createForm.display_name}
                 onChange={(event) =>
                   setCreateForm((current) => ({ ...current, display_name: event.target.value }))
@@ -330,32 +361,53 @@ export function AdminUsersPanel() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="admin-role">Role</Label>
-              <Select
-                value={createForm.role}
-                onValueChange={(value) =>
-                  setCreateForm((current) => ({ ...current, role: value as AdminRole }))
-                }
-              >
-                <SelectTrigger id="admin-role">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {assignableRoles.map((role) => (
-                    <SelectItem key={role} value={role} className="capitalize">
-                      {roleLabel(role)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="admin-platform-app">
+                Platform App <span className="text-rose-500">*</span>
+              </Label>
+              {platformApps.isLoading ? (
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <Loader2 className="size-4 animate-spin" />
+                  Loading platform apps…
+                </div>
+              ) : (platformApps.data || []).length === 0 ? (
+                <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+                  No platform apps found. Please create a platform app first in the{" "}
+                  <a href="/admin/apps" className="underline font-semibold text-white">
+                    Platform Apps
+                  </a>{" "}
+                  section.
+                </div>
+              ) : (
+                <Select
+                  value={createForm.platform_app_id}
+                  onValueChange={(value) =>
+                    setCreateForm((current) => ({ ...current, platform_app_id: value }))
+                  }
+                  required
+                >
+                  <SelectTrigger id="admin-platform-app">
+                    <SelectValue placeholder="Select platform app" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(platformApps.data || []).map((app) => (
+                      <SelectItem key={app.id} value={app.id}>
+                        {app.app_name} ({app.package_name})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="admin-password">Temporary password</Label>
+              <Label htmlFor="admin-password">
+                Temporary password <span className="text-rose-500">*</span>
+              </Label>
               <Input
                 id="admin-password"
                 type="password"
                 required
                 minLength={12}
+                placeholder="Min. 12 characters"
                 value={createForm.password}
                 onChange={(event) =>
                   setCreateForm((current) => ({ ...current, password: event.target.value }))
@@ -363,7 +415,10 @@ export function AdminUsersPanel() {
               />
             </div>
             <DialogFooter>
-              <Button type="submit" disabled={create.isPending}>
+              <Button
+                type="submit"
+                disabled={create.isPending || !createForm.platform_app_id}
+              >
                 {create.isPending ? <Loader2 className="animate-spin" /> : null}
                 Create account
               </Button>
