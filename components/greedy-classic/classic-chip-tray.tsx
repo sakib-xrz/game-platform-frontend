@@ -5,16 +5,31 @@ import { useRef } from "react";
 import { formatInteger } from "@/lib/format";
 import type { ChipValue } from "@/types/greedy";
 
-const CHIP_TONES = [
-  "green",
-  "blue",
-  "red",
-  "pink",
-  "violet",
-  "gold",
-  "orange",
-  "cyan",
+/**
+ * Casino chip palette rotates by chip index so each coin has a distinct vivid color,
+ * matching the Teen Patti circular coin design.
+ */
+const CHIP_THEMES = [
+  { rim: "#34b759", core: "#c6f8d5", ink: "#0d5422" },
+  { rim: "#258ee8", core: "#c5e5ff", ink: "#0a3a69" },
+  { rim: "#e84040", core: "#ffd0d0", ink: "#681212" },
+  { rim: "#d946a6", core: "#ffd2f1", ink: "#66134b" },
+  { rim: "#7c4deb", core: "#e2d3ff", ink: "#2d1863" },
+  { rim: "#e5a119", core: "#fff0b3", ink: "#613c04" },
+  { rim: "#ea661c", core: "#ffdcbe", ink: "#632205" },
+  { rim: "#12b8d6", core: "#c2f7ff", ink: "#074e5c" },
 ] as const;
+
+function compactChipAmount(amount: string): string {
+  try {
+    const value = BigInt(amount);
+    if (value >= 1_000_000n && value % 1_000_000n === 0n) return `${value / 1_000_000n}M`;
+    if (value >= 1_000n && value % 1_000n === 0n) return `${value / 1_000n}K`;
+  } catch {
+    return amount;
+  }
+  return formatInteger(amount);
+}
 
 export function ClassicChipTray({
   chips,
@@ -77,7 +92,7 @@ export function ClassicChipTray({
           const active = chip.amount === selected;
           const unavailable = Boolean(disabledAmounts?.has(chip.amount));
           const chipDisabled = disabled || unavailable;
-          const tone = CHIP_TONES[index % CHIP_TONES.length];
+          const theme = CHIP_THEMES[index % CHIP_THEMES.length];
 
           return (
             <button
@@ -88,9 +103,13 @@ export function ClassicChipTray({
               }}
               className={clsx(
                 "gc-chip",
-                `gc-chip--${tone}`,
                 active && "gc-chip--active",
               )}
+              style={{
+                "--chip-rim": theme.rim,
+                "--chip-core": theme.core,
+                "--chip-ink": theme.ink,
+              } as React.CSSProperties}
               role="radio"
               aria-checked={active}
               tabIndex={active ? 0 : -1}
@@ -113,11 +132,8 @@ export function ClassicChipTray({
                 }
               }}
             >
-              <span className="gc-chip__face" aria-hidden="true">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/assets/greedy-classic/silver-token.png" alt="" />
-              </span>
-              <strong>{formatInteger(chip.amount)}</strong>
+              <span className="gc-chip__ring" aria-hidden="true" />
+              <span className="gc-chip__face">{compactChipAmount(chip.amount)}</span>
             </button>
           );
         })}

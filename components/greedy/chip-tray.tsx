@@ -5,16 +5,31 @@ import { useRef } from "react";
 import { formatInteger } from "@/lib/format";
 import type { ChipValue } from "@/types/greedy";
 
-const CHIP_TONES = [
-  "green",
-  "blue",
-  "red",
-  "pink",
-  "violet",
-  "gold",
-  "orange",
-  "cyan",
+/**
+ * Casino chip palette rotates by chip index so each coin has a distinct vivid color,
+ * matching the Teen Patti circular coin design.
+ */
+const CHIP_THEMES = [
+  { rim: "#34b759", core: "#c6f8d5", ink: "#0d5422" },
+  { rim: "#258ee8", core: "#c5e5ff", ink: "#0a3a69" },
+  { rim: "#e84040", core: "#ffd0d0", ink: "#681212" },
+  { rim: "#d946a6", core: "#ffd2f1", ink: "#66134b" },
+  { rim: "#7c4deb", core: "#e2d3ff", ink: "#2d1863" },
+  { rim: "#e5a119", core: "#fff0b3", ink: "#613c04" },
+  { rim: "#ea661c", core: "#ffdcbe", ink: "#632205" },
+  { rim: "#12b8d6", core: "#c2f7ff", ink: "#074e5c" },
 ] as const;
+
+function compactChipAmount(amount: string): string {
+  try {
+    const value = BigInt(amount);
+    if (value >= 1_000_000n && value % 1_000_000n === 0n) return `${value / 1_000_000n}M`;
+    if (value >= 1_000n && value % 1_000n === 0n) return `${value / 1_000n}K`;
+  } catch {
+    return amount;
+  }
+  return formatInteger(amount);
+}
 
 export function ChipTray({
   chips,
@@ -64,7 +79,7 @@ export function ChipTray({
       {chips.map((chip, index) => {
         const active = chip.amount === selected;
         const chipDisabled = disabled || Boolean(disabledAmounts?.has(chip.amount));
-        const tone = CHIP_TONES[index % CHIP_TONES.length];
+        const theme = CHIP_THEMES[index % CHIP_THEMES.length];
         return (
           <button
             type="button"
@@ -82,15 +97,20 @@ export function ChipTray({
             disabled={chipDisabled}
             className={clsx(
               "machine-chip",
-              `machine-chip--${tone}`,
               active && "machine-chip--active",
             )}
+            style={{
+              "--chip-rim": theme.rim,
+              "--chip-core": theme.core,
+              "--chip-ink": theme.ink,
+            } as React.CSSProperties}
             role="radio"
             aria-checked={active}
             tabIndex={active ? 0 : -1}
             aria-label={`${formatInteger(chip.amount)} coin chip${chipDisabled && !disabled ? ", unavailable for this bet" : ""}`}
           >
-            <span>{formatInteger(chip.amount)}</span>
+            <span className="machine-chip__ring" aria-hidden="true" />
+            <span className="machine-chip__face">{compactChipAmount(chip.amount)}</span>
           </button>
         );
       })}
