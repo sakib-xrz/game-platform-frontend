@@ -699,10 +699,9 @@
 }
 
 .gc-option__bettor-avatar {
-  width: 3.4cqw;
-  height: 3.4cqw;
-  border-width: 0.25cqw;
-  box-shadow: 0 0.35cqw 0.7cqw rgba(35, 0, 2, 0.35);
+  width: 4.8cqw;
+  height: 4.8cqw;
+  filter: drop-shadow(0 0.4cqw 0.8cqw rgba(0, 0, 0, 0.4));
 }
 
 .gc-option__coin-landing {
@@ -711,8 +710,10 @@
   z-index: 10;
   top: 46%;
   left: 50%;
-  width: 7cqw;
-  height: 7cqw;
+  display: grid;
+  width: 7.2cqw;
+  height: 7.2cqw;
+  place-items: center;
   transform: translate(-50%, -50%);
   pointer-events: none;
   animation: gcCoinLand 760ms cubic-bezier(0.2, 0.86, 0.22, 1) both;
@@ -725,11 +726,10 @@
   --gc-coin-x: 4.4cqw;
 }
 
-.gc-option__coin-landing img {
+.gc-option__coin-landing .player-avatar__coin {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 0.7cqw 0.6cqw rgba(38, 0, 2, 0.46));
+  filter: drop-shadow(0 0.8cqw 1.2cqw rgba(0, 0, 0, 0.45));
 }
 
 .gc-dial {

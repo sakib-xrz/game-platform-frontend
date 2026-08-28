@@ -1,7 +1,10 @@
 "use client";
 
 import clsx from "clsx";
+import type { CSSProperties } from "react";
 import { BettorAvatarScatter } from "@/components/greedy/bettor-avatar-scatter";
+import type { BetLanding } from "@/hooks/use-greedy-game";
+import { getChipThemeForAmount } from "@/lib/chip-themes";
 import {
   ClassicOptionArtwork,
   getClassicOptionDisplayName,
@@ -27,7 +30,7 @@ export function ClassicOptionCard({
   disabled,
   busy,
   bettors,
-  landingIds,
+  landings = [],
   onPress,
 }: {
   option: PublicOption;
@@ -39,7 +42,7 @@ export function ClassicOptionCard({
   disabled: boolean;
   busy: boolean;
   bettors: PublicBetAggregate[];
-  landingIds: string[];
+  landings?: BetLanding[];
   onPress: () => void;
 }) {
   const hasBet = BigInt(myBet || "0") > 0n;
@@ -91,16 +94,26 @@ export function ClassicOptionCard({
           <span className="gc-option__winner-badge">Winner</span>
         ) : null}
 
-        {landingIds.map((landingId, index) => (
-          <span
-            key={landingId}
-            className={`gc-option__coin-landing gc-option__coin-landing--${index % 3}`}
-            aria-hidden="true"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/assets/greedy-classic/silver-token.png" alt="" />
-          </span>
-        ))}
+        {landings.map((landing, index) => {
+          const theme = getChipThemeForAmount(landing.amount, index);
+          return (
+            <span
+              key={landing.id}
+              className={`gc-option__coin-landing gc-option__coin-landing--${index % 3}`}
+              style={{
+                "--chip-rim": theme.rim,
+                "--chip-core": theme.core,
+                "--chip-ink": theme.ink,
+              } as CSSProperties}
+              aria-hidden="true"
+            >
+              <span className="player-avatar__coin">
+                <span className="player-avatar__coin-rim" />
+                <span className="player-avatar__coin-core" />
+              </span>
+            </span>
+          );
+        })}
 
         <span className="gc-option__art" aria-hidden="true">
           <ClassicOptionArtwork

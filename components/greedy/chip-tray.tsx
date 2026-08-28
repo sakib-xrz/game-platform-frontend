@@ -2,23 +2,9 @@
 
 import clsx from "clsx";
 import { useRef } from "react";
+import { CASINO_CHIP_THEMES } from "@/lib/chip-themes";
 import { formatInteger } from "@/lib/format";
 import type { ChipValue } from "@/types/greedy";
-
-/**
- * Casino chip palette rotates by chip index so each coin has a distinct vivid color,
- * matching the Teen Patti circular coin design.
- */
-const CHIP_THEMES = [
-  { rim: "#34b759", core: "#c6f8d5", ink: "#0d5422" },
-  { rim: "#258ee8", core: "#c5e5ff", ink: "#0a3a69" },
-  { rim: "#e84040", core: "#ffd0d0", ink: "#681212" },
-  { rim: "#d946a6", core: "#ffd2f1", ink: "#66134b" },
-  { rim: "#7c4deb", core: "#e2d3ff", ink: "#2d1863" },
-  { rim: "#e5a119", core: "#fff0b3", ink: "#613c04" },
-  { rim: "#ea661c", core: "#ffdcbe", ink: "#632205" },
-  { rim: "#12b8d6", core: "#c2f7ff", ink: "#074e5c" },
-] as const;
 
 function compactChipAmount(amount: string): string {
   try {
@@ -79,7 +65,7 @@ export function ChipTray({
       {chips.map((chip, index) => {
         const active = chip.amount === selected;
         const chipDisabled = disabled || Boolean(disabledAmounts?.has(chip.amount));
-        const theme = CHIP_THEMES[index % CHIP_THEMES.length];
+        const theme = CASINO_CHIP_THEMES[index % CASINO_CHIP_THEMES.length]!;
         return (
           <button
             type="button"

@@ -490,9 +490,9 @@ export function GreedyClassicGameScreen() {
               disabled={!canBet}
               busy={pendingOptionIds.has(option.id)}
               bettors={bettorsByOption.get(option.id) ?? []}
-              landingIds={betLandings
-                .filter((landing) => landing.optionId === option.id)
-                .map((landing) => landing.id)}
+              landings={betLandings.filter(
+                (landing) => landing.optionId === option.id,
+              )}
               onPress={() =>
                 void handlePlaceBet(option, effectiveSelectedChip)
               }
