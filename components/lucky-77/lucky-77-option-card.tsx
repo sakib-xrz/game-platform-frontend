@@ -54,6 +54,7 @@ export function Lucky77OptionCard({
         selected && "is-selected",
         winner && "is-winner",
         locked && "is-locked",
+        busy && "is-busy",
         landings.length > 0 && "l77-option--flying-landing",
       )}
       style={
@@ -138,7 +139,11 @@ export function Lucky77OptionCard({
           <small>Pays</small>
           {multiplier.toUpperCase()}
         </strong>
-        {busy ? <span className="l77-option__busy" aria-hidden="true" /> : null}
+        {busy ? (
+          <span className="l77-option__busy" aria-hidden="true">
+            <span className="l77-option__busy-spinner" />
+          </span>
+        ) : null}
       </button>
 
       {winner ? (
