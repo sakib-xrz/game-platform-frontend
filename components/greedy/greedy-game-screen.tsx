@@ -687,7 +687,7 @@ export function GreedyGameScreen() {
                 tap places another bet immediately.
               </li>
               <li>
-                Options flash in a random order during the draw. The last
+                Options highlight in sequence during the draw. The last
                 highlight is the verified winner from the server.
               </li>
             </ol>
