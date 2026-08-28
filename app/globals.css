@@ -866,24 +866,6 @@ a:focus-visible {
     box-shadow 120ms ease;
 }
 
-.machine-chip--active {
-  border-color: #92252b;
-  background: #ff5d64;
-  box-shadow:
-    inset 0 0.75cqw 0 #ff9ca1,
-    0 0.65cqw 0 #a7252d;
-}
-
-.machine-chip:disabled {
-  cursor: default;
-  opacity: 0.48;
-  filter: saturate(0.45);
-}
-
-.machine-chip:active:not(:disabled) {
-  transform: translateY(0.45cqw);
-}
-
 .machine-chip span {
   display: grid;
   width: 9.6cqw;
@@ -897,14 +879,248 @@ a:focus-visible {
     #ffe265 23% 57%,
     #f2b923 76% 100%
   );
-  color: #8a5b09;
+  color: #ffffff;
   font-size: 2.95cqw;
-  font-weight: 950;
+  font-weight: 1000;
   letter-spacing: -0.05em;
-  text-shadow: 0 0.25cqw 0 rgba(255, 255, 255, 0.65);
+  text-shadow: 0 0.25cqw 0.35cqw rgba(0, 0, 0, 0.45);
   box-shadow:
-    inset 0 0 0 0.55cqw rgba(255, 247, 160, 0.58),
-    0 0.4cqw 0.6cqw rgba(88, 54, 0, 0.2);
+    inset 0 0 0 0.55cqw rgba(255, 255, 255, 0.4),
+    0 0.4cqw 0.6cqw rgba(0, 0, 0, 0.3);
+}
+
+.machine-chip:disabled {
+  cursor: default;
+  opacity: 0.48;
+  filter: saturate(0.45);
+}
+
+.machine-chip:active:not(:disabled) {
+  transform: translateY(0.45cqw);
+}
+
+/* Green chip (e.g. 10) */
+.machine-chip--green {
+  border-color: #14532d;
+  background: #dcfce7;
+  box-shadow:
+    inset 0 0.75cqw 0 #bbf7d0,
+    0 0.65cqw 0 #166534;
+}
+.machine-chip--green span {
+  border-color: #14532d;
+  background: radial-gradient(circle at 35% 25%, #86efac 0%, #22c55e 40%, #15803d 100%);
+  color: #ffffff;
+  text-shadow: 0 0.25cqw 0.4cqw rgba(5, 46, 22, 0.7);
+  box-shadow:
+    inset 0 0 0 0.55cqw rgba(255, 255, 255, 0.45),
+    0 0.4cqw 0.6cqw rgba(5, 46, 22, 0.35);
+}
+.machine-chip--green.machine-chip--active {
+  border-color: #ffd65d;
+  background: #22c55e;
+  transform: translateY(-0.6cqw) scale(1.06);
+  box-shadow:
+    inset 0 0.75cqw 0 #86efac,
+    0 0 0 0.4cqw #fef08a,
+    0 0.65cqw 0 #14532d,
+    0 0 1.6cqw rgba(34, 197, 94, 0.75);
+}
+
+/* Blue chip (e.g. 50) */
+.machine-chip--blue {
+  border-color: #1e3a8a;
+  background: #dbeafe;
+  box-shadow:
+    inset 0 0.75cqw 0 #bfdbfe,
+    0 0.65cqw 0 #1d4ed8;
+}
+.machine-chip--blue span {
+  border-color: #1e3a8a;
+  background: radial-gradient(circle at 35% 25%, #93c5fd 0%, #3b82f6 40%, #1d4ed8 100%);
+  color: #ffffff;
+  text-shadow: 0 0.25cqw 0.4cqw rgba(15, 23, 42, 0.7);
+  box-shadow:
+    inset 0 0 0 0.55cqw rgba(255, 255, 255, 0.45),
+    0 0.4cqw 0.6cqw rgba(15, 23, 42, 0.35);
+}
+.machine-chip--blue.machine-chip--active {
+  border-color: #ffd65d;
+  background: #3b82f6;
+  transform: translateY(-0.6cqw) scale(1.06);
+  box-shadow:
+    inset 0 0.75cqw 0 #93c5fd,
+    0 0 0 0.4cqw #fef08a,
+    0 0.65cqw 0 #1e3a8a,
+    0 0 1.6cqw rgba(59, 130, 246, 0.75);
+}
+
+/* Red chip (e.g. 100) */
+.machine-chip--red {
+  border-color: #7f1d1d;
+  background: #fee2e2;
+  box-shadow:
+    inset 0 0.75cqw 0 #fecaca,
+    0 0.65cqw 0 #b91c1c;
+}
+.machine-chip--red span {
+  border-color: #7f1d1d;
+  background: radial-gradient(circle at 35% 25%, #fca5a5 0%, #ef4444 40%, #b91c1c 100%);
+  color: #ffffff;
+  text-shadow: 0 0.25cqw 0.4cqw rgba(69, 10, 10, 0.7);
+  box-shadow:
+    inset 0 0 0 0.55cqw rgba(255, 255, 255, 0.45),
+    0 0.4cqw 0.6cqw rgba(69, 10, 10, 0.35);
+}
+.machine-chip--red.machine-chip--active {
+  border-color: #ffd65d;
+  background: #ef4444;
+  transform: translateY(-0.6cqw) scale(1.06);
+  box-shadow:
+    inset 0 0.75cqw 0 #fca5a5,
+    0 0 0 0.4cqw #fef08a,
+    0 0.65cqw 0 #7f1d1d,
+    0 0 1.6cqw rgba(239, 68, 68, 0.75);
+}
+
+/* Pink chip (e.g. 500) */
+.machine-chip--pink {
+  border-color: #831843;
+  background: #fce7f3;
+  box-shadow:
+    inset 0 0.75cqw 0 #fbcfe8,
+    0 0.65cqw 0 #be185d;
+}
+.machine-chip--pink span {
+  border-color: #831843;
+  background: radial-gradient(circle at 35% 25%, #f9a8d4 0%, #ec4899 40%, #be185d 100%);
+  color: #ffffff;
+  text-shadow: 0 0.25cqw 0.4cqw rgba(80, 7, 36, 0.7);
+  box-shadow:
+    inset 0 0 0 0.55cqw rgba(255, 255, 255, 0.45),
+    0 0.4cqw 0.6cqw rgba(80, 7, 36, 0.35);
+}
+.machine-chip--pink.machine-chip--active {
+  border-color: #ffd65d;
+  background: #ec4899;
+  transform: translateY(-0.6cqw) scale(1.06);
+  box-shadow:
+    inset 0 0.75cqw 0 #f9a8d4,
+    0 0 0 0.4cqw #fef08a,
+    0 0.65cqw 0 #831843,
+    0 0 1.6cqw rgba(236, 72, 153, 0.75);
+}
+
+/* Violet chip (e.g. 1000) */
+.machine-chip--violet {
+  border-color: #4c1d95;
+  background: #ede9fe;
+  box-shadow:
+    inset 0 0.75cqw 0 #ddd6fe,
+    0 0.65cqw 0 #6d28d9;
+}
+.machine-chip--violet span {
+  border-color: #4c1d95;
+  background: radial-gradient(circle at 35% 25%, #c4b5fd 0%, #8b5cf6 40%, #6d28d9 100%);
+  color: #ffffff;
+  text-shadow: 0 0.25cqw 0.4cqw rgba(46, 16, 101, 0.7);
+  box-shadow:
+    inset 0 0 0 0.55cqw rgba(255, 255, 255, 0.45),
+    0 0.4cqw 0.6cqw rgba(46, 16, 101, 0.35);
+}
+.machine-chip--violet.machine-chip--active {
+  border-color: #ffd65d;
+  background: #8b5cf6;
+  transform: translateY(-0.6cqw) scale(1.06);
+  box-shadow:
+    inset 0 0.75cqw 0 #c4b5fd,
+    0 0 0 0.4cqw #fef08a,
+    0 0.65cqw 0 #4c1d95,
+    0 0 1.6cqw rgba(139, 92, 246, 0.75);
+}
+
+/* Gold chip (e.g. 5000) */
+.machine-chip--gold {
+  border-color: #78350f;
+  background: #fef3c7;
+  box-shadow:
+    inset 0 0.75cqw 0 #fde68a,
+    0 0.65cqw 0 #b45309;
+}
+.machine-chip--gold span {
+  border-color: #78350f;
+  background: radial-gradient(circle at 35% 25%, #fef08a 0%, #f59e0b 45%, #b45309 100%);
+  color: #ffffff;
+  text-shadow: 0 0.25cqw 0.4cqw rgba(69, 26, 3, 0.7);
+  box-shadow:
+    inset 0 0 0 0.55cqw rgba(255, 255, 255, 0.5),
+    0 0.4cqw 0.6cqw rgba(69, 26, 3, 0.35);
+}
+.machine-chip--gold.machine-chip--active {
+  border-color: #ffffff;
+  background: #f59e0b;
+  transform: translateY(-0.6cqw) scale(1.06);
+  box-shadow:
+    inset 0 0.75cqw 0 #fde68a,
+    0 0 0 0.4cqw #ffffff,
+    0 0.65cqw 0 #78350f,
+    0 0 1.6cqw rgba(245, 158, 11, 0.75);
+}
+
+/* Orange chip (e.g. 10000) */
+.machine-chip--orange {
+  border-color: #7c2d12;
+  background: #ffedd5;
+  box-shadow:
+    inset 0 0.75cqw 0 #fed7aa,
+    0 0.65cqw 0 #c2410c;
+}
+.machine-chip--orange span {
+  border-color: #7c2d12;
+  background: radial-gradient(circle at 35% 25%, #fed7aa 0%, #f97316 40%, #c2410c 100%);
+  color: #ffffff;
+  text-shadow: 0 0.25cqw 0.4cqw rgba(67, 20, 7, 0.7);
+  box-shadow:
+    inset 0 0 0 0.55cqw rgba(255, 255, 255, 0.45),
+    0 0.4cqw 0.6cqw rgba(67, 20, 7, 0.35);
+}
+.machine-chip--orange.machine-chip--active {
+  border-color: #ffd65d;
+  background: #f97316;
+  transform: translateY(-0.6cqw) scale(1.06);
+  box-shadow:
+    inset 0 0.75cqw 0 #fed7aa,
+    0 0 0 0.4cqw #fef08a,
+    0 0.65cqw 0 #7c2d12,
+    0 0 1.6cqw rgba(249, 115, 22, 0.75);
+}
+
+/* Cyan chip (e.g. 50000) */
+.machine-chip--cyan {
+  border-color: #164e63;
+  background: #cffafe;
+  box-shadow:
+    inset 0 0.75cqw 0 #a5f3fc,
+    0 0.65cqw 0 #0e7490;
+}
+.machine-chip--cyan span {
+  border-color: #164e63;
+  background: radial-gradient(circle at 35% 25%, #a5f3fc 0%, #06b6d4 40%, #0e7490 100%);
+  color: #ffffff;
+  text-shadow: 0 0.25cqw 0.4cqw rgba(8, 51, 68, 0.7);
+  box-shadow:
+    inset 0 0 0 0.55cqw rgba(255, 255, 255, 0.45),
+    0 0.4cqw 0.6cqw rgba(8, 51, 68, 0.35);
+}
+.machine-chip--cyan.machine-chip--active {
+  border-color: #ffd65d;
+  background: #06b6d4;
+  transform: translateY(-0.6cqw) scale(1.06);
+  box-shadow:
+    inset 0 0.75cqw 0 #a5f3fc,
+    0 0 0 0.4cqw #fef08a,
+    0 0.65cqw 0 #164e63,
+    0 0 1.6cqw rgba(6, 182, 212, 0.75);
 }
 
 .machine-quick-bet {

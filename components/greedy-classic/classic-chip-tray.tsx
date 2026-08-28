@@ -5,6 +5,17 @@ import { useRef } from "react";
 import { formatInteger } from "@/lib/format";
 import type { ChipValue } from "@/types/greedy";
 
+const CHIP_TONES = [
+  "green",
+  "blue",
+  "red",
+  "pink",
+  "violet",
+  "gold",
+  "orange",
+  "cyan",
+] as const;
+
 export function ClassicChipTray({
   chips,
   selected,
@@ -66,6 +77,7 @@ export function ClassicChipTray({
           const active = chip.amount === selected;
           const unavailable = Boolean(disabledAmounts?.has(chip.amount));
           const chipDisabled = disabled || unavailable;
+          const tone = CHIP_TONES[index % CHIP_TONES.length];
 
           return (
             <button
@@ -74,7 +86,11 @@ export function ClassicChipTray({
               ref={(element) => {
                 chipButtons.current[index] = element;
               }}
-              className={clsx("gc-chip", active && "gc-chip--active")}
+              className={clsx(
+                "gc-chip",
+                `gc-chip--${tone}`,
+                active && "gc-chip--active",
+              )}
               role="radio"
               aria-checked={active}
               tabIndex={active ? 0 : -1}
