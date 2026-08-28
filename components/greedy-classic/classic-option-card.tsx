@@ -81,7 +81,7 @@ export function ClassicOptionCard({
           "--gc-option-top": `${top}%`,
           zIndex:
             landings.length > 0
-              ? 45
+              ? 65
               : drawingHighlighted
                 ? 30
                 : winner
@@ -107,10 +107,10 @@ export function ClassicOptionCard({
         {landings.map((landing, index) => {
           const theme = getChipThemeForAmount(landing.amount, index);
           const isBot = !landing.isMine;
-          // Bot bet: flow smoothly from top-left players icon in toolbar (~31.8% X, ~ -6.0cqw Y)
-          // Player's own bet: flow from bottom chip tray (~50% X, ~122cqw Y)
+          // Bot bet: flow smoothly from top-left players icon in toolbar (~31.8cqw X, ~ -7.5cqw Y)
+          // Player's own bet: flow from bottom chip tray (~50cqw X, ~122cqw Y)
           const sourceX = isBot ? 31.8 : 50;
-          const sourceY = isBot ? -6.0 : 122;
+          const sourceY = isBot ? -7.5 : 122;
           const targetX = left;
           const targetY = top * 1.20617;
           const flyDx = sourceX - targetX;
