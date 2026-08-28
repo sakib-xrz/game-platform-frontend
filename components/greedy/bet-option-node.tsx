@@ -67,11 +67,21 @@ export function BetOptionNode({
         drawingHighlighted && "option-node--drawing-highlight",
         hasBet && "option-node--has-bet",
         busy && !disabled && "option-node--busy",
+        landings.length > 0 && "option-node--flying-landing",
       )}
       style={{
         left: `${left}%`,
         top: `${top}%`,
-        zIndex: drawingHighlighted ? 38 : winner ? 40 : hasBet ? 25 : 20,
+        zIndex:
+          landings.length > 0
+            ? 45
+            : drawingHighlighted
+              ? 38
+              : winner
+                ? 40
+                : hasBet
+                  ? 25
+                  : 20,
       }}
     >
       <button
@@ -85,15 +95,31 @@ export function BetOptionNode({
 
         {landings.map((landing, index) => {
           const theme = getChipThemeForAmount(landing.amount, index);
+          const isBot = !landing.isMine;
+          // Bot bet: flow smoothly from top-left players icon (~31.45% X, ~6.55cqw Y)
+          // Player's own bet: flow from bottom chip tray (~50% X, ~125cqw Y)
+          const sourceX = isBot ? 31.45 : 50;
+          const sourceY = isBot ? 6.55 : 125;
+          const targetX = left;
+          const targetY = top * 1.35266;
+          const flyDx = sourceX - targetX;
+          const flyDy = sourceY - targetY;
+          const jitterX = ((index % 3) - 1) * 2.2;
+
           return (
             <span
               key={landing.id}
-              className={`option-node__coin-landing option-node__coin-landing--${index % 3}`}
-              style={{
-                "--chip-rim": theme.rim,
-                "--chip-core": theme.core,
-                "--chip-ink": theme.ink,
-              } as CSSProperties}
+              className="option-node__coin-landing"
+              style={
+                {
+                  "--chip-rim": theme.rim,
+                  "--chip-core": theme.core,
+                  "--chip-ink": theme.ink,
+                  "--fly-dx": `${flyDx.toFixed(2)}cqw`,
+                  "--fly-dy": `${flyDy.toFixed(2)}cqw`,
+                  "--landing-x": `${jitterX.toFixed(2)}cqw`,
+                } as CSSProperties
+              }
               aria-hidden="true"
             >
               <span className="player-avatar__coin">

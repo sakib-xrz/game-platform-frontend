@@ -1,5 +1,6 @@
 "use client";
 
+import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
@@ -502,7 +503,10 @@ export function GreedyGameScreen() {
             {soundEnabled ? <Volume2 /> : <VolumeX />}
           </button>
           <span
-            className="machine-control machine-control--players"
+            className={clsx(
+              "machine-control machine-control--players",
+              betLandings.some((l) => !l.isMine) && "machine-control--pulse",
+            )}
             aria-label={`${joinedPlayerCount} players in this round`}
             title="Players who joined this round"
           >

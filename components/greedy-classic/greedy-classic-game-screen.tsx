@@ -1,5 +1,6 @@
 "use client";
 
+import clsx from "clsx";
 import Link from "next/link";
 import { House, RefreshCw, Users, Volume2, VolumeX, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -417,7 +418,10 @@ export function GreedyClassicGameScreen() {
             )}
           </button>
           <span
-            className="gc-toolbar__button gc-toolbar__button--players"
+            className={clsx(
+              "gc-toolbar__button gc-toolbar__button--players",
+              betLandings.some((l) => !l.isMine) && "gc-toolbar__button--pulse",
+            )}
             aria-label={`${joinedPlayerCount} players in this round`}
             title="Players who joined this round"
           >

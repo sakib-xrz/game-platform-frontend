@@ -203,6 +203,24 @@ a:focus-visible {
   pointer-events: none;
 }
 
+.machine-control--pulse {
+  animation: machineControlPulse 360ms ease-out;
+}
+
+@keyframes machineControlPulse {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.15);
+    filter: brightness(1.25);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
 .machine-players-count {
   position: absolute;
   top: -1.1cqw;
@@ -621,7 +639,7 @@ a:focus-visible {
 .option-node__coin-landing {
   --landing-x: 0cqw;
   position: absolute;
-  z-index: 5;
+  z-index: 60;
   top: 46%;
   left: 50%;
   display: grid;
@@ -630,7 +648,9 @@ a:focus-visible {
   transform: translate(-50%, -50%);
   place-items: center;
   pointer-events: none;
-  animation: optionCoinLanding 760ms cubic-bezier(0.2, 0.85, 0.22, 1) both;
+  overflow: visible;
+  will-change: transform, opacity;
+  animation: optionCoinLanding 780ms cubic-bezier(0.2, 0.9, 0.28, 1) both;
 }
 
 .option-node__coin-landing--1 {
@@ -1686,19 +1706,45 @@ a:focus-visible {
 @keyframes optionCoinLanding {
   0% {
     opacity: 0;
-    transform: translate(calc(-50% + var(--landing-x)), -18cqw) scale(0.55)
-      rotate(-28deg);
+    transform: translate(calc(-50% + var(--fly-dx, var(--landing-x, 0cqw))), calc(-50% + var(--fly-dy, -18cqw)))
+      scale(0.35)
+      rotate(-36deg);
   }
-  24% {
+  12% {
     opacity: 1;
+    transform: translate(
+        calc(-50% + var(--fly-dx, var(--landing-x, 0cqw)) * 0.86),
+        calc(-50% + var(--fly-dy, -18cqw) * 0.86 - 2cqw)
+      )
+      scale(0.85)
+      rotate(-22deg);
   }
-  72% {
+  50% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1.05) rotate(8deg);
+    transform: translate(
+        calc(-50% + var(--fly-dx, var(--landing-x, 0cqw)) * 0.42),
+        calc(-50% + var(--fly-dy, -18cqw) * 0.42 - 3.8cqw)
+      )
+      scale(1.16)
+      rotate(6deg);
+  }
+  78% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--landing-x, 0cqw)), -50%)
+      scale(1.22)
+      rotate(14deg);
+  }
+  88% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--landing-x, 0cqw)), -50%)
+      scale(0.94)
+      rotate(0deg);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.82) rotate(0deg);
+    transform: translate(calc(-50% + var(--landing-x, 0cqw)), -50%)
+      scale(0.82)
+      rotate(0deg);
   }
 }
 
