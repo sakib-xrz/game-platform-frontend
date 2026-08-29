@@ -42,7 +42,12 @@ export function BettorAvatarScatter({
         if (layout === "row") {
           return (
             <span key={bettor.user_id} className={slotClassName}>
-              <PlayerAvatar player={bettor} className={avatarClassName} />
+              <PlayerAvatar
+                player={bettor}
+                className={avatarClassName}
+                amount={bettor.total_amount}
+                fallbackIndex={index}
+              />
             </span>
           );
         }
@@ -62,7 +67,12 @@ export function BettorAvatarScatter({
               ...bettorAvatarStyle(spot),
             }}
           >
-            <PlayerAvatar player={bettor} className={avatarClassName} />
+            <PlayerAvatar
+              player={bettor}
+              className={avatarClassName}
+              amount={bettor.total_amount}
+              fallbackIndex={index}
+            />
           </span>
         );
       })}

@@ -340,6 +340,24 @@
   pointer-events: none;
 }
 
+.gc-toolbar__button--pulse {
+  animation: gcToolbarPulse 360ms ease-out;
+}
+
+@keyframes gcToolbarPulse {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.15);
+    filter: brightness(1.25);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
 .gc-toolbar__players-count {
   position: absolute;
   top: -5px;
@@ -699,23 +717,26 @@
 }
 
 .gc-option__bettor-avatar {
-  width: 3.4cqw;
-  height: 3.4cqw;
-  border-width: 0.25cqw;
-  box-shadow: 0 0.35cqw 0.7cqw rgba(35, 0, 2, 0.35);
+  width: 4.8cqw;
+  height: 4.8cqw;
+  filter: drop-shadow(0 0.4cqw 0.8cqw rgba(0, 0, 0, 0.4));
 }
 
 .gc-option__coin-landing {
-  --gc-coin-x: 0cqw;
+  --landing-x: 0cqw;
   position: absolute;
-  z-index: 10;
+  z-index: 60;
   top: 46%;
   left: 50%;
-  width: 7cqw;
-  height: 7cqw;
+  display: grid;
+  width: 7.2cqw;
+  height: 7.2cqw;
+  place-items: center;
   transform: translate(-50%, -50%);
   pointer-events: none;
-  animation: gcCoinLand 760ms cubic-bezier(0.2, 0.86, 0.22, 1) both;
+  overflow: visible;
+  will-change: transform, opacity;
+  animation: gcCoinLand 780ms cubic-bezier(0.2, 0.9, 0.28, 1) both;
 }
 
 .gc-option__coin-landing--1 {
@@ -725,11 +746,10 @@
   --gc-coin-x: 4.4cqw;
 }
 
-.gc-option__coin-landing img {
+.gc-option__coin-landing .player-avatar__coin {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 0.7cqw 0.6cqw rgba(38, 0, 2, 0.46));
+  filter: drop-shadow(0 0.8cqw 1.2cqw rgba(0, 0, 0, 0.45));
 }
 
 .gc-dial {
@@ -1136,10 +1156,12 @@
 
 .gc-chip-tray {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
   overflow-x: auto;
-  overflow-y: hidden;
-  padding: 1px 3px 7px;
+  overflow-y: visible;
+  padding: 8px 12px 14px;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
 }
@@ -1150,92 +1172,103 @@
 
 .gc-chip {
   position: relative;
-  display: flex;
-  min-width: 88px;
-  height: 58px;
-  flex: 0 0 88px;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  scroll-snap-align: start;
-  padding: 0 6px;
-  overflow: hidden;
-  border: 2px solid #687287;
-  border-radius: 13px;
-  background:
-    radial-gradient(
-      circle at 22% 21%,
-      rgba(126, 250, 255, 0.65),
-      transparent 25%
-    ),
-    radial-gradient(
-      circle at 79% 18%,
-      rgba(255, 172, 238, 0.52),
-      transparent 31%
-    ),
-    linear-gradient(145deg, #f8fbff, #bac6da 56%, #8f99ae);
-  color: #48516a;
-  box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.86),
-    inset 0 -5px 7px rgba(75, 86, 111, 0.23),
-    0 5px 0 #4a566c,
-    0 9px 14px rgba(32, 0, 3, 0.36);
+  display: grid;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  scroll-snap-align: center;
   transition:
-    transform 110ms ease,
-    box-shadow 130ms ease,
-    filter 130ms ease;
-}
-
-.gc-chip:active:not(:disabled) {
-  transform: translateY(4px);
-  box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -4px 7px rgba(75, 86, 111, 0.2),
-    0 1px 0 #4a566c,
-    0 4px 8px rgba(32, 0, 3, 0.32);
+    transform 150ms ease,
+    filter 150ms ease;
+  cursor: pointer;
 }
 
 .gc-chip:disabled {
-  opacity: 0.48;
-  filter: grayscale(0.45) saturate(0.55);
+  cursor: default;
+  opacity: 0.42;
+  filter: saturate(0.4);
 }
 
-.gc-chip--active {
-  border-color: #ffd65d;
-  color: #6b1720;
+.gc-chip__ring {
+  position: absolute;
+  inset: 2px;
+  border: 2px dashed rgba(255, 255, 255, 0.82);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    var(--chip-core) 0 42%,
+    var(--chip-rim) 43% 72%,
+    color-mix(in srgb, var(--chip-rim) 65%, #1b1713) 73% 100%
+  );
   box-shadow:
-    inset 0 2px 0 white,
-    inset 0 -5px 7px rgba(174, 39, 52, 0.2),
-    0 0 0 2px #f26766,
-    0 5px 0 #a32632,
-    0 0 19px rgba(255, 206, 69, 0.48),
-    0 9px 14px rgba(32, 0, 3, 0.36);
+    inset 0 0 0 2px rgba(255, 255, 255, 0.28),
+    inset 0 -5px 0 rgba(0, 0, 0, 0.17),
+    0 4px 6px rgba(0, 0, 0, 0.38);
+}
+
+.gc-chip__ring::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.46);
+  border-radius: 50%;
+  background: transparent;
 }
 
 .gc-chip__face {
   position: relative;
-  display: block;
-  width: 23px;
-  height: 23px;
-  flex: 0 0 auto;
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--chip-rim) 80%, #16110d);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 36% 28%,
+    rgba(255, 255, 255, 0.9),
+    var(--chip-core) 58%,
+    color-mix(in srgb, var(--chip-core) 70%, #7b695a)
+  );
+  color: var(--chip-ink);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: -0.05em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
 }
 
-.gc-chip__face img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 2px rgba(50, 55, 76, 0.34));
+.gc-chip--active {
+  z-index: 3;
+  transform: translateY(-5px) scale(1.08);
+  filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.36));
 }
 
-.gc-chip strong {
-  overflow: hidden;
-  font-size: 16px;
-  font-weight: 1000;
-  letter-spacing: -0.06em;
-  line-height: 1;
-  text-overflow: ellipsis;
-  text-shadow: 0 1px 0 white;
-  white-space: nowrap;
+.gc-chip--active::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  bottom: -2px;
+  left: 8px;
+  height: 2px;
+  border-radius: 50%;
+  background: #ffe69a;
+  box-shadow: 0 0 7px #f6c857;
+}
+
+.gc-chip--active .gc-chip__ring {
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.42),
+    inset 0 -5px 0 rgba(0, 0, 0, 0.17),
+    0 0 0 2px rgba(255, 230, 154, 0.72),
+    0 7px 10px rgba(0, 0, 0, 0.4);
+}
+
+.gc-chip:active:not(:disabled) {
+  transform: translateY(-1px) scale(0.98);
 }
 
 /* Paused, unavailable and fatal states */
@@ -1797,16 +1830,45 @@
 @keyframes gcCoinLand {
   0% {
     opacity: 0;
-    transform: translate(calc(-50% + var(--gc-coin-x)), -210%) scale(1.25)
-      rotate(-32deg);
+    transform: translate(calc(-50% + var(--fly-dx, var(--landing-x, 0cqw))), calc(-50% + var(--fly-dy, -18cqw)))
+      scale(0.35)
+      rotate(-36deg);
   }
-  70% {
+  12% {
     opacity: 1;
+    transform: translate(
+        calc(-50% + var(--fly-dx, var(--landing-x, 0cqw)) * 0.86),
+        calc(-50% + var(--fly-dy, -18cqw) * 0.86 - 2cqw)
+      )
+      scale(0.85)
+      rotate(-22deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(
+        calc(-50% + var(--fly-dx, var(--landing-x, 0cqw)) * 0.42),
+        calc(-50% + var(--fly-dy, -18cqw) * 0.42 - 3.8cqw)
+      )
+      scale(1.16)
+      rotate(6deg);
+  }
+  78% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--landing-x, 0cqw)), -50%)
+      scale(1.22)
+      rotate(14deg);
+  }
+  88% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--landing-x, 0cqw)), -50%)
+      scale(0.94)
+      rotate(0deg);
   }
   100% {
     opacity: 0;
-    transform: translate(calc(-50% + var(--gc-coin-x)), -50%) scale(0.82)
-      rotate(9deg);
+    transform: translate(calc(-50% + var(--landing-x, 0cqw)), -50%)
+      scale(0.82)
+      rotate(0deg);
   }
 }
 
@@ -1851,8 +1913,9 @@
   }
 
   .gc-chip {
-    min-width: 82px;
-    flex-basis: 82px;
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
   }
 }
 

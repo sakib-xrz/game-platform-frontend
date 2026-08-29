@@ -1,5 +1,6 @@
 "use client";
 
+import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
@@ -502,7 +503,10 @@ export function GreedyGameScreen() {
             {soundEnabled ? <Volume2 /> : <VolumeX />}
           </button>
           <span
-            className="machine-control machine-control--players"
+            className={clsx(
+              "machine-control machine-control--players",
+              betLandings.some((l) => !l.isMine) && "machine-control--pulse",
+            )}
             aria-label={`${joinedPlayerCount} players in this round`}
             title="Players who joined this round"
           >
@@ -563,9 +567,9 @@ export function GreedyGameScreen() {
               disabled={!canBet}
               busy={pendingOptionIds.has(option.id)}
               bettors={bettorsByOption.get(option.id) ?? []}
-              landingIds={betLandings
-                .filter((landing) => landing.optionId === option.id)
-                .map((landing) => landing.id)}
+              landings={betLandings.filter(
+                (landing) => landing.optionId === option.id,
+              )}
               onPress={() => void handlePlaceBet(option, effectiveSelectedChip)}
             />
           );
@@ -687,7 +691,7 @@ export function GreedyGameScreen() {
                 tap places another bet immediately.
               </li>
               <li>
-                Options flash in a random order during the draw. The last
+                Options highlight in sequence during the draw. The last
                 highlight is the verified winner from the server.
               </li>
             </ol>

@@ -1,7 +1,10 @@
 "use client";
 
 import clsx from "clsx";
+import type { CSSProperties } from "react";
 import { BettorAvatarScatter } from "@/components/greedy/bettor-avatar-scatter";
+import type { BetLanding } from "@/hooks/use-greedy-game";
+import { getChipThemeForAmount } from "@/lib/chip-themes";
 import {
   ClassicOptionArtwork,
   getClassicOptionDisplayName,
@@ -27,7 +30,7 @@ export function ClassicOptionCard({
   disabled,
   busy,
   bettors,
-  landingIds,
+  landings = [],
   onPress,
 }: {
   option: PublicOption;
@@ -39,7 +42,7 @@ export function ClassicOptionCard({
   disabled: boolean;
   busy: boolean;
   bettors: PublicBetAggregate[];
-  landingIds: string[];
+  landings?: BetLanding[];
   onPress: () => void;
 }) {
   const hasBet = BigInt(myBet || "0") > 0n;
@@ -70,12 +73,22 @@ export function ClassicOptionCard({
         winner && "gc-option-wrap--winner",
         drawingHighlighted && "gc-option-wrap--drawing",
         busy && "gc-option-wrap--busy",
+        landings.length > 0 && "gc-option-wrap--flying-landing",
       )}
       style={
         {
           "--gc-option-left": `${left}%`,
           "--gc-option-top": `${top}%`,
-          zIndex: drawingHighlighted ? 30 : winner ? 29 : hasBet ? 20 : 10,
+          zIndex:
+            landings.length > 0
+              ? 65
+              : drawingHighlighted
+                ? 30
+                : winner
+                  ? 29
+                  : hasBet
+                    ? 20
+                    : 10,
         } as React.CSSProperties
       }
     >
@@ -91,16 +104,42 @@ export function ClassicOptionCard({
           <span className="gc-option__winner-badge">Winner</span>
         ) : null}
 
-        {landingIds.map((landingId, index) => (
-          <span
-            key={landingId}
-            className={`gc-option__coin-landing gc-option__coin-landing--${index % 3}`}
-            aria-hidden="true"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/assets/greedy-classic/silver-token.png" alt="" />
-          </span>
-        ))}
+        {landings.map((landing, index) => {
+          const theme = getChipThemeForAmount(landing.amount, index);
+          const isBot = !landing.isMine;
+          // Bot bet: flow smoothly from top-left players icon in toolbar (~31.8cqw X, ~ -7.5cqw Y)
+          // Player's own bet: flow from bottom chip tray (~50cqw X, ~122cqw Y)
+          const sourceX = isBot ? 31.8 : 50;
+          const sourceY = isBot ? -7.5 : 122;
+          const targetX = left;
+          const targetY = top * 1.20617;
+          const flyDx = sourceX - targetX;
+          const flyDy = sourceY - targetY;
+          const jitterX = ((index % 3) - 1) * 2.2;
+
+          return (
+            <span
+              key={landing.id}
+              className="gc-option__coin-landing"
+              style={
+                {
+                  "--chip-rim": theme.rim,
+                  "--chip-core": theme.core,
+                  "--chip-ink": theme.ink,
+                  "--fly-dx": `${flyDx.toFixed(2)}cqw`,
+                  "--fly-dy": `${flyDy.toFixed(2)}cqw`,
+                  "--landing-x": `${jitterX.toFixed(2)}cqw`,
+                } as CSSProperties
+              }
+              aria-hidden="true"
+            >
+              <span className="player-avatar__coin">
+                <span className="player-avatar__coin-rim" />
+                <span className="player-avatar__coin-core" />
+              </span>
+            </span>
+          );
+        })}
 
         <span className="gc-option__art" aria-hidden="true">
           <ClassicOptionArtwork

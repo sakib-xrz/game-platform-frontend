@@ -2588,6 +2588,15 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+.tp-history-sheet__winner-players {
+  margin: 6px 0 0;
+  color: #f6e6b8;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  text-transform: none;
+}
 
 .tp-history-sheet__hands {
   margin-top: 16px;
@@ -2891,6 +2900,23 @@
   font-weight: 850;
   letter-spacing: 0.13em;
   text-transform: uppercase;
+}
+
+.tp-result-winners {
+  margin-bottom: 16px;
+}
+.tp-result-winners__label {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(240, 220, 170, 0.72);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.tp-result-winners .result-leaderboard {
+  margin: 0;
 }
 
 .tp-result-hands {

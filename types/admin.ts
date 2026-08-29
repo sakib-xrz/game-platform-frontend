@@ -1,4 +1,4 @@
-export type AdminRole = "super_admin" | "game_operator" | "finance_operator" | "support" | "auditor";
+export type AdminRole = "dev_super_admin" | "super_admin" | "game_operator" | "finance_operator" | "support" | "auditor";
 
 export type AdminIdentity = {
   id: string;
@@ -7,6 +7,12 @@ export type AdminIdentity = {
   role: AdminRole;
   status: "active" | "locked" | "disabled";
   force_password_change: boolean;
+  platform_app_id?: string | null;
+  platform_app?: {
+    id: string;
+    app_name: string;
+    package_name: string;
+  } | null;
 };
 
 export type AdminSession = {

@@ -49,6 +49,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { adminClient } from "@/lib/admin-client";
+import { canManageGames } from "@/lib/admin-permissions";
 import type {
   AdminApproval,
   CreateTeenPattiAdminConfigInput,
@@ -136,8 +137,7 @@ export function TeenPattiAdminPanel() {
     refetchInterval: 8000,
   });
 
-  const canManage =
-    identity.role === "super_admin" || identity.role === "game_operator";
+  const canManage = canManageGames(identity.role);
 
   const teenPattiApprovals = useMemo(
     () =>

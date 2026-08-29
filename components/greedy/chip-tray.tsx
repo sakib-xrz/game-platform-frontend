@@ -2,8 +2,20 @@
 
 import clsx from "clsx";
 import { useRef } from "react";
+import { CASINO_CHIP_THEMES } from "@/lib/chip-themes";
 import { formatInteger } from "@/lib/format";
 import type { ChipValue } from "@/types/greedy";
+
+function compactChipAmount(amount: string): string {
+  try {
+    const value = BigInt(amount);
+    if (value >= 1_000_000n && value % 1_000_000n === 0n) return `${value / 1_000_000n}M`;
+    if (value >= 1_000n && value % 1_000n === 0n) return `${value / 1_000n}K`;
+  } catch {
+    return amount;
+  }
+  return formatInteger(amount);
+}
 
 export function ChipTray({
   chips,
@@ -53,6 +65,7 @@ export function ChipTray({
       {chips.map((chip, index) => {
         const active = chip.amount === selected;
         const chipDisabled = disabled || Boolean(disabledAmounts?.has(chip.amount));
+        const theme = CASINO_CHIP_THEMES[index % CASINO_CHIP_THEMES.length]!;
         return (
           <button
             type="button"
@@ -68,13 +81,22 @@ export function ChipTray({
               }
             }}
             disabled={chipDisabled}
-            className={clsx("machine-chip", active && "machine-chip--active")}
+            className={clsx(
+              "machine-chip",
+              active && "machine-chip--active",
+            )}
+            style={{
+              "--chip-rim": theme.rim,
+              "--chip-core": theme.core,
+              "--chip-ink": theme.ink,
+            } as React.CSSProperties}
             role="radio"
             aria-checked={active}
             tabIndex={active ? 0 : -1}
             aria-label={`${formatInteger(chip.amount)} coin chip${chipDisabled && !disabled ? ", unavailable for this bet" : ""}`}
           >
-            <span>{formatInteger(chip.amount)}</span>
+            <span className="machine-chip__ring" aria-hidden="true" />
+            <span className="machine-chip__face">{compactChipAmount(chip.amount)}</span>
           </button>
         );
       })}

@@ -1,7 +1,10 @@
 "use client";
 
 import clsx from "clsx";
+import type { CSSProperties } from "react";
 import { BettorAvatarScatter } from "@/components/greedy/bettor-avatar-scatter";
+import type { BetLanding } from "@/hooks/use-greedy-game";
+import { getChipThemeForAmount } from "@/lib/chip-themes";
 import { getOptionDisplayName, OptionArtwork } from "@/lib/option-art";
 import { GREEDY_AVATAR_BOUNDS } from "@/lib/bettor-avatar-layout";
 import { formatInteger, formatMultiplier } from "@/lib/format";
@@ -22,7 +25,7 @@ export function BetOptionNode({
   disabled,
   busy,
   bettors,
-  landingIds,
+  landings = [],
   onPress,
 }: {
   option: PublicOption;
@@ -34,7 +37,7 @@ export function BetOptionNode({
   disabled: boolean;
   busy: boolean;
   bettors: PublicBetAggregate[];
-  landingIds: string[];
+  landings?: BetLanding[];
   onPress: () => void;
 }) {
   const hasBet = BigInt(myBet || "0") > 0n;
@@ -64,11 +67,21 @@ export function BetOptionNode({
         drawingHighlighted && "option-node--drawing-highlight",
         hasBet && "option-node--has-bet",
         busy && !disabled && "option-node--busy",
+        landings.length > 0 && "option-node--flying-landing",
       )}
       style={{
         left: `${left}%`,
         top: `${top}%`,
-        zIndex: drawingHighlighted ? 38 : winner ? 40 : hasBet ? 25 : 20,
+        zIndex:
+          landings.length > 0
+            ? 45
+            : drawingHighlighted
+              ? 38
+              : winner
+                ? 40
+                : hasBet
+                  ? 25
+                  : 20,
       }}
     >
       <button
@@ -80,15 +93,42 @@ export function BetOptionNode({
       >
         {winner && <span className="option-node__badge">Win</span>}
 
-        {landingIds.map((landingId, index) => (
-          <span
-            key={landingId}
-            className={`option-node__coin-landing option-node__coin-landing--${index % 3}`}
-            aria-hidden="true"
-          >
-            <i className="game-coin" />
-          </span>
-        ))}
+        {landings.map((landing, index) => {
+          const theme = getChipThemeForAmount(landing.amount, index);
+          const isBot = !landing.isMine;
+          // Bot bet: flow smoothly from top-left players icon (~31.45% X, ~6.55cqw Y)
+          // Player's own bet: flow from bottom chip tray (~50% X, ~125cqw Y)
+          const sourceX = isBot ? 31.45 : 50;
+          const sourceY = isBot ? 6.55 : 125;
+          const targetX = left;
+          const targetY = top * 1.35266;
+          const flyDx = sourceX - targetX;
+          const flyDy = sourceY - targetY;
+          const jitterX = ((index % 3) - 1) * 2.2;
+
+          return (
+            <span
+              key={landing.id}
+              className="option-node__coin-landing"
+              style={
+                {
+                  "--chip-rim": theme.rim,
+                  "--chip-core": theme.core,
+                  "--chip-ink": theme.ink,
+                  "--fly-dx": `${flyDx.toFixed(2)}cqw`,
+                  "--fly-dy": `${flyDy.toFixed(2)}cqw`,
+                  "--landing-x": `${jitterX.toFixed(2)}cqw`,
+                } as CSSProperties
+              }
+              aria-hidden="true"
+            >
+              <span className="player-avatar__coin">
+                <span className="player-avatar__coin-rim" />
+                <span className="player-avatar__coin-core" />
+              </span>
+            </span>
+          );
+        })}
 
         <span className="option-node__surface" aria-hidden="true">
           <span className="option-node__art-half">

@@ -123,13 +123,8 @@
 }
 
 .l77-chip.is-active {
-  transform: translateY(-.38cqw) scale(1.055);
-  box-shadow:
-    inset 0 0 0 .65cqw rgba(255,255,255,.3),
-    0 0 0 .42cqw #fff0a0,
-    0 0 1.6cqw rgba(255,210,68,.46),
-    0 .62cqw 0 #8f4307,
-    0 1.05cqw 1.5cqw rgba(36,0,52,.32);
+  transform: translateY(-.5cqw) scale(1.1);
+  box-shadow: none;
 }
 
 /* Keep Repeat premium even when disabled instead of turning into a flat grey block. */

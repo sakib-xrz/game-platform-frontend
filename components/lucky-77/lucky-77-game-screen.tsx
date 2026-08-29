@@ -1,5 +1,6 @@
 "use client";
 
+import clsx from "clsx";
 import Link from "next/link";
 import { ArrowLeft, RefreshCw, Users, Volume2, VolumeX, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -331,7 +332,10 @@ export function Lucky77GameScreen() {
           )}
         </button>
         <span
-          className="l77-toolbar__round-button l77-toolbar__players"
+          className={clsx(
+            "l77-toolbar__round-button l77-toolbar__players",
+            betLandings.some((l) => !l.isMine) && "l77-toolbar__players--pulse",
+          )}
           aria-label={`${joinedPlayerCount} players in this round`}
           title="Players who joined this round"
         >
@@ -368,7 +372,7 @@ export function Lucky77GameScreen() {
           className="l77-bet-board"
           aria-label="Lucky 77 betting options"
         >
-          {options.slice(0, 3).map((option) => {
+          {options.slice(0, 3).map((option, index) => {
             const myBet =
               (optionBetTotals.get(option.id) ?? 0n) +
               (pendingOptionAmounts.get(option.id) ?? 0n);
@@ -379,6 +383,7 @@ export function Lucky77GameScreen() {
               <Lucky77OptionCard
                 key={option.id}
                 option={option}
+                optionIndex={index}
                 bettors={bettorsByOption.get(option.id) ?? []}
                 myBet={myBet}
                 selected={backedOptionId === option.id}

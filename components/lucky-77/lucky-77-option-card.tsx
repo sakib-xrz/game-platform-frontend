@@ -1,7 +1,10 @@
 "use client";
 
+import clsx from "clsx";
+import type { CSSProperties } from "react";
 import { BettorAvatarScatter } from "@/components/greedy/bettor-avatar-scatter";
 import type { BetLanding } from "@/hooks/use-greedy-game";
+import { getChipThemeForAmount } from "@/lib/chip-themes";
 import { Lucky77Symbol, lucky77DisplayName } from "@/lib/lucky-77-art";
 import { LUCKY77_AVATAR_BOUNDS } from "@/lib/bettor-avatar-layout";
 import { formatCompactAmount, formatMultiplier } from "@/lib/format";
@@ -9,6 +12,7 @@ import type { PublicBetAggregate, PublicOption } from "@/types/greedy";
 
 export function Lucky77OptionCard({
   option,
+  optionIndex = 0,
   bettors,
   myBet,
   selected,
@@ -20,6 +24,7 @@ export function Lucky77OptionCard({
   onBet,
 }: {
   option: PublicOption;
+  optionIndex?: number;
   bettors: PublicBetAggregate[];
   myBet: bigint;
   selected: boolean;
@@ -44,7 +49,19 @@ export function Lucky77OptionCard({
 
   return (
     <article
-      className={`l77-option${selected ? " is-selected" : ""}${winner ? " is-winner" : ""}${locked ? " is-locked" : ""}`}
+      className={clsx(
+        "l77-option",
+        selected && "is-selected",
+        winner && "is-winner",
+        locked && "is-locked",
+        busy && "is-busy",
+        landings.length > 0 && "l77-option--flying-landing",
+      )}
+      style={
+        {
+          zIndex: landings.length > 0 ? 80 : winner ? 30 : selected ? 20 : 10,
+        } as CSSProperties
+      }
     >
       <span className="l77-option__surface" aria-hidden="true" />
       <div className="l77-option__header">
@@ -77,29 +94,56 @@ export function Lucky77OptionCard({
               />
             ))}
           </span>
-          {landings.slice(-6).map((landing, index) => (
-            <i
-              key={landing.id}
-              className={`l77-option__flying-coin${landing.isMine ? " is-mine" : ""}`}
-              style={
-                {
-                  "--landing-index": index,
-                  "--landing-drift": `${((index % 3) - 1) * 18}px`,
-                } as React.CSSProperties
-              }
-              aria-hidden="true"
-            >
-              {landing.amount ? (
-                <span>+{formatCompactAmount(landing.amount)}</span>
-              ) : null}
-            </i>
-          ))}
+          {landings.map((landing, index) => {
+            const theme = getChipThemeForAmount(landing.amount, index);
+            const isBot = !landing.isMine;
+            // Target X center of option card relative to container:
+            // optionIndex 0: ~18.23cqw, optionIndex 1: 50.0cqw, optionIndex 2: ~81.77cqw
+            const targetX = optionIndex === 0 ? 18.23 : optionIndex === 2 ? 81.77 : 50.0;
+            // Bot bet: flow from top-right player counter icon (Users icon with player badge in toolbar)
+            // Toolbar height + padding puts the center of the player icon at ~91.8cqw X and ~6.8cqw Y from top of screen.
+            // Option card center is at ~106.5cqw Y from top of screen.
+            // Therefore sourceY relative to option card center is -(106.5 - 6.8)cqw = -99.7cqw.
+            // Player's own bet: flow from bottom chip tray (~50.0cqw X, ~ +35.0cqw Y)
+            const sourceX = isBot ? 91.8 : 50.0;
+            const sourceY = isBot ? -99.7 : 35.0;
+            const flyDx = sourceX - targetX;
+            const flyDy = sourceY;
+            const jitterX = ((index % 3) - 1) * 2.2;
+
+            return (
+              <span
+                key={landing.id}
+                className="l77-option__flying-coin"
+                style={
+                  {
+                    "--chip-rim": theme.rim,
+                    "--chip-core": theme.core,
+                    "--chip-ink": theme.ink,
+                    "--fly-dx": `${flyDx.toFixed(2)}cqw`,
+                    "--fly-dy": `${flyDy.toFixed(2)}cqw`,
+                    "--landing-x": `${jitterX.toFixed(2)}cqw`,
+                  } as CSSProperties
+                }
+                aria-hidden="true"
+              >
+                <span className="player-avatar__coin">
+                  <span className="player-avatar__coin-rim" />
+                  <span className="player-avatar__coin-core" />
+                </span>
+              </span>
+            );
+          })}
         </span>
         <strong>
           <small>Pays</small>
           {multiplier.toUpperCase()}
         </strong>
-        {busy ? <span className="l77-option__busy" aria-hidden="true" /> : null}
+        {busy ? (
+          <span className="l77-option__busy" aria-hidden="true">
+            <span className="l77-option__busy-spinner" />
+          </span>
+        ) : null}
       </button>
 
       {winner ? (

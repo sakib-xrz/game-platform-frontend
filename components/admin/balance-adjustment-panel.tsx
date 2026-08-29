@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { adminClient } from "@/lib/admin-client";
+import { hasAdminPermission } from "@/lib/admin-permissions";
 import type { AdminApproval, AdminWalletSearchItem, WalletAdjustmentInput } from "@/types/admin";
 
 function approvalPayload(approval: AdminApproval): WalletAdjustmentInput | null {
@@ -27,7 +28,7 @@ export function BalanceAdjustmentPanel() {
   const identity = useAdminIdentity();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState(""); const [debounced, setDebounced] = useState(""); const [selected, setSelected] = useState<AdminWalletSearchItem | null>(null);
-  const canAdjust = identity.role === "super_admin" || identity.role === "finance_operator";
+  const canAdjust = hasAdminPermission(identity.role, "wallet.adjust.create");
   useEffect(() => { const timer = window.setTimeout(() => setDebounced(search.trim()), 300); return () => window.clearTimeout(timer); }, [search]);
   const wallets = useQuery({ queryKey: ["admin", "wallets", debounced], queryFn: () => adminClient.wallets(`?page=1&limit=20&search=${encodeURIComponent(debounced)}`) });
   const approvals = useQuery({ queryKey: ["admin", "approvals", "wallet"], queryFn: () => adminClient.approvalsPaged("?page=1&limit=100"), refetchInterval: 8000 });
