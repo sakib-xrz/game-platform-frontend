@@ -1,5 +1,5 @@
-import { AnalyticsAdminPanel } from "@/components/admin/analytics-admin-panel";
+import { redirect } from "next/navigation";
 
-export default function AdminAnalyticsPage() {
-  return <AnalyticsAdminPanel />;
+export default function AdminAnalyticsRedirectPage() {
+  redirect("/admin");
 }

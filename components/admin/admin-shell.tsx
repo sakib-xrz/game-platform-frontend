@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Banknote,
-  ChartColumn,
   CircleDollarSign,
   Dices,
   Gamepad2,
@@ -43,7 +42,6 @@ const navigation: Array<{
   permission: AdminPermission;
 }> = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, permission: "dashboard.read" },
-  { href: "/admin/analytics", label: "Analytics", icon: ChartColumn, permission: "dashboard.read" },
   { href: "/admin/greedy", label: "Manage Greedy", icon: Dices, permission: "game.config.draft.create" },
   {
     href: "/admin/greedy-classic",

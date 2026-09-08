@@ -4,6 +4,15 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   reactStrictMode: true,
+  async redirects() {
+    return [
+      {
+        source: "/admin/analytics",
+        destination: "/admin",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
