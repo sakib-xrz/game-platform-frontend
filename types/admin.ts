@@ -487,3 +487,108 @@ export type PlatformAppFilterOption = {
   package_name: string;
   status: "active" | "disabled";
 };
+
+export type AnalyticsOverview = {
+  timezone: string;
+  window: { from: string; to: string };
+  summary: {
+    sales: string;
+    points_converted: string;
+    profit: string;
+    accepted_stake: string;
+    refunded_stake: string;
+    payout: string;
+    withdrawals: string;
+    deposit_count: number;
+    withdrawal_count: number;
+    human_players: number;
+    human_losers: number;
+  };
+  by_game: Array<{
+    game_code: string;
+    game_name: string;
+    sales: string;
+    accepted_stake: string;
+    refunded_stake: string;
+    payout: string;
+    profit: string;
+  }>;
+  monthly_series: Array<{
+    month: string;
+    sales: string;
+    points_converted: string;
+    withdrawals: string;
+    accepted_stake: string;
+    refunded_stake: string;
+    payout: string;
+    profit: string;
+  }>;
+};
+
+export type AnalyticsUserRow = {
+  platform_user_id: string;
+  external_user_id: string;
+  email: string;
+  display_name: string;
+  app_name: string;
+  package_name: string;
+  balance: string;
+  coins_added: string;
+  won: string;
+  lost: string;
+  company_profit: string;
+  bet_total: string;
+  refunded: string;
+  net_result: string;
+};
+
+export type AnalyticsUserDetail = {
+  user: {
+    platform_user_id: string;
+    external_user_id: string;
+    email: string;
+    display_name: string;
+    photo_url: string | null;
+    created_at: string;
+    app_name: string;
+    package_name: string;
+    platform_app_id: string;
+  };
+  window: { from: string; to: string };
+  summary: {
+    balance: string;
+    coins_added: string;
+    won: string;
+    lost: string;
+    company_profit: string;
+    bet_total: string;
+    refunded: string;
+    net_result: string;
+  };
+  by_game: Array<{
+    game_code: string;
+    game_name: string;
+    bet_count: number;
+    bet_total: string;
+    payout_total: string;
+    company_profit: string;
+  }>;
+  game_records: {
+    items: Array<{
+      game_code: string;
+      game_name: string;
+      bet_id: string;
+      round_id: string;
+      amount: string;
+      option_code: string;
+      option_name: string;
+      outcome: string | null;
+      payout_amount: string;
+      created_at: string;
+    }>;
+    total: number;
+    page: number;
+    limit: number;
+  };
+};
+

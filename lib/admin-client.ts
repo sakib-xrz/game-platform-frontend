@@ -236,4 +236,12 @@ export const adminClient = {
     ),
   platformUserApps: () =>
     adminFetch<import("@/types/admin").PlatformAppFilterOption[]>("/platform-users/apps"),
+  analyticsOverview: (query = "") =>
+    adminFetch<import("@/types/admin").AnalyticsOverview>(`/analytics/overview${query}`),
+  analyticsUsers: (query = "?page=1&limit=20") =>
+    adminFetchPaged<import("@/types/admin").AnalyticsUserRow>(`/analytics/users${query}`),
+  analyticsUserDetail: (userId: string, query = "") =>
+    adminFetch<import("@/types/admin").AnalyticsUserDetail>(
+      `/analytics/users/${encodeURIComponent(userId)}${query}`,
+    ),
 };
