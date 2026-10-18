@@ -27,7 +27,6 @@ import { TeenPattiPhaseRing } from "@/components/teen-patti/teen-patti-phase-rin
 import { TeenPattiResultModal } from "@/components/teen-patti/teen-patti-result-modal";
 import { TeenPattiHistorySheet } from "@/components/teen-patti/teen-patti-history-sheet";
 import { TeenPattiPayoutLayer } from "@/components/teen-patti/teen-patti-payout-layer";
-import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
 import { PlayerAvatar } from "@/components/greedy/player-avatar";
@@ -539,7 +538,6 @@ export function TeenPattiGameScreen() {
 
   return (
     <main className="mobile-canvas greedy-shell tp-shell">
-      <DevPlayerSwitcher variant="compact" />
       {flyChips.map((chip) => (
         <BetFlyLayer key={chip.id} chip={chip} onDone={handleFlyDone} />
       ))}

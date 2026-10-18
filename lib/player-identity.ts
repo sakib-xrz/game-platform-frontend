@@ -3,14 +3,6 @@ const SESSION_KEY = "greedy.player_user_id";
 const LOCAL_KEY = "greedy.player_user_id";
 const ENV_USER_ID = process.env.NEXT_PUBLIC_DEV_USER_ID?.trim() || "";
 
-export const DEV_PLAYER_PRESETS = [
-  "user-001",
-  "user-002",
-  "user-003",
-  "user-004",
-  "user-005",
-] as const;
-
 function normalizeUserId(value: string | null | undefined): string {
   return value?.trim().slice(0, 128) || "";
 }
@@ -71,11 +63,6 @@ function stripUserFromUrl(): void {
   }
 }
 
-/** True in local development builds — never show the switcher in production. */
-export function isDevPlayerIdentityEnabled(): boolean {
-  return process.env.NODE_ENV === "development";
-}
-
 /**
  * Capture `?user=` into storage as soon as the WebView opens.
  * Call this on every page (layout bootstrap) before navigating to a game.
@@ -114,27 +101,3 @@ export function withPlayerQuery(href: string, userId = getPlayerUserId()): strin
   }
 }
 
-/** Persist the player id for this tab and sync `?user=` on the current URL. */
-export function setPlayerUserId(userId: string): string {
-  const next = normalizeUserId(userId);
-  writeStoredUserId(next);
-
-  if (typeof window !== "undefined") {
-    try {
-      const url = new URL(window.location.href);
-      if (next) {
-        url.searchParams.set("user", next);
-      } else {
-        url.searchParams.delete("user");
-      }
-      window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
-    } catch {
-      // Ignore URL sync failures.
-    }
-  }
-
-  return next;
-}
-
-/** Env fallback only — prefer `getPlayerUserId()` for requests. */
-export { ENV_USER_ID as DEV_USER_ID };

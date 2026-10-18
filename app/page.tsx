@@ -1,5 +1,4 @@
 import type { Viewport } from "next";
-import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameCard } from "@/components/game-selection/game-card";
 import { userIdFromSearchParam } from "@/lib/player-identity";
 
@@ -19,8 +18,6 @@ export default async function GameSelectionPage({
   return (
     <main className="mobile-canvas game-select-page safe-top safe-bottom">
       <section className="game-select">
-        <DevPlayerSwitcher variant="panel" />
-
         <div className="game-select__cards">
           <GameCard
             title="Greedy"

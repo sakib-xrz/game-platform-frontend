@@ -25,12 +25,4 @@ export function getGameSocket(): Socket {
   return socket;
 }
 
-/** Drop the singleton so the next `getGameSocket()` joins the current player room. */
-export function resetGameSocket(): void {
-  if (!socket) return;
-  socket.removeAllListeners();
-  socket.disconnect();
-  socket = null;
-}
-
 export { SOCKET_URL };

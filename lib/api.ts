@@ -4,7 +4,7 @@ import type {
   BetResponse as TeenPattiBetResponse,
   TeenPattiSnapshot,
 } from "@/types/teen-patti";
-import { DEV_USER_ID, getPlayerUserId } from "@/lib/player-identity";
+import { getPlayerUserId } from "@/lib/player-identity";
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1").replace(/\/$/, "");
 const BET_REQUEST_TIMEOUT_MS = 12_000;
@@ -116,4 +116,4 @@ export const teenPattiApi = {
     }, BET_REQUEST_TIMEOUT_MS),
 };
 
-export { API_BASE_URL, DEV_USER_ID };
+export { API_BASE_URL };

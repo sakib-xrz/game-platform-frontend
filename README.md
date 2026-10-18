@@ -124,11 +124,10 @@ There is no separate multiplayer lobby. The backend already accepts many players
 1. Ensure the backend has `ALLOW_DEV_IDENTITY_HEADER=true`.
 2. Open Tab A: `http://localhost:3000/games/greedy?user=player-1`
 3. Open Tab B: `http://localhost:3000/games/greedy?user=player-2`
-4. Or use the **DEV ONLY** player switcher on `/` (presets `user-001`…`user-005` or a custom id). Identity is stored per browser tab in `sessionStorage`.
-5. Fund both players via Admin → Finance / wallet adjust (new wallets start at `0`).
-6. Place bets in the same live round from both tabs and confirm separate wallets, bets, and payouts.
+4. Identity from `?user=` is stored for the browser tab. Fund both players via Admin → Finance / wallet adjust (new wallets start at `0`).
+5. Place bets in the same live round from both tabs and confirm separate wallets, bets, and payouts.
 
-When the mobile app integrates, it will send the platform user into this game surface; remove the switcher / `NEXT_PUBLIC_DEV_USER_ID` and replace the `X-User-Id` seam with real auth.
+When the mobile app integrates, it will send the platform user into this game surface; remove `NEXT_PUBLIC_DEV_USER_ID` and replace the `X-User-Id` seam with real auth.
 
 ## Production authentication
 
@@ -137,7 +136,7 @@ The backend ZIP still uses `X-User-Id` only as a development integration seam. D
 For production:
 
 1. Integrate real platform authentication in the backend player middleware and Socket handshake.
-2. Remove `NEXT_PUBLIC_DEV_USER_ID` and the dev player switcher.
+2. Remove `NEXT_PUBLIC_DEV_USER_ID`.
 3. Keep `credentials: include` / Socket credentials if your real auth uses secure cookies.
 4. Configure the backend CORS origin to the deployed frontend origin.
 

@@ -26,7 +26,6 @@ import { CenterStage } from "@/components/greedy/center-stage";
 import { ChipTray } from "@/components/greedy/chip-tray";
 import { RecentResults } from "@/components/greedy/recent-results";
 import { ResultModal } from "@/components/greedy/result-modal";
-import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
 import { usePlayerHref } from "@/hooks/use-player-href";
@@ -480,8 +479,6 @@ export function GreedyGameScreen() {
 
   return (
     <main className="mobile-canvas greedy-shell greedy-game-shell text-[#14243d]">
-      <DevPlayerSwitcher variant="compact" />
-
       <section
         className="greedy-machine game-dot-bg"
         aria-label="Greedy betting board"

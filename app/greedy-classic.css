@@ -447,12 +447,6 @@
   line-height: 1;
 }
 
-.gc-shell .dev-player-switcher--compact {
-  z-index: 72;
-  top: max(62px, calc(env(safe-area-inset-top) + 54px));
-  right: 8px;
-}
-
 .gc-connection-note,
 .gc-pause-note {
   position: relative;

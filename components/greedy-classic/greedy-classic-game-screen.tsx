@@ -4,7 +4,6 @@ import clsx from "clsx";
 import Link from "next/link";
 import { House, RefreshCw, Users, Volume2, VolumeX, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { DevPlayerSwitcher } from "@/components/dev-player-switcher";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
 import { ClassicCenterDial } from "@/components/greedy-classic/classic-center-dial";
@@ -392,8 +391,6 @@ export function GreedyClassicGameScreen() {
 
   return (
     <main className="mobile-canvas gc-shell">
-      <DevPlayerSwitcher variant="compact" />
-
       <header className="gc-toolbar safe-top">
         <nav aria-label="Game controls">
           <Link
