@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useCountdown } from "@/hooks/use-countdown";
 import { useGameSound } from "@/hooks/use-game-sound";
+import { useDemoGreedyGame } from "@/hooks/use-demo-greedy-game";
 import { useGreedyGame } from "@/hooks/use-greedy-game";
 import { formatInteger } from "@/lib/format";
 import {
@@ -172,7 +173,31 @@ function MachineIllustration() {
   );
 }
 
+type GreedyScreenModel = ReturnType<typeof useGreedyGame>;
+
 export function GreedyGameScreen() {
+  const model = useGreedyGame();
+  const homeHref = usePlayerHref("/") ?? "/";
+  return <GreedyGameScreenView model={model} homeHref={homeHref} />;
+}
+
+export function DemoGreedyGameScreen() {
+  const model = useDemoGreedyGame("greedy");
+  return (
+    <>
+      <GreedyGameScreenView model={model} homeHref="/demo" />
+      <span className="demo-mode-badge">DEMO</span>
+    </>
+  );
+}
+
+function GreedyGameScreenView({
+  model,
+  homeHref,
+}: {
+  model: GreedyScreenModel;
+  homeHref: string;
+}) {
   const {
     snapshot,
     loading,
@@ -191,9 +216,8 @@ export function GreedyGameScreen() {
     optionBetTotals,
     recover,
     placeBet,
-  } = useGreedyGame();
+  } = model;
   const { bootGame, hideBoot } = useGameBoot();
-  const homeHref = usePlayerHref("/") ?? "/";
   const { soundEnabled, toggleSound, playSound } = useGameSound();
   const previousStatusRef = useRef<string | null>(null);
   const soundedResultRoundRef = useRef<string | null>(null);
@@ -387,6 +411,17 @@ export function GreedyGameScreen() {
     snapshot?.round?.status === "betting_open" &&
     bettingRemainingMs > 0 &&
     Boolean(effectiveSelectedChip);
+  const runtimeHeld = snapshot?.runtime.status !== "running";
+  const gameUnavailable = Boolean(
+    snapshot && snapshot.game.status !== "active",
+  );
+  const roundStillFinishing = Boolean(
+    snapshot?.round && snapshot.round.status !== "closed",
+  );
+  const operatorHeld = runtimeHeld || gameUnavailable;
+  const finishingHeldRound = Boolean(operatorHeld && roundStillFinishing);
+  const fullHold = Boolean(operatorHeld && !roundStillFinishing);
+  const fullHoldVisible = fullHold && !resultModalOpen;
 
   const roundLabel = useMemo(() => {
     const roundNumber = snapshot?.round?.round_number;
@@ -519,6 +554,14 @@ export function GreedyGameScreen() {
           <span>{roundLabel}</span>
         </div>
 
+        {finishingHeldRound ? (
+          <div className="greedy-pause-note" role="status">
+            {gameUnavailable
+              ? "Table unavailable · this round will finish safely"
+              : "Game paused · this round will finish safely"}
+          </div>
+        ) : null}
+
         <span
           className="machine-decoration machine-decoration--carrot"
           aria-hidden="true"
@@ -622,12 +665,6 @@ export function GreedyGameScreen() {
           </div>
         </div>
 
-        {snapshot.runtime.status !== "running" && !snapshot.round && (
-          <div className="dashboard-runtime-note">
-            Game rounds are paused. Your wallet remains safe.
-          </div>
-        )}
-
         <RecentResults history={snapshot.recent_history} />
 
         <div className="dashboard-ranking">
@@ -658,7 +695,37 @@ export function GreedyGameScreen() {
         </div>
       </section>
 
-      {helpOpen && (
+      {fullHoldVisible ? (
+        <section
+          className="greedy-hold"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="greedy-hold-title"
+          aria-describedby="greedy-hold-description"
+        >
+          <span className="greedy-hold__glow" aria-hidden="true" />
+          <span className="greedy-hold__art" aria-hidden="true">
+            🍽️
+          </span>
+          <small>Greedy</small>
+          <h1 id="greedy-hold-title">
+            {gameUnavailable ? "Temporarily unavailable" : "Game is paused"}
+          </h1>
+          <p id="greedy-hold-description">
+            {gameUnavailable
+              ? "The operator has temporarily closed this table. Your wallet remains safe."
+              : "No new round will start until the operator resumes the game. Your wallet remains safe."}
+          </p>
+          <div>
+            <Link href={homeHref}>Back to games</Link>
+            <button type="button" onClick={() => void recover()}>
+              Check again
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      {helpOpen && !fullHoldVisible ? (
         <div
           className="game-help-backdrop"
           role="dialog"
@@ -694,7 +761,7 @@ export function GreedyGameScreen() {
             </ol>
           </div>
         </div>
-      )}
+      ) : null}
 
       <ResultModal
         snapshot={snapshot}

@@ -16,6 +16,7 @@ export type GameCardProps = {
   variant: "greedy" | "greedy-classic" | "teen-patti" | "lucky-77";
   image: GameCardImage;
   preload?: boolean;
+  plain?: boolean;
 };
 
 export function GameCard({
@@ -25,9 +26,11 @@ export function GameCard({
   variant,
   image,
   preload = false,
+  plain = false,
 }: GameCardProps) {
   const { showBoot } = useGameBoot();
-  const resolvedHref = usePlayerHref(href, playerUserId);
+  const playerHref = usePlayerHref(href, playerUserId);
+  const resolvedHref = plain ? href : playerHref;
 
   if (!resolvedHref) return null;
 

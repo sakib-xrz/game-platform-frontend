@@ -13,6 +13,7 @@ import { Lucky77ResultModal } from "@/components/lucky-77/lucky-77-result-modal"
 import { Lucky77Wheel } from "@/components/lucky-77/lucky-77-wheel";
 import { useCountdown } from "@/hooks/use-countdown";
 import { useGameSound } from "@/hooks/use-game-sound";
+import { useDemoGreedyGame } from "@/hooks/use-demo-greedy-game";
 import { useLucky77Game } from "@/hooks/use-lucky-77-game";
 import { Lucky77Symbol, lucky77DisplayName } from "@/lib/lucky-77-art";
 import { usePlayerHref } from "@/hooks/use-player-href";
@@ -24,7 +25,31 @@ const LIVE_RESULT_SOUND_MAX_AGE_MS = 2_000;
 
 type LastBet = { optionCode: string; amount: string };
 
+type Lucky77ScreenModel = ReturnType<typeof useLucky77Game>;
+
 export function Lucky77GameScreen() {
+  const model = useLucky77Game();
+  const homeHref = usePlayerHref("/") ?? "/";
+  return <Lucky77GameScreenView model={model} homeHref={homeHref} />;
+}
+
+export function DemoLucky77GameScreen() {
+  const model = useDemoGreedyGame("lucky-77");
+  return (
+    <>
+      <Lucky77GameScreenView model={model} homeHref="/demo" />
+      <span className="demo-mode-badge">DEMO</span>
+    </>
+  );
+}
+
+function Lucky77GameScreenView({
+  model,
+  homeHref,
+}: {
+  model: Lucky77ScreenModel;
+  homeHref: string;
+}) {
   const {
     snapshot,
     loading,
@@ -42,9 +67,8 @@ export function Lucky77GameScreen() {
     optionBetTotals,
     recover,
     placeBet,
-  } = useLucky77Game();
+  } = model;
   const { bootGame, hideBoot } = useGameBoot();
-  const homeHref = usePlayerHref("/") ?? "/";
   const { soundEnabled, toggleSound, playSound } = useGameSound();
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);

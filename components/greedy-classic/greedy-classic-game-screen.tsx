@@ -13,6 +13,7 @@ import { ClassicRecentResults } from "@/components/greedy-classic/classic-recent
 import { ClassicResultModal } from "@/components/greedy-classic/classic-result-modal";
 import { useCountdown } from "@/hooks/use-countdown";
 import { useGameSound } from "@/hooks/use-game-sound";
+import { useDemoGreedyGame } from "@/hooks/use-demo-greedy-game";
 import { useGreedyClassicGame } from "@/hooks/use-greedy-classic-game";
 import { formatCompactAmount, formatInteger } from "@/lib/format";
 import {
@@ -36,7 +37,31 @@ const CLASSIC_OPTION_POSITIONS = [
   { left: 24.5, top: 22 },
 ] as const;
 
+type ClassicScreenModel = ReturnType<typeof useGreedyClassicGame>;
+
 export function GreedyClassicGameScreen() {
+  const model = useGreedyClassicGame();
+  const homeHref = usePlayerHref("/") ?? "/";
+  return <GreedyClassicGameScreenView model={model} homeHref={homeHref} />;
+}
+
+export function DemoGreedyClassicGameScreen() {
+  const model = useDemoGreedyGame("greedy-classic");
+  return (
+    <>
+      <GreedyClassicGameScreenView model={model} homeHref="/demo" />
+      <span className="demo-mode-badge">DEMO</span>
+    </>
+  );
+}
+
+function GreedyClassicGameScreenView({
+  model,
+  homeHref,
+}: {
+  model: ClassicScreenModel;
+  homeHref: string;
+}) {
   const {
     snapshot,
     loading,
@@ -55,9 +80,8 @@ export function GreedyClassicGameScreen() {
     optionBetTotals,
     recover,
     placeBet,
-  } = useGreedyClassicGame();
+  } = model;
   const { bootGame, hideBoot } = useGameBoot();
-  const homeHref = usePlayerHref("/") ?? "/";
   const { soundEnabled, toggleSound, playSound } = useGameSound();
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);

@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { useCountdown } from "@/hooks/use-countdown";
+import { useDemoTeenPattiGame } from "@/hooks/use-demo-teen-patti-game";
 import { useTeenPattiGame } from "@/hooks/use-teen-patti-game";
 import { formatInteger } from "@/lib/format";
 import {
@@ -97,7 +98,31 @@ function toneForOption(
   return ["green", "blue", "pink"][index] ?? "empty";
 }
 
+type TeenPattiScreenModel = ReturnType<typeof useTeenPattiGame>;
+
 export function TeenPattiGameScreen() {
+  const model = useTeenPattiGame();
+  const homeHref = usePlayerHref("/") ?? "/";
+  return <TeenPattiGameScreenView model={model} homeHref={homeHref} />;
+}
+
+export function DemoTeenPattiGameScreen() {
+  const model = useDemoTeenPattiGame();
+  return (
+    <>
+      <TeenPattiGameScreenView model={model} homeHref="/demo" />
+      <span className="demo-mode-badge">DEMO</span>
+    </>
+  );
+}
+
+function TeenPattiGameScreenView({
+  model,
+  homeHref,
+}: {
+  model: TeenPattiScreenModel;
+  homeHref: string;
+}) {
   const {
     snapshot,
     loading,
@@ -117,9 +142,8 @@ export function TeenPattiGameScreen() {
     playerCount,
     recover,
     placeBet,
-  } = useTeenPattiGame();
+  } = model;
   const { bootGame, hideBoot } = useGameBoot();
-  const homeHref = usePlayerHref("/") ?? "/";
   const { soundEnabled, toggleSound, playSound } = useGameSound();
   const previousStatusRef = useRef<string | null>(null);
 
