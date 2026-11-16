@@ -426,7 +426,7 @@ export function HouseProfitAdminPanel() {
                 <SelectContent>
                   <SelectItem value="default">Platform Default (All Games)</SelectItem>
                   <SelectItem value="greedy">Greedy</SelectItem>
-                  <SelectItem value="greedy-classic">Greedy Classic</SelectItem>
+                  <SelectItem value="greedy-classic">Monkey Wheel</SelectItem>
                   <SelectItem value="lucky-77">Lucky 77</SelectItem>
                   <SelectItem value="teen-patti">Teen Patti</SelectItem>
                 </SelectContent>

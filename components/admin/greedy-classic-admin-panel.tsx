@@ -127,7 +127,7 @@ export function GreedyClassicAdminPanel() {
   const identity = useAdminIdentity();
   const queryClient = useQueryClient();
   const game = "greedy-classic";
-  const gameLabel = "Greedy Classic";
+  const gameLabel = "Monkey Wheel";
   const gameClient = adminClient.greedyClassic;
   const publishAction = "greedy_classic.config.publish";
   const [editor, setEditor] = useState<EditorState | null>(null);

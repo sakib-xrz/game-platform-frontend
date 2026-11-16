@@ -133,9 +133,15 @@ export function ClassicOptionCard({
               }
               aria-hidden="true"
             >
-              <span className="player-avatar__coin">
-                <span className="player-avatar__coin-rim" />
-                <span className="player-avatar__coin-core" />
+              <span className="gc-option__flying-chip">
+                <span className="gc-option__flying-chip-rim" />
+                <span className="gc-option__flying-chip-face">
+                  {formatInteger(landing.amount)}
+                </span>
+              </span>
+              <span className="gc-option__impact-ripple" />
+              <span className="gc-option__impact-floater">
+                +{formatInteger(landing.amount)}
               </span>
             </span>
           );

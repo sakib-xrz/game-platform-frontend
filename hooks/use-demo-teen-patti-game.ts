@@ -210,6 +210,7 @@ export function useDemoTeenPattiGame() {
   const walletVersionRef = useRef(1);
   const revealedRef = useRef<string | null>(null);
   const snapshotRef = useRef<TeenPattiSnapshot | null>(null);
+  const resultModalTimerRef = useRef<number | null>(null);
 
   const publish = useCallback(() => {
     const round = roundRef.current;
@@ -269,9 +270,22 @@ export function useDemoTeenPattiGame() {
           round.phaseEndsAt = tick + DEMO_TEEN_PATTI.result_duration_ms;
           if (revealedRef.current !== round.id) {
             revealedRef.current = round.id;
-            setResultModalOpen(true);
+            if (resultModalTimerRef.current !== null) {
+              window.clearTimeout(resultModalTimerRef.current);
+            }
+            const activeRoundId = round.id;
+            // Delay modal until card flip animation & winner announcement finish on the table
+            resultModalTimerRef.current = window.setTimeout(() => {
+              if (roundRef.current?.id === activeRoundId && roundRef.current?.phase === "result_revealed") {
+                setResultModalOpen(true);
+              }
+            }, 2_200);
           }
         } else {
+          if (resultModalTimerRef.current !== null) {
+            window.clearTimeout(resultModalTimerRef.current);
+            resultModalTimerRef.current = null;
+          }
           const finished = buildRound(round);
           const pot = round.bettors.reduce((total, bettor) => total + BigInt(bettor.total_amount), 0n);
           const payout = round.myBets.reduce((total, bet) => {
@@ -313,7 +327,12 @@ export function useDemoTeenPattiGame() {
       publish();
     }, 200);
 
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearInterval(timer);
+      if (resultModalTimerRef.current !== null) {
+        window.clearTimeout(resultModalTimerRef.current);
+      }
+    };
   }, [publish, settle]);
 
   const placeBet = useCallback(async (

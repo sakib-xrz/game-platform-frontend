@@ -28,11 +28,11 @@ export default async function GameSelectionPage({
             preload
           />
           <GameCard
-            title="Greedy Classic"
+            title="Monkey Wheel"
             href="/games/greedy-classic"
             playerUserId={playerUserId}
             variant="greedy-classic"
-            image={{ src: "/assets/game-lobby/greedy-classic.webp" }}
+            image={{ src: "/assets/game-lobby/monkey-wheel-v4.webp" }}
             preload
           />
           <GameCard

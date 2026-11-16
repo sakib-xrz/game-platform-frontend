@@ -27,11 +27,11 @@ export default function DemoLobbyPage() {
             preload
           />
           <GameCard
-            title="Greedy Classic"
+            title="Monkey Wheel"
             href="/demo/greedy-classic"
             plain
             variant="greedy-classic"
-            image={{ src: "/assets/game-lobby/greedy-classic.webp" }}
+            image={{ src: "/assets/game-lobby/monkey-wheel-v4.webp" }}
             preload
           />
           <GameCard

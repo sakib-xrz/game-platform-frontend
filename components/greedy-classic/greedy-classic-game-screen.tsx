@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import Link from "next/link";
-import { House, RefreshCw, Users, Volume2, VolumeX, X } from "lucide-react";
+import { CircleHelp, House, RefreshCw, Sparkles, Users, Volume2, VolumeX, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
@@ -11,6 +11,7 @@ import { ClassicChipTray } from "@/components/greedy-classic/classic-chip-tray";
 import { ClassicOptionCard } from "@/components/greedy-classic/classic-option-card";
 import { ClassicRecentResults } from "@/components/greedy-classic/classic-recent-results";
 import { ClassicResultModal } from "@/components/greedy-classic/classic-result-modal";
+import { ClassicTutorialGuide } from "@/components/greedy-classic/classic-tutorial-guide";
 import { useCountdown } from "@/hooks/use-countdown";
 import { useGameSound } from "@/hooks/use-game-sound";
 import { useDemoGreedyGame } from "@/hooks/use-demo-greedy-game";
@@ -85,12 +86,35 @@ function GreedyClassicGameScreenView({
   const { soundEnabled, toggleSound, playSound } = useGameSound();
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
+  const [helpTab, setHelpTab] = useState<"guide" | "odds" | "rules">("guide");
+  const [tutorialActive, setTutorialActive] = useState(false);
   const helpCloseRef = useRef<HTMLButtonElement>(null);
   const holdHomeRef = useRef<HTMLAnchorElement>(null);
   const holdRetryRef = useRef<HTMLButtonElement>(null);
   const previousStatusRef = useRef<string | null>(null);
   const soundedResultRoundRef = useRef<string | null>(null);
   const previousDrawingFocusRef = useRef(-1);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const seen = localStorage.getItem("monkey_wheel_tutorial_done");
+      if (!seen && snapshot?.round?.status === "betting_open") {
+        setTutorialActive(true);
+      }
+    }
+  }, [snapshot?.round?.status]);
+
+  const handleDismissTutorial = useCallback(() => {
+    setTutorialActive(false);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("monkey_wheel_tutorial_done", "true");
+    }
+  }, []);
+
+  const handleStartTutorial = useCallback(() => {
+    setHelpOpen(false);
+    setTutorialActive(true);
+  }, []);
 
   useEffect(() => {
     if (snapshot || fatalError) hideBoot();
@@ -245,6 +269,7 @@ function GreedyClassicGameScreenView({
 
   const handlePlaceBet = useCallback(
     async (option: PublicOption, amount: string) => {
+      if (tutorialActive) handleDismissTutorial();
       const accepted = await placeBet(
         option,
         amount,
@@ -256,7 +281,7 @@ function GreedyClassicGameScreenView({
       );
       if (accepted) playSound("bet");
     },
-    [placeBet, playSound],
+    [handleDismissTutorial, placeBet, playSound, tutorialActive],
   );
 
   const bettorsByOption = useMemo(() => {
@@ -379,7 +404,7 @@ function GreedyClassicGameScreenView({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/assets/greedy-classic/pause-platter.png" alt="" />
           </span>
-          <small>Greedy Classic</small>
+          <small>Monkey Wheel</small>
           <h1>Game unavailable</h1>
           <p>{fatalError}</p>
           <div>
@@ -416,7 +441,7 @@ function GreedyClassicGameScreenView({
   return (
     <main className="mobile-canvas gc-shell">
       <header className="gc-toolbar safe-top">
-        <nav aria-label="Game controls">
+        <nav aria-label="Game controls" className="gc-toolbar__controls">
           <Link
             href={homeHref}
             className="gc-toolbar__button"
@@ -438,6 +463,18 @@ function GreedyClassicGameScreenView({
               <VolumeX aria-hidden="true" />
             )}
           </button>
+          <button
+            type="button"
+            className="gc-toolbar__button gc-toolbar__button--help"
+            aria-label="How to play"
+            title="Game rules & tutorial"
+            onClick={() => setHelpOpen(true)}
+          >
+            <CircleHelp aria-hidden="true" />
+          </button>
+        </nav>
+
+        <div className="gc-toolbar__status">
           <span
             className={clsx(
               "gc-toolbar__button gc-toolbar__button--players",
@@ -449,17 +486,17 @@ function GreedyClassicGameScreenView({
             <Users aria-hidden="true" />
             <strong className="gc-toolbar__players-count">{joinedPlayerCount}</strong>
           </span>
-        </nav>
 
-        <div
-          className="gc-toolbar__wallet"
-          aria-label={`${formatInteger(optimisticWallet)} coins available`}
-        >
-          <i className={connected ? "is-online" : ""} aria-hidden="true" />
-          <span>
-            <small>{connected ? "Coins" : "Reconnecting"}</small>
-            <strong>{formatInteger(optimisticWallet)}</strong>
-          </span>
+          <div
+            className="gc-toolbar__wallet"
+            aria-label={`${formatInteger(optimisticWallet)} coins available`}
+          >
+            <i className={connected ? "is-online" : ""} aria-hidden="true" />
+            <span>
+              <small>{connected ? "Coins" : "Reconnecting"}</small>
+              <strong>{formatInteger(optimisticWallet)}</strong>
+            </span>
+          </div>
         </div>
       </header>
 
@@ -476,7 +513,7 @@ function GreedyClassicGameScreenView({
         </div>
       ) : null}
 
-      <section className="gc-arena" aria-label="Greedy Classic betting board">
+      <section className="gc-arena" aria-label="Monkey Wheel betting board">
         <span className="gc-arena__rays" aria-hidden="true" />
         <svg
           className="gc-arena__spokes"
@@ -533,12 +570,12 @@ function GreedyClassicGameScreenView({
         <div className="gc-kiosk gc-kiosk--salad" aria-hidden="true">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/greedy-classic/salad.png" alt="" />
-          <span>Salad</span>
+          <span>FRUITS</span>
         </div>
         <div className="gc-kiosk gc-kiosk--pizza" aria-hidden="true">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/greedy-classic/pizza.png" alt="" />
-          <span>Pizza</span>
+          <span>JACKPOT</span>
         </div>
 
         {isDrawing ? (
@@ -600,7 +637,7 @@ function GreedyClassicGameScreenView({
           <span className="gc-hold__glow" aria-hidden="true" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/greedy-classic/pause-platter.png" alt="" />
-          <small>Greedy Classic</small>
+          <small>Monkey Wheel</small>
           <h1 id="gc-hold-title">
             {gameUnavailable ? "Temporarily unavailable" : "Game is paused"}
           </h1>
@@ -638,6 +675,7 @@ function GreedyClassicGameScreenView({
             <button
               ref={helpCloseRef}
               type="button"
+              className="gc-help__close"
               onClick={() => setHelpOpen(false)}
               aria-label="Close instructions"
             >
@@ -645,28 +683,129 @@ function GreedyClassicGameScreenView({
             </button>
             <span aria-hidden="true">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/greedy-classic/center-feast.png" alt="" />
+              <img src="/assets/greedy-classic/center-wheel-hub.png" alt="" />
             </span>
-            <small>Greedy Classic</small>
-            <h2 id="gc-help-title">How to play</h2>
-            <ol>
-              <li>Choose a coin value from the silver tray.</li>
-              <li>
-                Tap one or several food cards before the center timer reaches
-                zero.
-              </li>
-              <li>
-                Every tap places a real bet immediately; your selection total
-                updates below.
-              </li>
-              <li>
-                The server publishes the verified winner after the drawing
-                animation.
-              </li>
-            </ol>
+            <small>Monkey Wheel</small>
+            <h2 id="gc-help-title">Game Guide</h2>
+
+            <button
+              type="button"
+              className="gc-help__tutorial-trigger"
+              onClick={handleStartTutorial}
+            >
+              <Sparkles className="w-4 h-4 text-amber-300" aria-hidden="true" />
+              <span>Watch Interactive Hand Tutorial</span>
+            </button>
+
+            <div className="gc-help__tabs" role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={helpTab === "guide"}
+                className={clsx(helpTab === "guide" && "is-active")}
+                onClick={() => setHelpTab("guide")}
+              >
+                How to Bet
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={helpTab === "odds"}
+                className={clsx(helpTab === "odds" && "is-active")}
+                onClick={() => setHelpTab("odds")}
+              >
+                Multiplier Odds
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={helpTab === "rules"}
+                className={clsx(helpTab === "rules" && "is-active")}
+                onClick={() => setHelpTab("rules")}
+              >
+                Rules
+              </button>
+            </div>
+
+            {helpTab === "guide" ? (
+              <ol className="gc-help__list">
+                <li>
+                  <strong>1. Pick Your Coin</strong>
+                  <span>Select any coin value (10 to 5,000) from the gold bottom tray.</span>
+                </li>
+                <li>
+                  <strong>2. Tap to Place Bets</strong>
+                  <span>Tap on Banana, Coconut, Pineapple or any fruit before the wheel timer hits 0s.</span>
+                </li>
+                <li>
+                  <strong>3. Multiple Bets Allowed</strong>
+                  <span>You can place coins on multiple items in the same round to increase your winning odds!</span>
+                </li>
+                <li>
+                  <strong>4. Instant Payout</strong>
+                  <span>When the light ring stops on your fruit, you win instant multiplier coins!</span>
+                </li>
+              </ol>
+            ) : null}
+
+            {helpTab === "odds" ? (
+              <div className="gc-help__odds-grid">
+                <div className="gc-help__odds-card">
+                  <span>🍌 Banana</span>
+                  <strong>Win 4x</strong>
+                </div>
+                <div className="gc-help__odds-card">
+                  <span>🥥 Coconut</span>
+                  <strong>Win 5x</strong>
+                </div>
+                <div className="gc-help__odds-card">
+                  <span>🍍 Pineapple</span>
+                  <strong>Win 6x</strong>
+                </div>
+                <div className="gc-help__odds-card">
+                  <span>🥭 Mango</span>
+                  <strong>Win 7x</strong>
+                </div>
+                <div className="gc-help__odds-card">
+                  <span>🍉 Watermelon</span>
+                  <strong>Win 8x</strong>
+                </div>
+                <div className="gc-help__odds-card">
+                  <span>⭐ Starfruit</span>
+                  <strong>Win 10x</strong>
+                </div>
+                <div className="gc-help__odds-card">
+                  <span>🍓 Berries</span>
+                  <strong>Win 15x</strong>
+                </div>
+                <div className="gc-help__odds-card gc-help__odds-card--jackpot">
+                  <span>💎 Crown Gem</span>
+                  <strong>Win 20x</strong>
+                </div>
+              </div>
+            ) : null}
+
+            {helpTab === "rules" ? (
+              <div className="gc-help__rules-card">
+                <p>
+                  <strong>Secured Fair Play:</strong> Every draw is cryptographically calculated on the game server.
+                </p>
+                <p>
+                  <strong>Instant Settlements:</strong> Winnings are automatically added to your wallet balance within milliseconds of round reveal.
+                </p>
+                <p>
+                  <strong>Transparent Outcomes:</strong> Check recent round history chips directly below the betting board.
+                </p>
+              </div>
+            ) : null}
           </section>
         </div>
       ) : null}
+
+      <ClassicTutorialGuide
+        active={tutorialActive && canBet}
+        onDismiss={handleDismissTutorial}
+      />
 
       <ClassicResultModal
         snapshot={snapshot}

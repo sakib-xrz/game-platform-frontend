@@ -1,17 +1,17 @@
 /* ========================================================================== 
-   Greedy Classic: burgundy, orange and gold mobile arcade theme
+   Monkey Wheel (Greedy Classic): Royal Tropical Emerald, 24K Gold & Jungle Arcade Theme
+   Production Grade High-Roller Casino Experience
    ========================================================================== */
 
 :root {
-  --gc-night: #290102;
-  --gc-burgundy: #59020a;
-  --gc-red: #840308;
-  --gc-ruby: #911922;
-  --gc-coral: #fa855a;
-  --gc-orange: #fc9c24;
-  --gc-gold: #f5ab16;
-  --gc-gold-light: #ffd434;
-  --gc-cream: #fffbee;
+  --gc-night: #020d07;
+  --gc-emerald-deep: #052113;
+  --gc-emerald: #0b3d22;
+  --gc-emerald-light: #166538;
+  --gc-gold-bright: #fff2a6;
+  --gc-gold: #ffc83d;
+  --gc-gold-deep: #a95a08;
+  --gc-cream: #fffaf0;
   --gc-silver: #c6d6ed;
   --gc-silver-dark: #8b95ad;
 }
@@ -43,13 +43,13 @@
 
 .game-select-page .game-card--soon {
   border-color: rgba(255, 204, 104, 0.2);
-  background: linear-gradient(135deg, #310008 0%, #5a1119 52%, #6f301e 100%);
+  background: linear-gradient(135deg, #051a11 0%, #0c3621 52%, #134e30 100%);
   filter: saturate(0.74);
 }
 
 .game-select-page .game-card--soon .game-card__orbit-ring {
   border-color: rgba(255, 212, 115, 0.24);
-  background: rgba(94, 10, 18, 0.34);
+  background: rgba(12, 54, 33, 0.34);
 }
 
 .game-select-page .game-card--soon .game-card__orbit-item {
@@ -58,26 +58,26 @@
 }
 
 .game-card--greedy-classic .game-card__hero img {
-  object-position: 53% center;
+  object-position: 50% center;
 }
 
-/* Greedy Classic route and boot screen */
+/* Monkey Wheel boot screen */
 .game-boot--greedy-classic .game-boot__panel {
   background:
     radial-gradient(
       80% 48% at 50% 31%,
-      rgba(245, 58, 32, 0.55),
+      rgba(34, 197, 94, 0.45),
       transparent 70%
     ),
-    radial-gradient(95% 68% at 50% -8%, #a20e18 0%, transparent 67%),
-    linear-gradient(180deg, #340005 0%, #69020b 51%, #210003 100%);
+    radial-gradient(95% 68% at 50% -8%, #144e33 0%, transparent 67%),
+    linear-gradient(180deg, #020d07 0%, #082917 51%, #020905 100%);
 }
 
 .game-boot--greedy-classic .game-boot__panel::before {
   background:
     repeating-conic-gradient(
       from -12deg at 50% 44%,
-      rgba(255, 145, 47, 0.16) 0deg 8deg,
+      rgba(255, 200, 32, 0.16) 0deg 8deg,
       transparent 8deg 29deg
     ),
     radial-gradient(
@@ -90,13 +90,13 @@
 .game-boot--greedy-classic .game-boot__panel::after {
   border-top: 2px solid rgba(255, 188, 48, 0.34);
   background:
-    linear-gradient(180deg, rgba(181, 28, 39, 0.78), rgba(62, 0, 7, 0.9)),
+    linear-gradient(180deg, rgba(20, 80, 48, 0.78), rgba(4, 20, 12, 0.9)),
     repeating-linear-gradient(
       105deg,
       rgba(255, 255, 255, 0.04) 0 2px,
       transparent 2px 13px
     );
-  box-shadow: 0 -18px 48px rgba(255, 84, 26, 0.13);
+  box-shadow: 0 -18px 48px rgba(34, 197, 94, 0.15);
 }
 
 .game-boot--greedy-classic .game-boot__ambient span {
@@ -110,14 +110,15 @@
 .game-boot--greedy-classic .game-boot__title {
   max-width: 94%;
   color: #fff1a5;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: clamp(34px, 10.8vw, 54px);
   text-transform: uppercase;
-  -webkit-text-stroke: 1px #8f1b0e;
+  -webkit-text-stroke: 1px #7b4208;
   text-shadow:
-    0 3px 0 #d25817,
-    0 6px 0 #79150c,
-    0 11px 21px rgba(23, 0, 2, 0.62),
-    0 0 18px rgba(255, 198, 45, 0.35);
+    0 3px 0 #b45309,
+    0 6px 0 #6e3305,
+    0 11px 21px rgba(0, 0, 0, 0.65),
+    0 0 24px rgba(255, 214, 52, 0.45);
 }
 
 .game-boot--greedy-classic .game-boot__loading {
@@ -126,7 +127,7 @@
 
 .game-boot--greedy-classic .game-boot__bar {
   border-color: rgba(255, 216, 93, 0.76);
-  background: rgba(55, 0, 5, 0.76);
+  background: rgba(4, 25, 15, 0.85);
 }
 
 .game-boot__scene--greedy-classic .game-boot__classic-rays {
@@ -135,45 +136,45 @@
   border-radius: 50%;
   background: repeating-conic-gradient(
     from -5deg,
-    rgba(255, 178, 40, 0.24) 0deg 4deg,
+    rgba(255, 200, 32, 0.25) 0deg 4deg,
     transparent 4deg 45deg
   );
   filter: blur(1px);
 }
 
 .game-boot__scene--greedy-classic .game-boot__classic-wheel-shadow {
-  background: rgba(30, 0, 2, 0.68);
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .game-boot__scene--greedy-classic .game-boot__classic-wheel-rim {
-  border-color: #ffbd1f;
+  border-color: #ffd434;
   background:
-    radial-gradient(circle at 50% 45%, #b81925 0 33%, transparent 33.5%),
-    linear-gradient(145deg, #930713, #430006);
+    radial-gradient(circle at 50% 45%, #166538 0 33%, transparent 33.5%),
+    linear-gradient(145deg, #0b3d22, #041c10);
   box-shadow:
-    inset 0 0 0 3px #7b280b,
-    inset 0 0 28px rgba(255, 96, 30, 0.58),
-    0 0 0 2px #5f1609,
-    0 15px 30px rgba(28, 0, 2, 0.56),
-    0 0 32px rgba(255, 177, 25, 0.32);
+    inset 0 0 0 3px #8a4809,
+    inset 0 0 28px rgba(34, 197, 94, 0.55),
+    0 0 0 2px #6e3305,
+    0 15px 30px rgba(0, 0, 0, 0.6),
+    0 0 32px rgba(255, 214, 52, 0.35);
 }
 
 .game-boot__scene--greedy-classic .game-boot__classic-wheel-spokes {
-  border-color: rgba(255, 194, 37, 0.72);
+  border-color: rgba(255, 214, 52, 0.75);
   background: repeating-conic-gradient(
-    rgba(255, 168, 32, 0.4) 0deg 2deg,
+    rgba(255, 214, 52, 0.4) 0deg 2deg,
     transparent 2deg 45deg
   );
 }
 
 .game-boot__scene--greedy-classic .game-boot__classic-food {
   border-radius: 24%;
-  background: linear-gradient(145deg, #ffbd35 0%, #f47714 100%);
+  background: linear-gradient(145deg, #ffc83b 0%, #e68d0d 100%);
   box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.48),
-    inset 0 -4px 8px rgba(128, 25, 4, 0.36),
-    0 5px 0 #8d280d,
-    0 9px 15px rgba(30, 0, 2, 0.4);
+    inset 0 -4px 8px rgba(138, 72, 9, 0.36),
+    0 5px 0 #7b4208,
+    0 9px 15px rgba(0, 0, 0, 0.45);
 }
 
 .game-boot__scene--greedy-classic .game-boot__classic-platter-halo {
@@ -182,7 +183,7 @@
     circle at 44% 35%,
     #fff4a0,
     #ffb11f 55%,
-    #d82d28 56% 100%
+    #166538 56% 100%
   );
 }
 
@@ -194,7 +195,7 @@
   width: 12%;
   aspect-ratio: 1;
   transform: rotate(12deg);
-  filter: drop-shadow(0 5px 4px rgba(35, 0, 2, 0.5));
+  filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.5));
   animation: gcTokenFloat 2.2s ease-in-out infinite;
 }
 
@@ -202,68 +203,114 @@
   object-fit: contain;
 }
 
-/* Main game shell */
+/* ========================================================================== 
+   Main Game Shell — Royal Casino Cabinet Atmosphere
+   ========================================================================== */
 .gc-shell {
   position: relative;
   display: flex;
   width: 100%;
-  max-width: 414px;
+  max-width: 430px;
   min-height: 100dvh;
   flex-direction: column;
   overflow-x: hidden;
   overflow-y: auto;
   isolation: isolate;
+  container-type: inline-size;
+  color: var(--gc-cream);
   background:
     radial-gradient(
-      76% 37% at 50% 29%,
-      rgba(216, 37, 35, 0.54),
+      65% 30% at 50% 0%,
+      rgba(255, 214, 52, 0.22),
+      transparent 75%
+    ),
+    radial-gradient(
+      75% 40% at 50% 36%,
+      rgba(34, 197, 94, 0.35),
       transparent 72%
     ),
     radial-gradient(
-      58% 32% at 50% 0%,
-      rgba(255, 157, 36, 0.16),
-      transparent 82%
+      50% 32% at 0% 50%,
+      rgba(20, 184, 166, 0.15),
+      transparent 70%
     ),
-    linear-gradient(180deg, #310004 0%, #690209 50%, #2b0003 100%);
-  color: var(--gc-cream);
-  box-shadow: 0 0 48px rgba(0, 0, 0, 0.56);
+    radial-gradient(
+      50% 32% at 100% 50%,
+      rgba(245, 171, 22, 0.15),
+      transparent 70%
+    ),
+    linear-gradient(180deg, #03130a 0%, #062816 35%, #041c10 70%, #010804 100%);
+  box-shadow: 0 0 54px rgba(0, 0, 0, 0.7);
 }
 
-.gc-shell::before,
-.gc-shell::after {
+/* Floating Stardust & Firefly Sparkles */
+.gc-shell::before {
   position: absolute;
   inset: 0;
   z-index: -1;
   content: "";
   pointer-events: none;
-}
-
-.gc-shell::before {
-  background: repeating-conic-gradient(
-    from -9deg at 50% 39%,
-    rgba(255, 108, 48, 0.11) 0deg 9deg,
-    transparent 9deg 26deg
-  );
-  opacity: 0.82;
-}
-
-.gc-shell::after {
-  background-image:
+  opacity: 0.85;
+  background:
     radial-gradient(
-      circle at 15% 28%,
-      rgba(255, 229, 158, 0.6) 0 1px,
-      transparent 1.5px
+      circle at 12% 18%,
+      rgba(255, 240, 166, 0.9) 0 0.2cqw,
+      transparent 0.5cqw
     ),
     radial-gradient(
-      circle at 80% 16%,
-      rgba(255, 211, 76, 0.35) 0 1px,
-      transparent 1.5px
+      circle at 85% 24%,
+      rgba(255, 224, 130, 0.85) 0 0.18cqw,
+      transparent 0.48cqw
+    ),
+    radial-gradient(
+      circle at 22% 48%,
+      rgba(52, 211, 153, 0.8) 0 0.17cqw,
+      transparent 0.46cqw
+    ),
+    radial-gradient(
+      circle at 78% 58%,
+      rgba(255, 235, 160, 0.78) 0 0.16cqw,
+      transparent 0.44cqw
+    ),
+    radial-gradient(
+      circle at 50% 12%,
+      rgba(255, 255, 255, 0.45) 0 0.14cqw,
+      transparent 0.38cqw
+    ),
+    repeating-conic-gradient(
+      from -10deg at 50% 38%,
+      rgba(255, 214, 52, 0.06) 0 6deg,
+      transparent 6deg 26deg
     );
-  background-size:
-    33px 33px,
-    41px 41px;
-  mask-image: linear-gradient(180deg, #000, transparent 77%);
-  opacity: 0.3;
+}
+
+/* Signature 3D Perspective Casino Felt Floor Grid */
+.gc-shell::after {
+  position: absolute;
+  right: -20%;
+  bottom: 12%;
+  left: -20%;
+  height: 38%;
+  z-index: -1;
+  content: "";
+  pointer-events: none;
+  border-top: 1px solid rgba(255, 214, 60, 0.28);
+  border-radius: 50% 50% 0 0;
+  opacity: 0.65;
+  background:
+    repeating-linear-gradient(
+      176deg,
+      transparent 0 6.6cqw,
+      rgba(34, 197, 94, 0.14) 6.7cqw 7.0cqw
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 9cqw,
+      rgba(255, 214, 60, 0.04) 9cqw 9.3cqw
+    ),
+    linear-gradient(180deg, rgba(16, 75, 42, 0.32), rgba(3, 18, 10, 0.1));
+  transform: perspective(300px) rotateX(60deg);
+  transform-origin: bottom;
 }
 
 .gc-shell--centered {
@@ -273,61 +320,89 @@
   padding-left: 18px;
 }
 
+/* ========================================================================== 
+   Header / Toolbar: Tactile Controls + Centered 3D Gold Branding
+   ========================================================================== */
 .gc-toolbar {
   position: relative;
   z-index: 55;
   display: flex;
-  min-height: 64px;
+  min-height: 15cqw;
   flex: 0 0 auto;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding-right: 10px;
-  padding-bottom: 8px;
-  padding-left: 10px;
+  gap: 1.8cqw;
+  padding: max(10px, env(safe-area-inset-top)) 3.2cqw 1cqw;
   background: linear-gradient(
     180deg,
-    rgba(24, 0, 2, 0.78),
-    rgba(49, 0, 4, 0.16)
+    rgba(2, 18, 10, 0.94) 0%,
+    rgba(4, 26, 15, 0.65) 80%,
+    transparent 100%
   );
+  backdrop-filter: blur(10px);
+}
+
+.gc-toolbar__controls,
+.gc-toolbar__status {
+  display: flex;
+  align-items: center;
+  gap: 1.8cqw;
 }
 
 .gc-toolbar nav {
   display: flex;
-  gap: 6px;
+  align-items: center;
+  gap: 1.8cqw;
 }
 
+/* 24K Gold Tactile Buttons */
 .gc-toolbar__button {
   display: grid;
-  width: 44px;
-  height: 44px;
+  width: 9.8cqw;
+  height: 9.8cqw;
+  min-width: 40px;
+  min-height: 40px;
   place-items: center;
   padding: 0;
-  border: 2px solid #7e250c;
-  border-radius: 13px;
-  background: linear-gradient(180deg, #fff9dc, #ffc84f);
-  color: #5a0b0b;
+  border: 0.48cqw solid #8d4807;
+  border-radius: 2.8cqw;
+  background:
+    radial-gradient(
+      circle at 35% 24%,
+      rgba(255, 255, 255, 0.5),
+      transparent 28%
+    ),
+    linear-gradient(180deg, #fff5b8 0%, #ffc646 58%, #e48a18 100%);
+  color: #4a2100;
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.85),
-    0 4px 0 #8c260b,
-    0 8px 14px rgba(20, 0, 2, 0.36);
+    inset 0 0.42cqw 0 rgba(255, 255, 255, 0.8),
+    inset 0 -0.8cqw 1.2cqw rgba(138, 72, 9, 0.25),
+    0 0.65cqw 0 #6e3305,
+    0 1.2cqw 2cqw rgba(0, 0, 0, 0.45);
   transition:
     transform 120ms ease,
+    filter 120ms ease,
     box-shadow 120ms ease;
 }
 
+.gc-toolbar__button:hover {
+  filter: brightness(1.06) saturate(1.06);
+}
+
 .gc-toolbar__button svg {
-  width: 21px;
-  height: 21px;
+  width: 4.6cqw;
+  height: 4.6cqw;
+  min-width: 18px;
+  min-height: 18px;
   stroke-width: 2.8;
 }
 
 .gc-toolbar__button:active:not(:disabled) {
-  transform: translateY(3px);
+  transform: translateY(0.55cqw) scale(0.97);
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.8),
-    0 1px 0 #8c260b,
-    0 4px 9px rgba(20, 0, 2, 0.3);
+    inset 0 0.35cqw 0 rgba(255, 255, 255, 0.7),
+    0 0.18cqw 0 #6e3305,
+    0 0.7cqw 1.2cqw rgba(0, 0, 0, 0.35);
 }
 
 .gc-toolbar__button:disabled {
@@ -345,84 +420,66 @@
 }
 
 @keyframes gcToolbarPulse {
-  0% {
-    transform: scale(1);
-  }
-  40% {
-    transform: scale(1.15);
-    filter: brightness(1.25);
-  }
-  100% {
-    transform: scale(1);
-    filter: brightness(1);
-  }
+  0% { transform: scale(1); }
+  40% { transform: scale(1.15); filter: brightness(1.25); }
+  100% { transform: scale(1); filter: brightness(1); }
 }
 
 .gc-toolbar__players-count {
   position: absolute;
-  top: -5px;
-  right: -5px;
+  top: -0.8cqw;
+  right: -0.8cqw;
   z-index: 1;
   display: grid;
+  min-width: 4.2cqw;
+  height: 4.2cqw;
   min-width: 18px;
-  height: 18px;
+  min-height: 18px;
   place-items: center;
-  padding: 0 4px;
-  border: 1.5px solid #fff6c8;
+  padding: 0 0.8cqw;
+  border: 0.35cqw solid #fff6c8;
   border-radius: 9999px;
   background: linear-gradient(180deg, #ff6b4a, #d93a2a);
-  box-shadow: 0 2px 5px rgba(120, 28, 12, 0.28);
-  font-size: 10px;
-  font-weight: 800;
+  box-shadow: 0 0.4cqw 0.8cqw rgba(0, 0, 0, 0.4);
+  font-size: min(2.5cqw, 10px);
+  font-weight: 900;
   line-height: 1;
   color: #fff;
   font-variant-numeric: tabular-nums;
 }
 
-.gc-toolbar__button:focus-visible,
-.gc-deck__refresh:focus-visible,
-.gc-chip:focus-visible,
-.gc-option:focus-visible,
-.gc-result__close:focus-visible,
-.gc-hold a:focus-visible,
-.gc-hold button:focus-visible,
-.gc-fatal a:focus-visible,
-.gc-fatal button:focus-visible,
-.gc-help > button:focus-visible {
-  outline: 3px solid white;
-  outline-offset: 3px;
-  box-shadow: 0 0 0 6px rgba(245, 171, 22, 0.65);
-}
-
+/* Frosted Emerald Wallet Capsule */
 .gc-toolbar__wallet {
   display: flex;
-  min-width: 116px;
-  min-height: 44px;
+  min-width: 26cqw;
+  min-height: 9.8cqw;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 5px 10px;
-  border: 1px solid rgba(255, 219, 103, 0.45);
-  border-radius: 15px;
-  background: rgba(49, 0, 5, 0.76);
+  gap: 1.8cqw;
+  padding: 1cqw 2.4cqw;
+  border: 0.35cqw solid rgba(255, 224, 102, 0.6);
+  border-radius: 3.5cqw;
+  background: linear-gradient(180deg, rgba(10, 52, 30, 0.9), rgba(4, 25, 15, 0.96));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 8px 18px rgba(21, 0, 2, 0.32);
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0.8cqw 1.8cqw rgba(0, 0, 0, 0.5);
   text-align: right;
   backdrop-filter: blur(10px);
 }
 
 .gc-toolbar__wallet > i {
-  width: 9px;
-  height: 9px;
+  width: 2cqw;
+  height: 2cqw;
+  min-width: 8px;
+  min-height: 8px;
   border-radius: 50%;
   background: #ef5350;
-  box-shadow: 0 0 0 4px rgba(239, 83, 80, 0.14);
+  box-shadow: 0 0 0 0.8cqw rgba(239, 83, 80, 0.2);
 }
 
 .gc-toolbar__wallet > i.is-online {
   background: #5ee186;
-  box-shadow: 0 0 0 4px rgba(94, 225, 134, 0.14);
+  box-shadow: 0 0 0 0.8cqw rgba(94, 225, 134, 0.25), 0 0 1.2cqw rgba(94, 225, 134, 0.7);
 }
 
 .gc-toolbar__wallet small,
@@ -431,8 +488,8 @@
 }
 
 .gc-toolbar__wallet small {
-  color: rgba(255, 247, 222, 0.62);
-  font-size: 8px;
+  color: rgba(255, 240, 185, 0.75);
+  font-size: min(1.9cqw, 8.5px);
   font-weight: 850;
   letter-spacing: 0.1em;
   line-height: 1;
@@ -440,36 +497,39 @@
 }
 
 .gc-toolbar__wallet strong {
-  margin-top: 3px;
-  color: #ffe080;
-  font-size: 15px;
+  margin-top: 0.3cqw;
+  color: #ffe666;
+  font-size: min(3.5cqw, 15.5px);
   font-weight: 1000;
   line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .gc-connection-note,
 .gc-pause-note {
   position: relative;
-  z-index: 54;
-  margin: 0 10px 5px;
-  padding: 6px 10px;
-  border: 1px solid rgba(255, 220, 104, 0.28);
-  border-radius: 999px;
-  background: rgba(46, 0, 5, 0.8);
-  color: #ffe7a4;
-  font-size: 9px;
-  font-weight: 800;
-  line-height: 1.3;
+  z-index: 50;
+  padding: 6px 12px;
+  border-bottom: 1px solid rgba(255, 212, 52, 0.4);
+  font-size: 10.5px;
+  font-weight: 750;
   text-align: center;
-  box-shadow: 0 6px 14px rgba(20, 0, 2, 0.28);
+  backdrop-filter: blur(8px);
+}
+
+.gc-connection-note {
+  background: rgba(180, 83, 9, 0.88);
+  color: #fff9e6;
 }
 
 .gc-pause-note {
-  border-color: rgba(255, 151, 84, 0.42);
-  background: rgba(138, 20, 26, 0.88);
+  background: rgba(4, 38, 22, 0.92);
   color: #fff2c5;
 }
 
+/* ========================================================================== 
+   Arena & Radial Game Board
+   ========================================================================== */
 .gc-arena {
   position: relative;
   z-index: 2;
@@ -487,8 +547,8 @@
   inset: -4% -18% 0;
   background: repeating-conic-gradient(
     from -6deg at 50% 43%,
-    rgba(255, 108, 50, 0.16) 0deg 9deg,
-    transparent 9deg 27deg
+    rgba(255, 214, 52, 0.16) 0deg 8deg,
+    transparent 8deg 25deg
   );
   mask-image: radial-gradient(circle at 50% 43%, #000 0 62%, transparent 86%);
 }
@@ -506,18 +566,22 @@
 
 .gc-arena__spoke {
   fill: none;
-  stroke: rgba(255, 162, 0, 0.76);
+  stroke: rgba(255, 214, 52, 0.72);
   stroke-linecap: round;
-  stroke-width: 16;
+  stroke-width: 14;
+  filter: drop-shadow(0 0 6px rgba(255, 200, 32, 0.55));
 }
 
+/* ========================================================================== 
+   The 8 Betting Option Cards — 3D Gold Gemstone Podiums
+   ========================================================================== */
 .gc-option-wrap {
   position: absolute;
   z-index: 10;
   top: var(--gc-option-top);
   left: var(--gc-option-left);
-  width: 19.6cqw;
-  height: 21.2cqw;
+  width: 20.4cqw;
+  height: 22.2cqw;
   transform: translate(-50%, -50%);
   overflow: visible;
 }
@@ -533,39 +597,67 @@
   align-items: center;
   justify-content: flex-end;
   overflow: visible;
-  padding: 0 0.8cqw 1.7cqw;
-  border: 0.65cqw solid #8f320d;
-  border-radius: 4cqw;
-  background: linear-gradient(155deg, #ffc83f 0%, #ff9f1e 40%, #f7790e 100%);
+  padding: 0 0.8cqw 1.8cqw;
+  border: 0.55cqw solid #e5a71a;
+  border-radius: 3.8cqw;
+  background: linear-gradient(155deg, #10522f 0%, #08341e 50%, #031c10 100%);
   color: white;
   box-shadow:
-    inset 0 0 0 0.65cqw #ffd653,
-    inset 0 1.1cqw 1.5cqw rgba(255, 255, 255, 0.3),
-    inset 0 -1.1cqw 1.8cqw rgba(155, 31, 5, 0.3),
-    0 1cqw 0 #8c250b,
-    0 1.6cqw 2.2cqw rgba(34, 0, 2, 0.4);
+    inset 0 0 0 0.35cqw rgba(255, 235, 140, 0.4),
+    inset 0 1cqw 1.2cqw rgba(255, 255, 255, 0.35),
+    inset 0 -1.2cqw 1.6cqw rgba(0, 0, 0, 0.35),
+    0 0.85cqw 0 #6e3305,
+    0 1.5cqw 2.5cqw rgba(0, 0, 0, 0.48);
   transition:
-    transform 110ms ease,
+    transform 120ms cubic-bezier(0.2, 0.8, 0.25, 1),
     filter 150ms ease,
     box-shadow 150ms ease;
+  cursor: pointer;
 }
 
+/* Option-specific vibrant gemstone backdrops */
+.gc-option-wrap:nth-child(3) .gc-option {
+  background: linear-gradient(160deg, #ffc83b 0%, #e68d0d 55%, #a64c00 100%);
+}
+.gc-option-wrap:nth-child(4) .gc-option {
+  background: linear-gradient(160deg, #2dd4bf 0%, #0d9488 55%, #0f5854 100%);
+}
+.gc-option-wrap:nth-child(5) .gc-option {
+  background: linear-gradient(160deg, #fcd34d 0%, #f59e0b 55%, #a64c00 100%);
+}
+.gc-option-wrap:nth-child(6) .gc-option {
+  background: linear-gradient(160deg, #fb923c 0%, #ea580c 55%, #8c2805 100%);
+}
+.gc-option-wrap:nth-child(7) .gc-option {
+  background: linear-gradient(160deg, #f43f5e 0%, #be123c 55%, #730a27 100%);
+}
+.gc-option-wrap:nth-child(8) .gc-option {
+  background: linear-gradient(160deg, #fde047 0%, #ca8a04 55%, #784305 100%);
+}
+.gc-option-wrap:nth-child(9) .gc-option {
+  background: linear-gradient(160deg, #c084fc 0%, #9333ea 55%, #4c137a 100%);
+}
+.gc-option-wrap:nth-child(10) .gc-option {
+  background: linear-gradient(160deg, #38bdf8 0%, #0284c7 55%, #05486d 100%);
+}
+
+/* Curved Specular Glass Lens Reflection */
 .gc-option__shine {
   position: absolute;
-  inset: 0.7cqw 1.4cqw auto;
-  height: 24%;
-  border-radius: 4cqw 4cqw 50% 50%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent);
+  inset: 0.6cqw 1cqw auto;
+  height: 32%;
+  border-radius: 3.2cqw 3.2cqw 50% 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.08) 70%, transparent);
   pointer-events: none;
 }
 
 .gc-option:active:not(:disabled) {
-  transform: translateY(0.8cqw) scale(0.98);
+  transform: translateY(0.7cqw) scale(0.97);
   box-shadow:
-    inset 0 0 0 0.65cqw #ffd653,
-    inset 0 1cqw 1.4cqw rgba(255, 255, 255, 0.25),
-    0 0.5cqw 0 #8c250b,
-    0 1.2cqw 2cqw rgba(34, 0, 2, 0.36);
+    inset 0 0 0 0.35cqw rgba(255, 235, 140, 0.4),
+    inset 0 0.8cqw 1cqw rgba(255, 255, 255, 0.3),
+    0 0.3cqw 0 #6e3305,
+    0 0.8cqw 1.5cqw rgba(0, 0, 0, 0.4);
 }
 
 .gc-option:disabled {
@@ -574,11 +666,11 @@
 
 .gc-option__art {
   position: absolute;
-  top: 0.2cqw;
+  top: 0.3cqw;
   left: 50%;
   display: grid;
-  width: 15.6cqw;
-  height: 15.6cqw;
+  width: 16cqw;
+  height: 16cqw;
   transform: translateX(-50%);
   place-items: center;
   pointer-events: none;
@@ -589,51 +681,55 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  font-size: 12cqw;
+  font-size: 12.5cqw;
   line-height: 1;
-  filter: drop-shadow(0 0.8cqw 0.5cqw rgba(93, 25, 3, 0.36));
+  filter: drop-shadow(0 0.9cqw 0.7cqw rgba(0, 0, 0, 0.45));
 }
 
+/* 24K Gold Multiplier Ribbon */
 .gc-option__payout {
   position: relative;
   z-index: 4;
   max-width: 100%;
-  color: #fffdf1;
-  font-size: clamp(9px, 2.9cqw, 12px);
+  padding: 0.35cqw 0.9cqw 0.45cqw;
+  border: 0.3cqw solid #fff0a8;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff9d8 0%, #ffc843 55%, #d47e0a 100%);
+  color: #431b00;
+  font-size: clamp(8.5px, 2.85cqw, 12px);
   font-weight: 1000;
-  letter-spacing: -0.06em;
+  letter-spacing: -0.04em;
   line-height: 1;
   text-align: center;
-  text-shadow:
-    -1px -1px 0 #83300e,
-    1px -1px 0 #83300e,
-    -1px 1px 0 #83300e,
-    1px 1px 0 #83300e,
-    0 2px 2px rgba(57, 7, 2, 0.55);
+  box-shadow:
+    0 0.5cqw 0.9cqw rgba(0, 0, 0, 0.45),
+    inset 0 0.25cqw 0 rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
   white-space: nowrap;
 }
 
+/* "You Bet" Golden Pill */
 .gc-option__mine {
   position: absolute;
   z-index: 4;
   right: auto;
-  bottom: 5.2cqw;
+  bottom: 5.6cqw;
   left: 0.8cqw;
   display: flex;
   max-width: calc(100% - 1.6cqw);
-  min-height: 3.8cqw;
+  min-height: 4cqw;
   align-items: center;
   gap: 0.35cqw;
-  padding: 0.25cqw 0.75cqw;
+  padding: 0.3cqw 0.8cqw;
   overflow: visible;
-  border: 0.35cqw solid #7b1c0d;
+  border: 0.35cqw solid #703800;
   border-radius: 999px;
-  background: #fff3b1;
-  color: #7b1c0d;
-  font-size: clamp(6px, 2cqw, 8px);
-  font-weight: 900;
+  background: linear-gradient(180deg, #fff5c2, #ffcc33);
+  color: #481e00;
+  font-size: clamp(6.5px, 2.1cqw, 8.5px);
+  font-weight: 1000;
   line-height: 1;
-  box-shadow: 0 0.6cqw 1cqw rgba(35, 0, 2, 0.34);
+  box-shadow: 0 0.7cqw 1.2cqw rgba(0, 0, 0, 0.5);
   white-space: nowrap;
 }
 
@@ -645,50 +741,54 @@
 }
 
 .gc-option-wrap--winner .gc-option__mine {
-  bottom: 9.6cqw;
+  bottom: 10cqw;
 }
 
 .gc-option__winner-badge {
   position: absolute;
   z-index: 6;
   right: 0.8cqw;
-  bottom: 5.2cqw;
-  max-width: 46%;
-  padding: 0.45cqw 0.75cqw;
+  bottom: 5.6cqw;
+  max-width: 50%;
+  padding: 0.45cqw 0.85cqw;
   overflow: hidden;
   border: 0.45cqw solid #82210d;
-  border-radius: 1.5cqw;
+  border-radius: 1.6cqw;
   background: linear-gradient(180deg, #fff179, #ff9d1f);
   color: #7c1b0d;
-  font-size: clamp(6px, 1.8cqw, 8px);
+  font-size: clamp(6px, 1.9cqw, 8.5px);
   font-weight: 1000;
   line-height: 1;
   text-overflow: ellipsis;
   text-transform: uppercase;
-  box-shadow: 0 0.7cqw 1.2cqw rgba(31, 0, 2, 0.34);
+  box-shadow: 0 0.8cqw 1.4cqw rgba(0, 0, 0, 0.45);
   white-space: nowrap;
 }
 
+/* Selected state: Elevated with radiant golden rim */
 .gc-option-wrap--selected .gc-option {
-  border-color: #fff08a;
+  border-color: #fff4ba;
   box-shadow:
-    inset 0 0 0 0.65cqw #ffdb50,
-    0 0 0 0.75cqw rgba(255, 113, 72, 0.88),
-    0 0 2.6cqw rgba(255, 210, 56, 0.7),
-    0 1cqw 0 #8c250b,
-    0 1.6cqw 2.2cqw rgba(34, 0, 2, 0.4);
+    inset 0 0 0 0.4cqw #ffd859,
+    0 0 0 0.75cqw rgba(255, 214, 52, 0.9),
+    0 0 3.2cqw rgba(255, 214, 52, 0.85),
+    0 0.85cqw 0 #6e3305,
+    0 1.6cqw 2.5cqw rgba(0, 0, 0, 0.45);
+  transform: translateY(-0.8cqw);
 }
 
+/* Winner / Drawing highlighted state */
 .gc-option-wrap--drawing .gc-option,
 .gc-option-wrap--winner .gc-option {
-  filter: brightness(1.16) saturate(1.08);
+  filter: brightness(1.22) saturate(1.15);
+  border-color: #ffffff;
   box-shadow:
-    inset 0 0 0 0.65cqw #fff19a,
-    0 0 0 0.85cqw white,
-    0 0 3.6cqw rgba(255, 211, 47, 0.9),
-    0 1cqw 0 #8c250b,
-    0 1.6cqw 2.2cqw rgba(34, 0, 2, 0.4);
-  animation: gcWinnerPulse 520ms ease-in-out infinite alternate;
+    inset 0 0 0 0.5cqw #fff6b8,
+    0 0 0 0.85cqw #ffffff,
+    0 0 4.2cqw rgba(255, 214, 52, 0.95),
+    0 0.85cqw 0 #6e3305,
+    0 1.6cqw 2.5cqw rgba(0, 0, 0, 0.45);
+  animation: gcWinnerPulse 480ms ease-in-out infinite alternate;
 }
 
 .gc-option-wrap--busy .gc-option__image {
@@ -698,11 +798,7 @@
 .gc-option__bettors {
   position: absolute;
   z-index: 3;
-  top: 4%;
-  right: 8%;
-  bottom: auto;
-  left: 8%;
-  height: 12%;
+  inset: 0;
   pointer-events: none;
 }
 
@@ -711,58 +807,154 @@
 }
 
 .gc-option__bettor-avatar {
-  width: 4.8cqw;
-  height: 4.8cqw;
-  filter: drop-shadow(0 0.4cqw 0.8cqw rgba(0, 0, 0, 0.4));
+  border: 0.3cqw solid rgba(255, 214, 52, 0.9);
+  box-shadow: 0 0.4cqw 0.8cqw rgba(0, 0, 0, 0.5);
 }
 
+/* Coin Fly / Landing Animation — Ultra-smooth continuous parabolic trajectory */
 .gc-option__coin-landing {
-  --landing-x: 0cqw;
   position: absolute;
-  z-index: 60;
-  top: 46%;
+  z-index: 70;
+  top: 50%;
   left: 50%;
   display: grid;
-  width: 7.2cqw;
-  height: 7.2cqw;
+  width: 6.8cqw;
+  height: 6.8cqw;
   place-items: center;
   transform: translate(-50%, -50%);
   pointer-events: none;
   overflow: visible;
   will-change: transform, opacity;
-  animation: gcCoinLand 780ms cubic-bezier(0.2, 0.9, 0.28, 1) both;
+  animation: gcCoinFlight 480ms cubic-bezier(0.18, 0.9, 0.28, 1) both;
 }
 
-.gc-option__coin-landing--1 {
-  --gc-coin-x: -4.4cqw;
-}
-.gc-option__coin-landing--2 {
-  --gc-coin-x: 4.4cqw;
+/* 3D Casino Chip in Flight — Parabolic height arc and smooth landing compression */
+.gc-option__flying-chip {
+  position: relative;
+  display: grid;
+  width: 5.6cqw;
+  height: 5.6cqw;
+  place-items: center;
+  border-radius: 50%;
+  box-shadow: 0 0.8cqw 1.2cqw rgba(0, 0, 0, 0.45);
+  animation: gcChipParabolicArc 480ms ease-out both;
 }
 
-.gc-option__coin-landing .player-avatar__coin {
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 0.8cqw 1.2cqw rgba(0, 0, 0, 0.45));
+.gc-option__flying-chip-rim {
+  position: absolute;
+  inset: 0;
+  border: 0.35cqw dashed rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    var(--chip-core) 0 42%,
+    var(--chip-rim) 43% 72%,
+    color-mix(in srgb, var(--chip-rim) 65%, #050505) 73% 100%
+  );
+  box-shadow:
+    inset 0 0 0 0.2cqw rgba(255, 255, 255, 0.4),
+    inset 0 -0.4cqw 0 rgba(0, 0, 0, 0.3);
 }
 
+.gc-option__flying-chip-face {
+  position: relative;
+  z-index: 2;
+  font-size: min(1.8cqw, 7.5px);
+  font-weight: 1000;
+  color: var(--chip-ink);
+  letter-spacing: -0.04em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Impact Golden Ripple Shockwave — Synchronized with touchdown at 350ms */
+.gc-option__impact-ripple {
+  position: absolute;
+  inset: -1cqw;
+  border-radius: 50%;
+  border: 0.35cqw solid #ffd434;
+  opacity: 0;
+  pointer-events: none;
+  animation: gcImpactRipple 500ms ease-out 350ms forwards;
+}
+
+/* Rising +Amount Floater — Synchronized with touchdown at 350ms */
+.gc-option__impact-floater {
+  position: absolute;
+  top: -2.5cqw;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.25cqw 0.75cqw;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff2a6, #ffc83d);
+  border: 0.25cqw solid #78350f;
+  color: #451a03;
+  font-size: min(2.1cqw, 8.5px);
+  font-weight: 1000;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 0.5cqw 1cqw rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  animation: gcImpactFloater 650ms ease-out 350ms forwards;
+}
+
+@keyframes gcImpactRipple {
+  0% {
+    opacity: 0.95;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+@keyframes gcImpactFloater {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.8);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(-50%, -1.2cqw) scale(1.1);
+  }
+  75% {
+    opacity: 1;
+    transform: translate(-50%, -2.6cqw) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -3.8cqw) scale(0.88);
+  }
+}
+
+/* ========================================================================== 
+   Center Dial: 24K Gold Filigree Ring, Mascot Medallion & Countdown
+   ========================================================================== */
 .gc-dial {
   position: absolute;
   z-index: 24;
   top: 43%;
   left: 50%;
-  width: 33cqw;
+  width: 34cqw;
   aspect-ratio: 1;
   padding: 1.4cqw;
   transform: translate(-50%, -50%);
-  border: 0.7cqw solid #7e250b;
+  border: 0.75cqw solid #8a4809;
   border-radius: 50%;
   background:
-    repeating-conic-gradient(#ffd742 0deg 3deg, #b52223 3deg 24deg), #b52223;
+    radial-gradient(
+      circle at 35% 25%,
+      rgba(255, 255, 255, 0.4),
+      transparent 28%
+    ),
+    linear-gradient(135deg, #fff5b8, #ffc83d 30%, #e68d0d 55%, #8a4809 72%, #ffd54f 100%);
   box-shadow:
-    0 0 0 0.65cqw #f1a918,
-    0 1.5cqw 3cqw rgba(32, 0, 2, 0.48),
-    0 0 3cqw rgba(255, 161, 25, 0.18);
+    0 0 0 0.45cqw #fff0a0,
+    0 0 0 0.9cqw #8a4809,
+    0 0 0 1.35cqw #13663a,
+    0 2cqw 4cqw rgba(0, 0, 0, 0.65),
+    0 0 3.5cqw rgba(255, 200, 32, 0.38);
 }
 
 .gc-dial__inner {
@@ -770,20 +962,20 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border: 0.45cqw solid #8b1b1b;
+  border: 0.45cqw solid #062b17;
   border-radius: 50%;
-  background: linear-gradient(180deg, #ffbd24, #e8422e);
+  background: radial-gradient(circle at 50% 40%, #0d4a2b 0%, #052615 70%, #02120a 100%);
 }
 
 .gc-dial__feast {
   position: absolute;
-  top: -2cqw;
+  top: -1.5cqw;
   left: 50%;
-  width: 28cqw;
-  height: 22cqw;
+  width: 29cqw;
+  height: 25cqw;
   transform: translateX(-50%);
   object-fit: contain;
-  filter: drop-shadow(0 0.8cqw 0.6cqw rgba(71, 13, 2, 0.36));
+  filter: drop-shadow(0 0.8cqw 1cqw rgba(0, 0, 0, 0.6));
 }
 
 .gc-dial__copy {
@@ -797,8 +989,9 @@
   align-items: center;
   justify-content: center;
   padding: 1cqw 2cqw 1.2cqw;
-  border-top: 0.5cqw solid #f07e48;
-  background: linear-gradient(180deg, rgba(208, 43, 47, 0.96), #aa1721);
+  border-top: 0.55cqw solid #ffd434;
+  background: linear-gradient(180deg, rgba(8, 48, 28, 0.96), rgba(3, 20, 12, 0.98));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
   color: white;
   text-align: center;
 }
@@ -814,16 +1007,17 @@
 }
 
 .gc-dial__copy small {
-  color: #ffe38e;
-  font-size: clamp(6px, 2cqw, 8px);
-  font-weight: 900;
-  letter-spacing: 0.02em;
+  color: #ffd859;
+  font-size: clamp(6px, 2.1cqw, 8.5px);
+  font-weight: 950;
+  letter-spacing: 0.08em;
   line-height: 1;
+  text-transform: uppercase;
 }
 
 .gc-dial__copy span {
-  margin-top: 0.7cqw;
-  font-size: clamp(7px, 2.55cqw, 10.5px);
+  margin-top: 0.6cqw;
+  font-size: clamp(7px, 2.6cqw, 11px);
   font-weight: 850;
   line-height: 1;
 }
@@ -834,13 +1028,16 @@
   margin-top: 0.4cqw;
   padding-inline: 0.18em;
   overflow: visible;
-  font-size: clamp(18px, 7.2cqw, 30px);
+  font-size: clamp(20px, 8.2cqw, 35px);
   font-variant-numeric: tabular-nums;
   font-weight: 1000;
   letter-spacing: -0.035em;
   line-height: 0.94;
+  color: #fff8d6;
   text-overflow: clip;
-  text-shadow: 0 2px 0 #78121a;
+  text-shadow:
+    0 0.3cqw 0 #042413,
+    0 0 1.5cqw rgba(255, 214, 52, 0.7);
 }
 
 .gc-dial--betting {
@@ -848,7 +1045,7 @@
 }
 
 .gc-dial--drawing .gc-dial__inner {
-  background: #3b0004;
+  background: #020f08;
 }
 
 .gc-dial--drawing .gc-dial__feast {
@@ -860,16 +1057,19 @@
   top: 0;
   height: 100%;
   border: 0;
-  background: rgba(55, 0, 5, 0.78);
+  background: rgba(3, 22, 13, 0.88);
 }
 
 .gc-dial--result {
   box-shadow:
     0 0 0 0.65cqw #fff0a0,
-    0 0 4cqw rgba(255, 218, 56, 0.8),
-    0 1.5cqw 3cqw rgba(32, 0, 2, 0.48);
+    0 0 4.5cqw rgba(255, 218, 56, 0.85),
+    0 2cqw 4cqw rgba(0, 0, 0, 0.65);
 }
 
+/* ========================================================================== 
+   Side Totems / Kiosks: "FRUITS" & "JACKPOT"
+   ========================================================================== */
 .gc-kiosk {
   position: absolute;
   z-index: 20;
@@ -896,7 +1096,7 @@
   width: 15cqw;
   height: 15cqw;
   object-fit: contain;
-  filter: drop-shadow(0 0.8cqw 0.6cqw rgba(32, 0, 2, 0.48));
+  filter: drop-shadow(0 0.8cqw 0.8cqw rgba(0, 0, 0, 0.5));
 }
 
 .gc-kiosk span {
@@ -904,16 +1104,19 @@
   z-index: 2;
   min-width: 14cqw;
   padding: 0.35cqw 1cqw 0.65cqw;
-  border: 0.45cqw solid #6d160c;
-  border-radius: 1.4cqw 1.4cqw 0.5cqw 0.5cqw;
-  background: linear-gradient(180deg, #db342e, #7e1018);
+  border: 0.45cqw solid #ffd434;
+  border-radius: 1.4cqw 1.4cqw 0.6cqw 0.6cqw;
+  background: linear-gradient(180deg, #166538 0%, #08331c 100%);
   font-family: Georgia, serif;
   font-size: clamp(9px, 3.25cqw, 13.5px);
   font-weight: 900;
   line-height: 1;
   text-align: center;
-  text-shadow: 0 2px 0 #501008;
-  box-shadow: 0 0.7cqw 1.2cqw rgba(29, 0, 2, 0.38);
+  color: #fff5c7;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  box-shadow:
+    0 0.7cqw 1.2cqw rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .gc-arena__draw-dimmer {
@@ -923,12 +1126,14 @@
   background: radial-gradient(
     circle at 50% 43%,
     transparent 0 22%,
-    rgba(25, 0, 2, 0.48) 55% 100%
+    rgba(2, 13, 8, 0.55) 55% 100%
   );
   pointer-events: none;
 }
 
-/* Ruby control deck */
+/* ========================================================================== 
+   Control Deck: Frosted Emerald Console & 24K Gold Bevel
+   ========================================================================== */
 .gc-deck {
   position: relative;
   z-index: 38;
@@ -936,18 +1141,18 @@
   min-height: 178px;
   margin-top: auto;
   padding: 10px 8px max(12px, env(safe-area-inset-bottom));
-  border-top: 2px solid #e54c44;
+  border-top: 2px solid #ffd434;
   border-radius: 22px 22px 0 0;
   background:
     radial-gradient(
-      80% 70% at 50% 0%,
-      rgba(250, 83, 68, 0.44),
-      transparent 76%
+      80% 60% at 50% 0%,
+      rgba(34, 197, 94, 0.22),
+      transparent 75%
     ),
-    linear-gradient(180deg, #a8202c 0%, #7b101d 46%, #50050d 100%);
+    linear-gradient(180deg, #072617 0%, #04170d 48%, #010c06 100%);
   box-shadow:
-    inset 0 2px 0 rgba(255, 143, 117, 0.45),
-    0 -12px 34px rgba(37, 0, 3, 0.4);
+    inset 0 2px 0 rgba(255, 245, 180, 0.4),
+    0 -8px 28px rgba(0, 0, 0, 0.6);
 }
 
 .gc-deck::before,
@@ -961,13 +1166,8 @@
   pointer-events: none;
 }
 
-.gc-deck::before {
-  left: 0;
-}
-.gc-deck::after {
-  right: 0;
-  transform: scaleX(-1);
-}
+.gc-deck::before { left: 0; }
+.gc-deck::after { right: 0; transform: scaleX(-1); }
 
 .gc-deck__metrics {
   position: relative;
@@ -986,10 +1186,18 @@
   height: 44px;
   place-items: center;
   padding: 0;
-  border: 1px solid rgba(255, 221, 119, 0.42);
+  border: 1.5px solid rgba(255, 224, 102, 0.55);
   border-radius: 13px;
-  background: rgba(72, 0, 7, 0.58);
-  color: #ffe18b;
+  background: linear-gradient(145deg, #10522f, #052314);
+  color: #ffe666;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 3px 6px rgba(0, 0, 0, 0.4);
+  transition: transform 120ms ease;
+}
+
+.gc-deck__refresh:active {
+  transform: scale(0.94);
 }
 
 .gc-deck__refresh svg {
@@ -1004,9 +1212,12 @@
   flex-direction: column;
   justify-content: center;
   padding: 5px 9px;
-  border: 1px solid rgba(255, 220, 112, 0.25);
+  border: 1px solid rgba(255, 220, 112, 0.32);
   border-radius: 12px;
-  background: rgba(61, 0, 6, 0.44);
+  background: linear-gradient(180deg, rgba(12, 54, 32, 0.7), rgba(4, 24, 14, 0.85));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 3px 6px rgba(0, 0, 0, 0.35);
 }
 
 .gc-deck__metrics small,
@@ -1017,22 +1228,26 @@
 }
 
 .gc-deck__metrics small {
-  color: rgba(255, 241, 199, 0.6);
-  font-size: 7px;
+  color: rgba(255, 240, 185, 0.7);
+  font-size: 7.5px;
   font-weight: 850;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.08em;
   line-height: 1;
   text-transform: uppercase;
 }
 
 .gc-deck__metrics strong {
   margin-top: 4px;
-  color: #ffe18b;
-  font-size: 12px;
+  color: #ffe666;
+  font-size: 13.5px;
   font-weight: 1000;
   line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
+/* ========================================================================== 
+   Results History: Frosted Jade Plaque & Circular Golden Tokens
+   ========================================================================== */
 .gc-history {
   position: relative;
   z-index: 2;
@@ -1043,9 +1258,11 @@
   gap: 8px;
   margin: 0 3px 8px;
   padding: 4px 8px 4px 10px;
-  border: 1px solid rgba(255, 220, 112, 0.28);
+  border: 1px solid rgba(255, 220, 112, 0.35);
   border-radius: 13px;
-  background: rgba(61, 0, 6, 0.5);
+  background: rgba(4, 26, 16, 0.75);
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .gc-history__label {
@@ -1053,7 +1270,7 @@
   color: #ffe18b;
   font-size: 10px;
   font-weight: 950;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -1062,42 +1279,47 @@
   min-width: 0;
   flex: 1;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .gc-history__item {
   position: relative;
   display: grid;
-  width: 30px;
-  height: 30px;
-  flex: 0 0 30px;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
   place-items: center;
-  border: 1px solid #d97c14;
-  border-radius: 9px;
-  background: linear-gradient(145deg, #ffbe33, #ed7411);
+  border: 1.5px solid #ffd434;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 25%, #fff2a6, #f5ab16 45%, #944d08 100%);
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .gc-history__new {
   position: absolute;
   z-index: 2;
-  bottom: -5px;
+  bottom: -4px;
   left: -4px;
   padding: 1px 4px 2px;
-  border: 1px solid #805d00;
+  border: 1px solid #ffffff;
   border-radius: 4px;
-  background: #f7eb2d;
-  color: #765300;
+  background: linear-gradient(180deg, #58e37c, #16804a);
+  color: #ffffff;
   font-size: 7px;
   font-weight: 950;
   line-height: 1;
+  box-shadow: 0 0 6px rgba(88, 227, 124, 0.8);
 }
 
 .gc-history__art {
-  width: 84%;
-  height: 84%;
+  width: 82%;
+  height: 82%;
   object-fit: contain;
   font-size: 16px;
   line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
 .gc-history__empty {
@@ -1109,53 +1331,22 @@
   white-space: nowrap;
 }
 
+/* ========================================================================== 
+   Chip Tray: Heavyweight Casino Clay Chips with Edge Teeth
+   ========================================================================== */
 .gc-controls {
   position: relative;
   z-index: 2;
-}
-
-.gc-controls__mode {
-  display: flex;
-  width: min(62%, 242px);
-  height: 29px;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 8px;
-  padding: 3px 14px 4px;
-  border: 1px solid #5b0710;
-  border-radius: 999px;
-  background: rgba(70, 0, 7, 0.72);
-  box-shadow:
-    inset 0 2px 5px rgba(23, 0, 2, 0.55),
-    0 1px 0 rgba(255, 162, 114, 0.28);
-}
-
-.gc-controls__mode span {
-  display: grid;
-  min-width: 102px;
-  height: 23px;
-  place-items: center;
-  margin-left: 0;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #ff9c76, #f15055);
-  color: #fff9e7;
-  font-size: 12px;
-  font-weight: 1000;
-  line-height: 1;
-  text-shadow: 0 1px 0 #971b27;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    0 1px 0 #a51724;
 }
 
 .gc-chip-tray {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 10px;
+  gap: 12px;
   overflow-x: auto;
   overflow-y: visible;
-  padding: 8px 12px 14px;
+  padding: 10px 12px 14px;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
 }
@@ -1176,32 +1367,32 @@
   background: transparent;
   scroll-snap-align: center;
   transition:
-    transform 150ms ease,
-    filter 150ms ease;
+    transform 160ms cubic-bezier(0.2, 0.8, 0.25, 1),
+    filter 160ms ease;
   cursor: pointer;
 }
 
 .gc-chip:disabled {
   cursor: default;
-  opacity: 0.42;
-  filter: saturate(0.4);
+  opacity: 0.38;
+  filter: saturate(0.3);
 }
 
 .gc-chip__ring {
   position: absolute;
   inset: 2px;
-  border: 2px dashed rgba(255, 255, 255, 0.82);
+  border: 2.5px dashed rgba(255, 255, 255, 0.85);
   border-radius: 50%;
   background: radial-gradient(
     circle at 50% 50%,
     var(--chip-core) 0 42%,
     var(--chip-rim) 43% 72%,
-    color-mix(in srgb, var(--chip-rim) 65%, #1b1713) 73% 100%
+    color-mix(in srgb, var(--chip-rim) 65%, #050505) 73% 100%
   );
   box-shadow:
-    inset 0 0 0 2px rgba(255, 255, 255, 0.28),
-    inset 0 -5px 0 rgba(0, 0, 0, 0.17),
-    0 4px 6px rgba(0, 0, 0, 0.38);
+    inset 0 0 0 2px rgba(255, 255, 255, 0.35),
+    inset 0 -5px 0 rgba(0, 0, 0, 0.25),
+    0 4px 8px rgba(0, 0, 0, 0.45);
 }
 
 .gc-chip__ring::before {
@@ -1216,79 +1407,83 @@
 .gc-chip__face {
   position: relative;
   display: grid;
-  width: 29px;
-  height: 29px;
+  width: 30px;
+  height: 30px;
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--chip-rim) 80%, #16110d);
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
   border-radius: 50%;
   background: radial-gradient(
     circle at 36% 28%,
-    rgba(255, 255, 255, 0.9),
-    var(--chip-core) 58%,
-    color-mix(in srgb, var(--chip-core) 70%, #7b695a)
+    #ffffff 0%,
+    var(--chip-core) 60%,
+    color-mix(in srgb, var(--chip-core) 65%, #000) 100%
   );
   color: var(--chip-ink);
-  font-size: 10px;
-  font-weight: 950;
+  font-size: 11px;
+  font-weight: 1000;
   letter-spacing: -0.05em;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.35);
 }
 
+/* Active Chip Levitation + Ground Glow */
 .gc-chip--active {
   z-index: 3;
-  transform: translateY(-5px) scale(1.08);
-  filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.36));
+  transform: translateY(-8px) scale(1.12);
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 8px rgba(255, 214, 52, 0.6));
 }
 
 .gc-chip--active::after {
   content: "";
   position: absolute;
-  right: 8px;
-  bottom: -2px;
-  left: 8px;
-  height: 2px;
+  right: 6px;
+  bottom: -4px;
+  left: 6px;
+  height: 3px;
   border-radius: 50%;
   background: #ffe69a;
-  box-shadow: 0 0 7px #f6c857;
+  box-shadow: 0 0 10px #f6c857, 0 0 18px rgba(255, 214, 52, 0.8);
 }
 
 .gc-chip--active .gc-chip__ring {
   box-shadow:
-    inset 0 0 0 2px rgba(255, 255, 255, 0.42),
-    inset 0 -5px 0 rgba(0, 0, 0, 0.17),
-    0 0 0 2px rgba(255, 230, 154, 0.72),
-    0 7px 10px rgba(0, 0, 0, 0.4);
+    inset 0 0 0 2px rgba(255, 255, 255, 0.6),
+    inset 0 -5px 0 rgba(0, 0, 0, 0.25),
+    0 0 0 2.5px #ffe69a,
+    0 8px 14px rgba(0, 0, 0, 0.5);
 }
 
 .gc-chip:active:not(:disabled) {
-  transform: translateY(-1px) scale(0.98);
+  transform: translateY(-2px) scale(0.98);
 }
 
-/* Paused, unavailable and fatal states */
+/* ========================================================================== 
+   Modals, Results & Overlays
+   ========================================================================== */
 .gc-hold {
   position: fixed;
   inset: 0 auto 0 50%;
   z-index: 82;
   display: flex;
-  width: min(100%, 414px);
+  width: min(100%, 430px);
   min-height: 100dvh;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: max(24px, env(safe-area-inset-top)) 24px
-    max(24px, env(safe-area-inset-bottom));
+  padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
   transform: translateX(-50%);
   overflow: hidden;
   background:
     radial-gradient(
       70% 42% at 50% 38%,
-      rgba(242, 75, 44, 0.4),
+      rgba(34, 197, 94, 0.4),
       transparent 72%
     ),
-    rgba(42, 0, 4, 0.91);
+    rgba(2, 16, 10, 0.95);
   text-align: center;
-  backdrop-filter: blur(9px);
+  backdrop-filter: blur(10px);
 }
 
 .gc-hold__glow {
@@ -1300,7 +1495,7 @@
   transform: translateX(-50%);
   border-radius: 50%;
   background: repeating-conic-gradient(
-    rgba(255, 176, 41, 0.12) 0deg 7deg,
+    rgba(255, 214, 52, 0.15) 0deg 7deg,
     transparent 7deg 28deg
   );
   mask-image: radial-gradient(circle, #000, transparent 70%);
@@ -1312,7 +1507,7 @@
   width: min(52vw, 205px);
   height: min(52vw, 205px);
   object-fit: contain;
-  filter: drop-shadow(0 13px 12px rgba(22, 0, 2, 0.48));
+  filter: drop-shadow(0 14px 16px rgba(0, 0, 0, 0.6));
   animation: gcPauseFloat 3s ease-in-out infinite;
 }
 
@@ -1330,21 +1525,22 @@
 .gc-fatal h1 {
   margin: 7px 0 0;
   color: var(--gc-cream);
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: clamp(28px, 8.4vw, 38px);
   font-weight: 1000;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.05em;
   line-height: 1;
   text-shadow:
-    0 4px 0 #7b1420,
-    0 10px 24px rgba(21, 0, 2, 0.48);
+    0 4px 0 #062b17,
+    0 10px 24px rgba(0, 0, 0, 0.6);
 }
 
 .gc-hold p,
 .gc-fatal p {
   max-width: 320px;
   margin: 12px 0 0;
-  color: rgba(255, 247, 222, 0.72);
-  font-size: 12px;
+  color: rgba(255, 247, 222, 0.75);
+  font-size: 12.5px;
   font-weight: 650;
   line-height: 1.55;
 }
@@ -1354,8 +1550,8 @@
   display: grid;
   width: min(100%, 320px);
   grid-template-columns: 1fr 1fr;
-  gap: 9px;
-  margin-top: 20px;
+  gap: 10px;
+  margin-top: 22px;
 }
 
 .gc-hold a,
@@ -1363,24 +1559,24 @@
 .gc-fatal a,
 .gc-fatal button {
   display: grid;
-  min-height: 46px;
+  min-height: 48px;
   place-items: center;
   padding: 0 12px;
-  border: 1px solid rgba(255, 220, 111, 0.38);
+  border: 1px solid rgba(255, 220, 111, 0.45);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.08);
   color: var(--gc-cream);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 950;
   text-decoration: none;
 }
 
 .gc-hold button,
 .gc-fatal button {
-  border-color: #8a260d;
-  background: linear-gradient(180deg, #ffe477, #f39a1d);
-  color: #631015;
-  box-shadow: 0 4px 0 #8a260d;
+  border-color: #8a4809;
+  background: linear-gradient(180deg, #fff5b8, #ffc83d 55%, #e48a18 100%);
+  color: #4a2100;
+  box-shadow: 0 4px 0 #6e3305;
 }
 
 .gc-fatal {
@@ -1388,14 +1584,14 @@
   width: min(100%, 360px);
   flex-direction: column;
   align-items: center;
-  padding: 23px;
-  border: 1px solid rgba(255, 218, 103, 0.3);
+  padding: 24px;
+  border: 1px solid rgba(255, 218, 103, 0.4);
   border-radius: 28px;
-  background: rgba(67, 0, 7, 0.78);
+  background: rgba(3, 22, 14, 0.92);
   text-align: center;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 22px 44px rgba(20, 0, 2, 0.48);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 22px 48px rgba(0, 0, 0, 0.65);
 }
 
 .gc-fatal__art {
@@ -1411,7 +1607,6 @@
   object-fit: contain;
 }
 
-/* Help dialog and shared bottom sheets */
 .gc-dialog-backdrop,
 .gc-result-backdrop {
   position: fixed;
@@ -1420,33 +1615,32 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: max(16px, env(safe-area-inset-top)) 14px
-    max(16px, env(safe-area-inset-bottom));
-  background: rgba(25, 0, 2, 0.76);
-  backdrop-filter: blur(8px);
+  padding: max(16px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom));
+  background: rgba(1, 12, 7, 0.86);
+  backdrop-filter: blur(10px);
 }
 
 .gc-help {
   position: relative;
   width: min(100%, 370px);
   padding: 24px 20px 22px;
-  border: 2px solid #f3ad21;
+  border: 2px solid #ffd434;
   border-radius: 28px;
   background:
     radial-gradient(
       70% 42% at 50% 0%,
-      rgba(255, 154, 38, 0.2),
+      rgba(255, 214, 52, 0.25),
       transparent 72%
     ),
-    linear-gradient(180deg, #8d101b, #4c030a);
+    linear-gradient(180deg, #104e2d, #041c10);
   color: var(--gc-cream);
   box-shadow:
-    inset 0 0 0 3px rgba(255, 221, 117, 0.11),
-    0 25px 48px rgba(19, 0, 2, 0.58);
+    inset 0 0 0 3px rgba(255, 235, 140, 0.15),
+    0 25px 48px rgba(0, 0, 0, 0.7);
   text-align: center;
 }
 
-.gc-help > button {
+.gc-help > .gc-help__close {
   position: absolute;
   top: 12px;
   right: 12px;
@@ -1455,13 +1649,13 @@
   height: 44px;
   place-items: center;
   padding: 0;
-  border: 1px solid rgba(255, 226, 136, 0.3);
+  border: 1px solid rgba(255, 226, 136, 0.4);
   border-radius: 14px;
-  background: rgba(47, 0, 4, 0.6);
+  background: rgba(3, 24, 15, 0.75);
   color: white;
 }
 
-.gc-help > button svg {
+.gc-help > .gc-help__close svg {
   width: 20px;
 }
 
@@ -1477,14 +1671,16 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 7px 6px rgba(30, 0, 2, 0.38));
+  filter: drop-shadow(0 7px 8px rgba(0, 0, 0, 0.5));
 }
 
 .gc-help h2 {
   margin: 6px 0 14px;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 28px;
   font-weight: 1000;
   letter-spacing: -0.05em;
+  color: #fff2a6;
 }
 
 .gc-help ol {
@@ -1501,11 +1697,11 @@
   position: relative;
   min-height: 44px;
   padding: 10px 10px 10px 45px;
-  border: 1px solid rgba(255, 224, 132, 0.14);
+  border: 1px solid rgba(255, 224, 132, 0.18);
   border-radius: 13px;
-  background: rgba(45, 0, 4, 0.28);
-  color: rgba(255, 247, 222, 0.8);
-  font-size: 11px;
+  background: rgba(3, 20, 12, 0.65);
+  color: rgba(255, 247, 222, 0.85);
+  font-size: 11.5px;
   font-weight: 700;
   line-height: 1.45;
   counter-increment: gc-help;
@@ -1516,19 +1712,376 @@
   top: 50%;
   left: 10px;
   display: grid;
-  width: 25px;
-  height: 25px;
+  width: 26px;
+  height: 26px;
   transform: translateY(-50%);
   place-items: center;
   border-radius: 50%;
   background: linear-gradient(180deg, #ffd65d, #f18e16);
-  color: #681016;
-  font-size: 10px;
+  color: #4a2100;
+  font-size: 11px;
   font-weight: 1000;
   content: counter(gc-help);
 }
 
-/* Result modal */
+.gc-help__tutorial-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 10px 16px;
+  border: 1px solid #ffd434;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #2b6141 0%, #163622 100%);
+  color: #fff4af;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.gc-help__tutorial-trigger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.gc-help__tabs {
+  display: flex;
+  background: rgba(0, 16, 9, 0.6);
+  border: 1px solid rgba(255, 215, 64, 0.25);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.gc-help__tabs button {
+  flex: 1;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 247, 222, 0.65);
+  font-size: 11.5px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gc-help__tabs button.is-active {
+  background: linear-gradient(180deg, #ffd65d 0%, #f0951b 100%);
+  color: #381a00;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  font-weight: 900;
+}
+
+.gc-help__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  counter-reset: gc-help;
+  list-style: none;
+  text-align: left;
+}
+
+.gc-help__list li {
+  position: relative;
+  min-height: 44px;
+  padding: 10px 12px 10px 44px;
+  border: 1px solid rgba(255, 224, 132, 0.18);
+  border-radius: 13px;
+  background: rgba(3, 20, 12, 0.65);
+  color: rgba(255, 247, 222, 0.85);
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.45;
+  counter-increment: gc-help;
+  display: flex;
+  flex-direction: column;
+}
+
+.gc-help__list li strong {
+  color: #ffe885;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.gc-help__list li::before {
+  position: absolute;
+  top: 14px;
+  left: 10px;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffd65d, #f18e16);
+  color: #4a2100;
+  font-size: 11px;
+  font-weight: 1000;
+  content: counter(gc-help);
+}
+
+.gc-help__odds-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  text-align: left;
+}
+
+.gc-help__odds-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 12px;
+  border: 1px solid rgba(255, 215, 64, 0.2);
+  border-radius: 10px;
+  background: rgba(4, 25, 16, 0.7);
+  font-size: 12px;
+  color: #fff4cf;
+}
+
+.gc-help__odds-card strong {
+  color: #ffd65d;
+  font-weight: 900;
+}
+
+.gc-help__odds-card--jackpot {
+  grid-column: span 2;
+  background: linear-gradient(90deg, rgba(147, 51, 234, 0.3), rgba(234, 179, 8, 0.3));
+  border-color: #ffd434;
+}
+
+.gc-help__odds-card--jackpot strong {
+  color: #ffef8a;
+  text-shadow: 0 0 10px rgba(255, 215, 64, 0.6);
+}
+
+.gc-help__rules-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255, 215, 64, 0.18);
+  border-radius: 12px;
+  background: rgba(4, 22, 14, 0.65);
+  text-align: left;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: rgba(255, 247, 222, 0.85);
+}
+
+.gc-help__rules-card p {
+  margin: 0;
+}
+
+.gc-help__rules-card strong {
+  color: #ffd434;
+}
+
+/* ========================================================================== 
+   Interactive Hand Tutorial Overlay
+   ========================================================================== */
+.gc-tutorial-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 95;
+  background: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.3) 0%, rgba(1, 15, 9, 0.82) 100%);
+  backdrop-filter: blur(2px);
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.gc-tutorial-header {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+}
+
+.gc-tutorial-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1.5px solid #ffd434;
+  border-radius: 999px;
+  background: rgba(8, 38, 24, 0.9);
+  color: #fff19f;
+  font-size: 12px;
+  font-weight: 850;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+
+.gc-tutorial-skip-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+
+.gc-tutorial-skip-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: scale(1.04);
+}
+
+.gc-tutorial-hand-track {
+  position: absolute;
+  pointer-events: none;
+  transition: top 0.75s cubic-bezier(0.34, 1.4, 0.64, 1), left 0.75s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+/* Step 1: Pointing at 100/500 Chip at bottom */
+.gc-tutorial-hand-track--step-1 {
+  top: 76%;
+  left: 36%;
+}
+
+/* Step 2: Pointing at Golden Banana betting tile at top */
+.gc-tutorial-hand-track--step-2 {
+  top: 28%;
+  left: 54%;
+}
+
+.gc-tutorial-hand-wrap {
+  position: relative;
+  width: 66px;
+  height: 66px;
+  animation: gcTutorialHandTap 1.2s ease-in-out infinite;
+}
+
+.gc-tutorial-hand-img {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.75));
+  pointer-events: none;
+}
+
+.gc-tutorial-ripple {
+  position: absolute;
+  top: 18%;
+  left: 18%;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2.5px solid #ffd434;
+  background: rgba(255, 212, 52, 0.35);
+  pointer-events: none;
+  animation: gcTutorialRipple 1.4s ease-out infinite;
+}
+
+.gc-tutorial-ripple--delay {
+  animation-delay: 0.5s;
+}
+
+.gc-tutorial-bubble {
+  position: absolute;
+  top: -78px;
+  left: -50px;
+  width: 190px;
+  padding: 10px 12px;
+  border: 2px solid #ffd434;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0d3020 0%, #071c13 100%);
+  color: #fff7db;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  text-align: center;
+  animation: gcBubbleBounce 2.4s ease-in-out infinite;
+}
+
+.gc-tutorial-bubble__title {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 900;
+  color: #ffe677;
+  margin-bottom: 2px;
+  letter-spacing: 0.02em;
+}
+
+.gc-tutorial-bubble__text {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: rgba(255, 247, 222, 0.88);
+}
+
+.gc-tutorial-bubble__arrow {
+  position: absolute;
+  bottom: -7px;
+  left: 45%;
+  width: 12px;
+  height: 12px;
+  background: #0d3020;
+  border-right: 2px solid #ffd434;
+  border-bottom: 2px solid #ffd434;
+  transform: rotate(45deg);
+}
+
+.gc-tutorial-footer {
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #ffe994;
+  font-size: 12px;
+  font-weight: 750;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+@keyframes gcTutorialHandTap {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(-8deg);
+  }
+  50% {
+    transform: translate(4px, 8px) scale(0.92) rotate(-16deg);
+  }
+}
+
+@keyframes gcTutorialRipple {
+  0% {
+    transform: translate(-50%, -50%) scale(0.4);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.6);
+    opacity: 0;
+  }
+}
+
+@keyframes gcBubbleBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* ========================================================================== 
+   Round Settlement Result Modal — Grand Gold Victory Popup
+   ========================================================================== */
 .gc-result-backdrop {
   z-index: 120;
 }
@@ -1541,20 +2094,20 @@
       max(32px, env(safe-area-inset-bottom))
   );
   overflow-y: auto;
-  padding: 72px 14px 15px;
-  border: 2px solid #f2ad20;
+  padding: 72px 14px 16px;
+  border: 2px solid #ffd434;
   border-radius: 30px;
   background:
     radial-gradient(
-      70% 34% at 50% 0%,
-      rgba(255, 166, 33, 0.4),
-      transparent 72%
+      75% 36% at 50% 0%,
+      rgba(255, 214, 52, 0.45),
+      transparent 75%
     ),
-    linear-gradient(180deg, #9d1520 0%, #56040c 52%, #2d0105 100%);
+    linear-gradient(180deg, #0e4426 0%, #062314 55%, #020f08 100%);
   color: var(--gc-cream);
   box-shadow:
-    inset 0 0 0 3px rgba(255, 222, 118, 0.1),
-    0 26px 54px rgba(20, 0, 2, 0.64);
+    inset 0 0 0 3px rgba(255, 235, 140, 0.2),
+    0 28px 60px rgba(0, 0, 0, 0.75);
 }
 
 .gc-result__close {
@@ -1567,9 +2120,9 @@
   height: 44px;
   place-items: center;
   padding: 0;
-  border: 1px solid rgba(255, 226, 132, 0.32);
+  border: 1px solid rgba(255, 226, 132, 0.4);
   border-radius: 14px;
-  background: rgba(48, 0, 5, 0.58);
+  background: rgba(3, 24, 15, 0.75);
   color: white;
 }
 
@@ -1577,21 +2130,21 @@
   position: absolute;
   top: 26px;
   left: 17px;
-  color: #ffe078;
-  font-size: 11px;
-  font-weight: 900;
+  color: #ffe666;
+  font-size: 12px;
+  font-weight: 1000;
 }
 
 .gc-result__burst {
   position: absolute;
   top: -35px;
   left: 50%;
-  width: 250px;
-  height: 190px;
+  width: 260px;
+  height: 200px;
   transform: translateX(-50%);
   border-radius: 50%;
   background: repeating-conic-gradient(
-    rgba(255, 215, 67, 0.24) 0deg 5deg,
+    rgba(255, 214, 52, 0.3) 0deg 5deg,
     transparent 5deg 20deg
   );
   mask-image: radial-gradient(circle, #000, transparent 70%);
@@ -1602,8 +2155,8 @@
   position: relative;
   z-index: 3;
   display: grid;
-  width: 128px;
-  height: 114px;
+  width: 132px;
+  height: 118px;
   margin: -52px auto -24px;
   place-items: center;
 }
@@ -1612,24 +2165,24 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  font-size: 70px;
-  filter: drop-shadow(0 9px 7px rgba(32, 0, 2, 0.48));
+  font-size: 72px;
+  filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.6));
 }
 
 .gc-result__card {
   position: relative;
   z-index: 2;
   padding: 31px 13px 12px;
-  border: 1px solid rgba(255, 219, 104, 0.36);
+  border: 1px solid rgba(255, 220, 112, 0.4);
   border-radius: 23px;
-  background: rgba(44, 0, 4, 0.58);
+  background: rgba(4, 26, 16, 0.75);
   text-align: center;
 }
 
 .gc-result__eyebrow {
   margin: 0;
   color: #ffd85f;
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 1000;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -1638,16 +2191,17 @@
 .gc-result__card h3 {
   margin: 5px 0 0;
   color: white;
-  font-size: 27px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 28px;
   font-weight: 1000;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.05em;
   line-height: 1;
 }
 
 .gc-result__card > p:not(.gc-result__eyebrow):not(.gc-result__empty) {
   margin: 6px 0 0;
-  color: rgba(255, 247, 222, 0.61);
-  font-size: 9px;
+  color: rgba(255, 247, 222, 0.7);
+  font-size: 10px;
   font-weight: 700;
 }
 
@@ -1656,19 +2210,15 @@
   flex-direction: column;
   align-items: center;
   margin-top: 12px;
-  padding: 11px;
-  border: 1px solid rgba(255, 219, 103, 0.25);
+  padding: 12px;
+  border: 1.5px solid rgba(255, 224, 102, 0.45);
   border-radius: 16px;
-  background: linear-gradient(
-    180deg,
-    rgba(216, 55, 43, 0.48),
-    rgba(91, 3, 10, 0.4)
-  );
+  background: linear-gradient(180deg, rgba(22, 101, 56, 0.65), rgba(8, 48, 28, 0.85));
 }
 
 .gc-result__payout span {
   color: #ffd979;
-  font-size: 8px;
+  font-size: 8.5px;
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1676,18 +2226,18 @@
 
 .gc-result__payout strong {
   margin-top: 4px;
-  color: white;
-  font-size: 31px;
+  color: #ffe666;
+  font-size: 32px;
   font-weight: 1000;
   letter-spacing: -0.06em;
   line-height: 1;
-  text-shadow: 0 3px 0 #8a1420;
+  text-shadow: 0 3px 0 #062b17;
 }
 
 .gc-result__payout small {
   margin-top: 5px;
-  color: rgba(255, 247, 222, 0.63);
-  font-size: 8px;
+  color: rgba(255, 247, 222, 0.7);
+  font-size: 8.5px;
   font-weight: 700;
 }
 
@@ -1697,7 +2247,7 @@
   gap: 8px;
   margin: 12px 0 8px;
   color: #ffd769;
-  font-size: 8px;
+  font-size: 8.5px;
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1707,7 +2257,7 @@
 .gc-result__divider::after {
   height: 1px;
   flex: 1;
-  background: rgba(255, 221, 119, 0.18);
+  background: rgba(255, 221, 119, 0.25);
   content: "";
 }
 
@@ -1727,16 +2277,16 @@
   align-items: center;
   gap: 7px;
   padding: 6px 8px;
-  border: 1px solid rgba(255, 220, 112, 0.13);
+  border: 1px solid rgba(255, 220, 112, 0.2);
   border-radius: 13px;
-  background: rgba(36, 0, 3, 0.35);
+  background: rgba(4, 28, 17, 0.65);
 }
 
 .gc-result__avatar {
   width: 38px;
   height: 38px;
   border-color: #ffd96d;
-  background: linear-gradient(145deg, #bd301f, #671019);
+  background: linear-gradient(145deg, #166538, #0b3d22);
 }
 
 .gc-result__rank {
@@ -1752,7 +2302,7 @@
   position: absolute;
   width: 25px;
   height: 25px;
-  opacity: 0.48;
+  opacity: 0.55;
 }
 
 .gc-result__rank b {
@@ -1768,7 +2318,7 @@
 
 .gc-result__leaderboard li > span:nth-child(3) strong {
   overflow: hidden;
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 900;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1776,30 +2326,33 @@
 
 .gc-result__leaderboard li > span:nth-child(3) small {
   margin-top: 3px;
-  color: rgba(255, 247, 222, 0.5);
-  font-size: 7px;
+  color: rgba(255, 247, 222, 0.6);
+  font-size: 7.5px;
 }
 
 .gc-result__leaderboard li > b {
-  color: #ffe17b;
-  font-size: 10px;
+  color: #ffe666;
+  font-size: 11px;
   font-weight: 1000;
 }
 
 .gc-result__empty {
   margin: 0;
   padding: 14px;
-  color: rgba(255, 247, 222, 0.57);
-  font-size: 9px;
+  color: rgba(255, 247, 222, 0.65);
+  font-size: 9.5px;
   font-weight: 700;
 }
 
+/* ========================================================================== 
+   Animations & Transitions
+   ========================================================================== */
 @keyframes gcWinnerPulse {
   from {
     transform: scale(0.99);
   }
   to {
-    transform: scale(1.025);
+    transform: scale(1.03);
   }
 }
 
@@ -1821,54 +2374,78 @@
   }
 }
 
-@keyframes gcCoinLand {
+@keyframes gcCoinFlight {
   0% {
     opacity: 0;
-    transform: translate(calc(-50% + var(--fly-dx, var(--landing-x, 0cqw))), calc(-50% + var(--fly-dy, -18cqw)))
-      scale(0.35)
-      rotate(-36deg);
-  }
-  12% {
-    opacity: 1;
     transform: translate(
-        calc(-50% + var(--fly-dx, var(--landing-x, 0cqw)) * 0.86),
-        calc(-50% + var(--fly-dy, -18cqw) * 0.86 - 2cqw)
-      )
-      scale(0.85)
-      rotate(-22deg);
+      calc(-50% + var(--fly-dx, var(--landing-x, 0cqw))),
+      calc(-50% + var(--fly-dy, -18cqw))
+    );
   }
-  50% {
+  10% {
     opacity: 1;
-    transform: translate(
-        calc(-50% + var(--fly-dx, var(--landing-x, 0cqw)) * 0.42),
-        calc(-50% + var(--fly-dy, -18cqw) * 0.42 - 3.8cqw)
-      )
-      scale(1.16)
-      rotate(6deg);
   }
-  78% {
+  74% {
     opacity: 1;
-    transform: translate(calc(-50% + var(--landing-x, 0cqw)), -50%)
-      scale(1.22)
-      rotate(14deg);
+    transform: translate(calc(-50% + var(--landing-x, 0cqw)), -50%);
   }
   88% {
     opacity: 1;
-    transform: translate(calc(-50% + var(--landing-x, 0cqw)), -50%)
-      scale(0.94)
-      rotate(0deg);
+    transform: translate(calc(-50% + var(--landing-x, 0cqw)), -50%);
   }
   100% {
     opacity: 0;
-    transform: translate(calc(-50% + var(--landing-x, 0cqw)), -50%)
-      scale(0.82)
-      rotate(0deg);
+    transform: translate(calc(-50% + var(--landing-x, 0cqw)), -50%);
+  }
+}
+
+/* Alias for compatibility */
+@keyframes gcCoinLand {
+  0% {
+    opacity: 0;
+    transform: translate(
+      calc(-50% + var(--fly-dx, var(--landing-x, 0cqw))),
+      calc(-50% + var(--fly-dy, -18cqw))
+    );
+  }
+  10% {
+    opacity: 1;
+  }
+  74% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--landing-x, 0cqw)), -50%);
+  }
+  88% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--landing-x, 0cqw)), -50%);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--landing-x, 0cqw)), -50%);
+  }
+}
+
+/* Parabolic height arc and smooth touchdown squish on inner chip */
+@keyframes gcChipParabolicArc {
+  0% {
+    transform: translateY(0) scale(0.62) rotate(-28deg);
+  }
+  38% {
+    transform: translateY(-4.2cqw) scale(1.16) rotate(4deg);
+  }
+  74% {
+    transform: translateY(0) scale(1.06) rotate(14deg);
+  }
+  84% {
+    transform: translateY(0) scale(0.96) rotate(0deg);
+  }
+  100% {
+    transform: translateY(0) scale(1) rotate(0deg);
   }
 }
 
 @keyframes gcTokenFloat {
-  0%,
-  100% {
+  0%, 100% {
     transform: rotate(12deg) translateY(0);
   }
   50% {
@@ -1877,8 +2454,7 @@
 }
 
 @keyframes gcPauseFloat {
-  0%,
-  100% {
+  0%, 100% {
     transform: translateY(0);
   }
   50% {
@@ -1897,7 +2473,7 @@
   }
 
   .gc-toolbar__wallet {
-    min-width: 100px;
+    min-width: 90px;
     padding-right: 7px;
     padding-left: 7px;
   }

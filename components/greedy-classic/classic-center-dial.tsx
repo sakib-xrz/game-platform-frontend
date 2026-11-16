@@ -23,7 +23,7 @@ export function ClassicCenterDial({
   const isDrawing = status === "drawing";
   const winner = round?.result?.winning_option;
 
-  let eyebrow = round ? `Round ${round.round_number}` : "Greedy Classic";
+  let eyebrow = round ? `Round ${round.round_number}` : "Monkey Wheel";
   let label = "Waiting for next round";
   let value = "—";
 
@@ -68,7 +68,7 @@ export function ClassicCenterDial({
       <div className="gc-dial__inner" aria-hidden="true">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/assets/greedy-classic/center-feast.png"
+          src="/assets/greedy-classic/center-wheel-hub.png"
           alt=""
           className="gc-dial__feast"
         />

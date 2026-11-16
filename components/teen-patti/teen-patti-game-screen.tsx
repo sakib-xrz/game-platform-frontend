@@ -43,7 +43,7 @@ const CHIP_FLY_COLORS = [
   "#f2a03c",
   "#de7650",
 ];
-const LIVE_RESULT_MAX_AGE_MS = 500;
+const LIVE_RESULT_MAX_AGE_MS = 2_500;
 const WINNER_REVEAL_MS = 1_420;
 const PAYOUT_SOUND_MS = 1_470;
 
@@ -901,7 +901,10 @@ function TeenPattiGameScreenView({
 
       <TeenPattiResultModal
         snapshot={snapshot}
-        open={resultModalOpen}
+        open={
+          resultModalOpen &&
+          (!hasResult || winnerReadyResultKey === resultKey)
+        }
         onClose={() => setResultModalOpen(false)}
       />
       <TeenPattiHistorySheet

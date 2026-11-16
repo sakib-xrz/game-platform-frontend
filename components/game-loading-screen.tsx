@@ -15,8 +15,8 @@ const GAME_META = {
     label: "Greedy is loading",
   },
   "greedy-classic": {
-    title: "Greedy Classic",
-    label: "Greedy Classic is loading",
+    title: "Monkey Wheel",
+    label: "Monkey Wheel is loading",
   },
   "teen-patti": {
     title: "Teen Patti",

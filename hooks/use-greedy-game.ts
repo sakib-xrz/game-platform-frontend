@@ -51,7 +51,7 @@ export type GreedyGameDefinition = Readonly<{
   api: GreedyGameApi;
   gameCode: "GREEDY" | "GREEDY_CLASSIC" | "LUCKY_77";
   eventPrefix: "greedy" | "greedy_classic" | "lucky_77";
-  displayName: "Greedy" | "Greedy Classic" | "Lucky 77";
+  displayName: "Greedy" | "Greedy Classic" | "Monkey Wheel" | "Lucky 77";
   walletReasonPrefix: "greedy" | "greedy_classic" | "lucky_77";
   singleOptionPerRound?: boolean;
 }>;
@@ -68,7 +68,7 @@ export const GREEDY_CLASSIC_GAME_DEFINITION: GreedyGameDefinition = Object.freez
   api: greedyClassicApi,
   gameCode: "GREEDY_CLASSIC",
   eventPrefix: "greedy_classic",
-  displayName: "Greedy Classic",
+  displayName: "Monkey Wheel",
   walletReasonPrefix: "greedy_classic",
 });
 

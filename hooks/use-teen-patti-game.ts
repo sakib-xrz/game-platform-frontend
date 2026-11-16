@@ -33,9 +33,9 @@ type PendingBet = {
   roundId: string;
 };
 
-/** Let the staggered flips, winner glow, and payout sweep finish first. */
-export const TEEN_PATTI_REVEAL_MS = 3_000;
-const TEEN_PATTI_RESULT_LIVE_AGE_MS = 500;
+/** Let the staggered flips, winner glow, and payout sweep finish first (~2,200ms). */
+export const TEEN_PATTI_REVEAL_MS = 2_200;
+const TEEN_PATTI_RESULT_LIVE_AGE_MS = 2_500;
 const TEEN_PATTI_RESULT_MIN_VISIBLE_MS = 1_600;
 
 function isUncertainBetError(error: unknown): error is ApiError {
@@ -186,13 +186,11 @@ export function useTeenPattiGame() {
       if (remainingResultMs < TEEN_PATTI_RESULT_MIN_VISIBLE_MS) return;
 
       // A genuinely live result gets the full reveal sequence whenever the
-      // configured result window permits it. Never shorten the animation by
-      // its network age; clamp only to preserve useful modal reading time.
+      // configured result window permits it. Wait for card flips to finish.
+      const flipWaitMs = Math.max(0, TEEN_PATTI_REVEAL_MS - resultAgeMs);
+      const maxPossibleDelay = Math.max(0, remainingResultMs - TEEN_PATTI_RESULT_MIN_VISIBLE_MS);
       const delay = animate
-        ? Math.min(
-            TEEN_PATTI_REVEAL_MS,
-            remainingResultMs - TEEN_PATTI_RESULT_MIN_VISIBLE_MS,
-          )
+        ? Math.min(flipWaitMs, maxPossibleDelay)
         : 0;
       const visibleDurationMs = remainingResultMs - delay;
 

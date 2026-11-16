@@ -47,7 +47,7 @@ const navigation: Array<{
   { href: "/admin/greedy", label: "Manage Greedy", icon: Dices, permission: "game.config.draft.create" },
   {
     href: "/admin/greedy-classic",
-    label: "Manage Greedy Classic",
+    label: "Manage Monkey Wheel",
     icon: Gamepad2,
     permission: "game.config.draft.create",
   },
