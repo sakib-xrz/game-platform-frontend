@@ -244,4 +244,22 @@ export const adminClient = {
     adminFetch<import("@/types/admin").AnalyticsUserDetail>(
       `/analytics/users/${encodeURIComponent(userId)}${query}`,
     ),
+  houseProfit: {
+    overview: (period = "daily") =>
+      adminFetch<import("@/types/admin").HouseProfitOverview>(
+        `/house-profit/overview?period=${encodeURIComponent(period)}`,
+      ),
+    config: (gameCode: string) =>
+      adminFetch<import("@/types/admin").HouseProfitConfig>(
+        `/house-profit/config/${encodeURIComponent(gameCode)}`,
+      ),
+    updateConfig: (
+      gameCode: string,
+      payload: Partial<import("@/types/admin").HouseProfitConfig>,
+    ) =>
+      adminFetch<import("@/types/admin").HouseProfitConfig>(
+        `/house-profit/config/${encodeURIComponent(gameCode)}`,
+        { method: "PUT", body: JSON.stringify(payload) },
+      ),
+  },
 };

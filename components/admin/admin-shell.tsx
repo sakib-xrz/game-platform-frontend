@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Smartphone,
   Spade,
+  TrendingUp,
   UserCog,
   Users,
 } from "lucide-react";
@@ -42,6 +43,7 @@ const navigation: Array<{
   permission: AdminPermission;
 }> = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, permission: "dashboard.read" },
+  { href: "/admin/house-profit", label: "House Profit & P&L", icon: TrendingUp, permission: "dashboard.read" },
   { href: "/admin/greedy", label: "Manage Greedy", icon: Dices, permission: "game.config.draft.create" },
   {
     href: "/admin/greedy-classic",

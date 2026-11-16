@@ -592,3 +592,57 @@ export type AnalyticsUserDetail = {
   };
 };
 
+export type HouseProfitOverview = {
+  period: "daily" | "weekly" | "monthly";
+  summary: {
+    house_profit: string;
+    house_kept_pct: number;
+    total_wagered: string;
+    total_paid_out: string;
+    paid_back_pct: number;
+    total_players: number;
+    total_bets: number;
+    target_status: {
+      meeting_target: number;
+      losing: number;
+      no_bets: number;
+    };
+  };
+  games: Array<{
+    game_code: string;
+    game_name: string;
+    players: number;
+    bets: number;
+    wagered: string;
+    paid_out: string;
+    paid_back_pct: number;
+    house_kept_pct: number;
+    house_profit: string;
+    target_pct: number;
+    status: "meeting_target" | "losing" | "no_bets";
+  }>;
+  daily_chart: Array<{
+    date: string;
+    wagered: string;
+    paid_out: string;
+    house_profit: string;
+    house_kept_pct: number;
+    bets: number;
+    players: number;
+    is_profit: boolean;
+  }>;
+};
+
+export type HouseProfitConfig = {
+  id: string;
+  game_code: string;
+  target_house_profit_pct: number;
+  target_player_rtp_pct: number;
+  max_daily_loss_coins: string;
+  give_back_lost_pct: number;
+  give_back_window_days: number;
+  big_wins_mode: "careful" | "balanced" | "open";
+  weekly_guarantee_enabled: boolean;
+  min_weekly_profit_pct: number;
+};
+
