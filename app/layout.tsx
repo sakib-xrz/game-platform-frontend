@@ -10,6 +10,7 @@ import "./lucky-77.css";
 import "./lucky-77-premium.css";
 import "./lucky-77-refinement.css";
 import "./teen-patti.css";
+import "./leaderboard.css";
 
 export const metadata: Metadata = {
   title: "Game Arcade",

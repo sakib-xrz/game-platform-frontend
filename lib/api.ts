@@ -4,6 +4,11 @@ import type {
   BetResponse as TeenPattiBetResponse,
   TeenPattiSnapshot,
 } from "@/types/teen-patti";
+import type {
+  GameLeaderboardData,
+  LeaderboardGameCode,
+  LeaderboardPeriod,
+} from "@/types/leaderboard";
 import { getPlayerApp, getPlayerToken, getPlayerUserId, savePlayerProfile } from "@/lib/player-identity";
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1").replace(/\/$/, "");
@@ -162,5 +167,15 @@ export const teenPattiApi = {
       body: JSON.stringify(payload),
     }, BET_REQUEST_TIMEOUT_MS),
 };
+
+export async function fetchGameLeaderboard(
+  gameCode: LeaderboardGameCode | string,
+  period: LeaderboardPeriod = "today",
+): Promise<GameLeaderboardData> {
+  const params = new URLSearchParams({ period });
+  return request<GameLeaderboardData>(
+    `/games/${gameCode}/leaderboard?${params.toString()}`,
+  );
+}
 
 export { API_BASE_URL };

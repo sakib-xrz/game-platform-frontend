@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import Link from "next/link";
-import { ArrowLeft, RefreshCw, Users, Volume2, VolumeX, X } from "lucide-react";
+import { ArrowLeft, RefreshCw, Trophy, Users, Volume2, VolumeX, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PlayerAvatar } from "@/components/greedy/player-avatar";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
@@ -10,6 +10,7 @@ import { useGameBoot } from "@/components/game-boot-provider";
 import { Lucky77ChipTray } from "@/components/lucky-77/lucky-77-chip-tray";
 import { Lucky77OptionCard } from "@/components/lucky-77/lucky-77-option-card";
 import { Lucky77ResultModal } from "@/components/lucky-77/lucky-77-result-modal";
+import { Lucky77LeaderboardModal } from "@/components/lucky-77/lucky-77-leaderboard-modal";
 import { Lucky77Wheel } from "@/components/lucky-77/lucky-77-wheel";
 import { useCountdown } from "@/hooks/use-countdown";
 import { useGameSound } from "@/hooks/use-game-sound";
@@ -73,6 +74,7 @@ function Lucky77GameScreenView({
   const { soundEnabled, toggleSound, playSound } = useGameSound();
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [lastBet, setLastBet] = useState<LastBet | null>(null);
   const previousStatusRef = useRef<string | null>(null);
   const soundedResultRoundRef = useRef<string | null>(null);
@@ -327,7 +329,7 @@ function Lucky77GameScreenView({
     : options.find((option) => option.code === lastBet?.optionCode);
 
   return (
-    <main className="mobile-canvas l77-shell">
+    <main data-game-shell className="mobile-canvas l77-shell">
       <header className="l77-toolbar safe-top">
         <Link
           href={homeHref}
@@ -353,6 +355,15 @@ function Lucky77GameScreenView({
           <i className={connected ? "is-online" : ""} aria-hidden="true" />
         </span>
         <span className="l77-toolbar__spacer" />
+        <button
+          type="button"
+          onClick={() => setLeaderboardOpen(true)}
+          className="l77-toolbar__round-button l77-toolbar__leaderboard"
+          aria-label="Today's Leaderboard"
+          title="Today's Top 10 Winners"
+        >
+          <Trophy aria-hidden="true" />
+        </button>
         <button
           type="button"
           onClick={toggleSound}
@@ -557,6 +568,13 @@ function Lucky77GameScreenView({
         snapshot={snapshot}
         open={resultModalOpen && !fullHold}
         onClose={() => setResultModalOpen(false)}
+      />
+
+      <Lucky77LeaderboardModal
+        open={leaderboardOpen}
+        onClose={() => setLeaderboardOpen(false)}
+        currentUserId={snapshot.wallet?.user_id}
+        playSound={playSound}
       />
     </main>
   );

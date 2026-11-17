@@ -2,30 +2,20 @@ const DRAW_TICK_MS = 160;
 const MAX_WHEEL_OPTIONS = 8;
 
 /**
- * Only freeze on the winner for the final tick. The center timer shows
- * Math.max(1, ceil(ms/1000)), so a longer lock (1s+) looks like it stopped
- * while the display still reads "2s" / early "1s".
- */
-const FINAL_SETTLE_MS = 360;
-
-/**
  * Sequential option for one tick. Steps through options 0 -> 1 -> 2 -> ... -> count - 1 -> 0.
  */
-function sequenceFocusAtTick(
-  tick: number,
-  optionCount: number,
-): number {
+function sequenceFocusAtTick(tick: number, optionCount: number): number {
   if (optionCount <= 0) return 0;
   return ((tick % optionCount) + optionCount) % optionCount;
 }
 
 /**
  * Resolves which option node should pulse during the drawing phase.
- * Sequential clockwise rotation each tick; settles on the server winner only for the final tick.
+ * Ease-out deceleration trajectory that is mathematically guaranteed to land
+ * on `stopIndex` when the winner is known.
  */
 export function greedyDrawFocusIndex({
   isDrawing,
-  roundId,
   optionCount,
   durationMs,
   drawingMs,
@@ -35,7 +25,6 @@ export function greedyDrawFocusIndex({
   serverOffsetMs,
 }: {
   isDrawing: boolean;
-  roundId?: string | null;
   optionCount: number;
   durationMs: number;
   drawingMs: number;
@@ -46,17 +35,13 @@ export function greedyDrawFocusIndex({
 }): number {
   if (!isDrawing || optionCount <= 0) return -1;
   const count = Math.min(optionCount, MAX_WHEEL_OPTIONS);
+
   const normalizedStop =
     typeof stopIndex === "number" &&
     Number.isFinite(stopIndex) &&
     stopIndex >= 0
       ? Math.floor(stopIndex) % count
       : null;
-
-  // Keep rotating while the timer still runs; settle on winner at the end.
-  if (normalizedStop !== null && drawingMs < FINAL_SETTLE_MS) {
-    return normalizedStop;
-  }
 
   const now = Date.now() + (serverOffsetMs ?? 0);
   const startedMs = drawingStartedAt
@@ -66,25 +51,41 @@ export function greedyDrawFocusIndex({
     ? new Date(resultRevealAt).getTime()
     : Number.NaN;
 
-  let elapsedMs: number;
+  let totalDuration = Math.max(DRAW_TICK_MS, durationMs);
+  let elapsedMs = 0;
+
   if (Number.isFinite(startedMs)) {
     elapsedMs = Math.max(0, now - startedMs);
-    if (Number.isFinite(revealMs)) {
-      const remainingMs = Math.max(0, revealMs - now);
-      if (normalizedStop !== null && remainingMs < FINAL_SETTLE_MS) {
-        return normalizedStop;
-      }
+    if (Number.isFinite(revealMs) && revealMs > startedMs) {
+      totalDuration = Math.max(DRAW_TICK_MS, revealMs - startedMs);
     }
   } else {
-    const configuredDuration = Math.max(DRAW_TICK_MS, durationMs);
-    elapsedMs = Math.max(0, configuredDuration - Math.max(0, drawingMs));
+    elapsedMs = Math.max(0, totalDuration - Math.max(0, drawingMs));
+  }
+
+  const progress = Math.min(1, Math.max(0, elapsedMs / totalDuration));
+
+  if (normalizedStop !== null) {
+    if (progress >= 1 || totalDuration - elapsedMs < 180) {
+      return normalizedStop;
+    }
+
+    const laps = Math.max(2, Math.floor(totalDuration / 900));
+    const totalSteps = laps * count + normalizedStop;
+
+    const eased = 1 - Math.pow(1 - progress, 2.0);
+    const currentStep = Math.min(
+      totalSteps,
+      Math.floor(eased * (totalSteps + 0.999)),
+    );
+    return currentStep % count;
   }
 
   const tick = Math.floor(elapsedMs / DRAW_TICK_MS);
   return sequenceFocusAtTick(tick, count);
 }
 
-/** Prefer the server stop index; fall back to the revealed winner's option id. */
+/** Prefer the revealed winner's option id; fall back to the server stop index. */
 export function resolveGreedyDrawStopIndex({
   winningOptionIndex,
   winnerId,
@@ -94,17 +95,19 @@ export function resolveGreedyDrawStopIndex({
   winnerId?: string | null;
   options: Array<{ id: string }>;
 }): number | null {
+  if (winnerId && options.length) {
+    const index = options.findIndex((option) => option.id === winnerId);
+    if (index >= 0) return index;
+  }
   if (
     typeof winningOptionIndex === "number" &&
     Number.isFinite(winningOptionIndex) &&
     winningOptionIndex >= 0
   ) {
-    return Math.floor(winningOptionIndex);
+    const idx = Math.floor(winningOptionIndex);
+    return options.length > 0 ? idx % options.length : idx;
   }
-  if (!winnerId || !options.length) return null;
-  const index = options.findIndex((option) => option.id === winnerId);
-  return index >= 0 ? index : null;
+  return null;
 }
 
 export const GREEDY_DRAW_TICK_MS = DRAW_TICK_MS;
-export const GREEDY_DRAW_FINAL_SETTLE_MS = FINAL_SETTLE_MS;

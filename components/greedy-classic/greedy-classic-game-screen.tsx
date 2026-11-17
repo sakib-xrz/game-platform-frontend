@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import Link from "next/link";
-import { CircleHelp, House, RefreshCw, Sparkles, Users, Volume2, VolumeX, X } from "lucide-react";
+import { CircleHelp, House, RefreshCw, Sparkles, Trophy, Users, Volume2, VolumeX, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
@@ -11,16 +11,14 @@ import { ClassicChipTray } from "@/components/greedy-classic/classic-chip-tray";
 import { ClassicOptionCard } from "@/components/greedy-classic/classic-option-card";
 import { ClassicRecentResults } from "@/components/greedy-classic/classic-recent-results";
 import { ClassicResultModal } from "@/components/greedy-classic/classic-result-modal";
+import { ClassicLeaderboardModal } from "@/components/greedy-classic/classic-leaderboard-modal";
 import { ClassicTutorialGuide } from "@/components/greedy-classic/classic-tutorial-guide";
 import { useCountdown } from "@/hooks/use-countdown";
 import { useGameSound } from "@/hooks/use-game-sound";
 import { useDemoGreedyGame } from "@/hooks/use-demo-greedy-game";
 import { useGreedyClassicGame } from "@/hooks/use-greedy-classic-game";
+import { useGreedyDrawFocus } from "@/hooks/use-greedy-draw-focus";
 import { formatCompactAmount, formatInteger } from "@/lib/format";
-import {
-  greedyDrawFocusIndex,
-  resolveGreedyDrawStopIndex,
-} from "@/lib/greedy-draw-focus";
 import { getClassicOptionDisplayName } from "@/lib/greedy-classic-art";
 import { usePlayerHref } from "@/hooks/use-player-href";
 import type { PublicBetAggregate, PublicOption } from "@/types/greedy";
@@ -87,6 +85,7 @@ function GreedyClassicGameScreenView({
   const { soundEnabled, toggleSound, playSound } = useGameSound();
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [helpTab, setHelpTab] = useState<"guide" | "odds" | "rules">("guide");
   const [tutorialActive, setTutorialActive] = useState(false);
   const helpCloseRef = useRef<HTMLButtonElement>(null);
@@ -194,29 +193,21 @@ function GreedyClassicGameScreenView({
     serverOffsetMs,
   );
   const winnerId = snapshot?.round?.result?.winning_option.id ?? null;
-  const drawStopIndex = resolveGreedyDrawStopIndex({
+  const drawingFocusIndex = useGreedyDrawFocus({
+    isDrawing,
+    optionCount: options.length,
+    durationMs:
+      snapshot?.round?.drawing_duration_ms ??
+      snapshot?.active_config?.drawing_duration_ms ??
+      3_000,
+    drawingMs,
     winningOptionIndex: snapshot?.round?.winning_option_index,
     winnerId,
     options,
+    drawingStartedAt: snapshot?.round?.drawing_started_at,
+    resultRevealAt: snapshot?.round?.result_reveal_at,
+    serverOffsetMs,
   });
-  const drawingFocusIndex = isDrawing
-    ? greedyDrawFocusIndex({
-        isDrawing: true,
-        roundId: snapshot?.round?.id,
-        optionCount: options.length,
-        durationMs:
-          snapshot?.round?.drawing_duration_ms ??
-          snapshot?.active_config?.drawing_duration_ms ??
-          3_000,
-        drawingMs,
-        stopIndex: drawStopIndex,
-        drawingStartedAt: snapshot?.round?.drawing_started_at,
-        resultRevealAt: snapshot?.round?.result_reveal_at,
-        serverOffsetMs,
-      })
-    : drawStopIndex !== null && resultModalOpen
-      ? drawStopIndex
-      : -1;
 
   useEffect(() => {
     const status = snapshot?.round?.status ?? null;
@@ -446,7 +437,7 @@ function GreedyClassicGameScreenView({
       : snapshot.recent_history;
 
   return (
-    <main className="mobile-canvas gc-shell">
+    <main data-game-shell className="mobile-canvas gc-shell">
       <header className="gc-toolbar safe-top">
         <nav aria-label="Game controls" className="gc-toolbar__controls">
           <Link
@@ -472,6 +463,15 @@ function GreedyClassicGameScreenView({
             ) : (
               <VolumeX aria-hidden="true" />
             )}
+          </button>
+          <button
+            type="button"
+            className="gc-toolbar__button gc-toolbar__button--leaderboard"
+            aria-label="Today's Leaderboard"
+            title="Today's Top 10 Winners"
+            onClick={() => setLeaderboardOpen(true)}
+          >
+            <Trophy aria-hidden="true" />
           </button>
           <button
             type="button"
@@ -826,6 +826,13 @@ function GreedyClassicGameScreenView({
         open={resultModalOpen}
         displayDurationMs={resultModalDisplayMs}
         onClose={() => setResultModalOpen(false)}
+      />
+
+      <ClassicLeaderboardModal
+        open={leaderboardOpen}
+        onClose={() => setLeaderboardOpen(false)}
+        currentUserId={snapshot.wallet?.user_id}
+        playSound={playSound}
       />
     </main>
   );

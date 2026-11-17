@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   ChevronLeft,
   RefreshCw,
+  Trophy,
   UsersRound,
   Volume2,
   VolumeX,
@@ -26,6 +27,7 @@ import {
 import { TeenPattiChipTray } from "@/components/teen-patti/teen-patti-chip-tray";
 import { TeenPattiPhaseRing } from "@/components/teen-patti/teen-patti-phase-ring";
 import { TeenPattiResultModal } from "@/components/teen-patti/teen-patti-result-modal";
+import { TeenPattiLeaderboardModal } from "@/components/teen-patti/teen-patti-leaderboard-modal";
 import { TeenPattiHistorySheet } from "@/components/teen-patti/teen-patti-history-sheet";
 import { TeenPattiPayoutLayer } from "@/components/teen-patti/teen-patti-payout-layer";
 import { sendGameClose, sendGameRecharge, onHostWalletUpdate } from "@/lib/game-bridge";
@@ -173,6 +175,7 @@ function TeenPattiGameScreenView({
 
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [flyChips, setFlyChips] = useState<FlyChip[]>([]);
   const [repeatBet, setRepeatBet] = useState<RepeatBet | null>(null);
   const [historyRoundId, setHistoryRoundId] = useState<string | null>(null);
@@ -568,7 +571,7 @@ function TeenPattiGameScreenView({
   );
 
   return (
-    <main className="mobile-canvas greedy-shell tp-shell">
+    <main data-game-shell className="mobile-canvas greedy-shell tp-shell">
       {flyChips.map((chip) => (
         <BetFlyLayer key={chip.id} chip={chip} onDone={handleFlyDone} />
       ))}
@@ -698,6 +701,15 @@ function TeenPattiGameScreenView({
           </div>
 
           <nav className="tp-controls" aria-label="Game controls">
+            <button
+              type="button"
+              className="tp-control tp-control--leaderboard"
+              aria-label="Today's Leaderboard"
+              title="Today's Top 10 Winners"
+              onClick={() => setLeaderboardOpen(true)}
+            >
+              <Trophy />
+            </button>
             <button
               type="button"
               className="tp-control"
@@ -929,6 +941,12 @@ function TeenPattiGameScreenView({
         round={selectedHistoryRound}
         open={historyRoundId !== null && !helpOpen && !resultModalOpen}
         onClose={() => setHistoryRoundId(null)}
+      />
+      <TeenPattiLeaderboardModal
+        open={leaderboardOpen}
+        onClose={() => setLeaderboardOpen(false)}
+        currentUserId={snapshot.wallet?.user_id}
+        playSound={playSound}
       />
     </main>
   );

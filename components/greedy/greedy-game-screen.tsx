@@ -7,6 +7,7 @@ import {
   House,
   RefreshCw,
   ShieldCheck,
+  Trophy,
   Users,
   Volume2,
   VolumeX,
@@ -15,18 +16,16 @@ import {
 import { useCountdown } from "@/hooks/use-countdown";
 import { useGameSound } from "@/hooks/use-game-sound";
 import { useDemoGreedyGame } from "@/hooks/use-demo-greedy-game";
+import { useGreedyDrawFocus } from "@/hooks/use-greedy-draw-focus";
 import { useGreedyGame } from "@/hooks/use-greedy-game";
 import { formatInteger } from "@/lib/format";
-import {
-  greedyDrawFocusIndex,
-  resolveGreedyDrawStopIndex,
-} from "@/lib/greedy-draw-focus";
 import { getOptionDisplayName, OptionArtwork } from "@/lib/option-art";
 import { BetOptionNode } from "@/components/greedy/bet-option-node";
 import { CenterStage } from "@/components/greedy/center-stage";
 import { ChipTray } from "@/components/greedy/chip-tray";
 import { RecentResults } from "@/components/greedy/recent-results";
 import { ResultModal } from "@/components/greedy/result-modal";
+import { GreedyLeaderboardModal } from "@/components/greedy/greedy-leaderboard-modal";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { sendGameClose, sendGameRecharge, onHostWalletUpdate } from "@/lib/game-bridge";
 import { useGameBoot } from "@/components/game-boot-provider";
@@ -252,6 +251,7 @@ function GreedyGameScreenView({
   );
   const [selectedChip, setSelectedChip] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const helpCloseRef = useRef<HTMLButtonElement>(null);
   const disabledChipAmounts = useMemo(() => {
     const disabled = new Set<string>();
@@ -301,29 +301,21 @@ function GreedyGameScreenView({
     serverOffsetMs,
   );
   const winnerId = snapshot?.round?.result?.winning_option.id ?? null;
-  const drawStopIndex = resolveGreedyDrawStopIndex({
+  const drawingFocusIndex = useGreedyDrawFocus({
+    isDrawing,
+    optionCount: options.length,
+    durationMs:
+      snapshot?.round?.drawing_duration_ms ??
+      snapshot?.active_config?.drawing_duration_ms ??
+      3_000,
+    drawingMs,
     winningOptionIndex: snapshot?.round?.winning_option_index,
     winnerId,
     options,
+    drawingStartedAt: snapshot?.round?.drawing_started_at,
+    resultRevealAt: snapshot?.round?.result_reveal_at,
+    serverOffsetMs,
   });
-  const drawingFocusIndex = isDrawing
-    ? greedyDrawFocusIndex({
-        isDrawing: true,
-        roundId: snapshot?.round?.id,
-        optionCount: options.length,
-        durationMs:
-          snapshot?.round?.drawing_duration_ms ??
-          snapshot?.active_config?.drawing_duration_ms ??
-          3_000,
-        drawingMs,
-        stopIndex: drawStopIndex,
-        drawingStartedAt: snapshot?.round?.drawing_started_at,
-        resultRevealAt: snapshot?.round?.result_reveal_at,
-        serverOffsetMs,
-      })
-    : drawStopIndex !== null && resultModalOpen
-      ? drawStopIndex
-      : -1;
 
   useEffect(() => {
     const status = snapshot?.round?.status ?? null;
@@ -520,7 +512,10 @@ function GreedyGameScreenView({
     : null;
 
   return (
-    <main className="mobile-canvas greedy-shell greedy-game-shell text-[#14243d]">
+    <main
+      data-game-shell
+      className="mobile-canvas greedy-shell greedy-game-shell text-[#14243d]"
+    >
       <section
         className="greedy-machine game-dot-bg"
         aria-label="Greedy betting board"
@@ -538,6 +533,15 @@ function GreedyGameScreenView({
           >
             <House />
           </Link>
+          <button
+            type="button"
+            className="machine-control machine-control--leaderboard"
+            aria-label="Today's Leaderboard"
+            title="Today's Top 10 Winners"
+            onClick={() => setLeaderboardOpen(true)}
+          >
+            <Trophy />
+          </button>
           <button
             type="button"
             className="machine-control"
@@ -788,6 +792,13 @@ function GreedyGameScreenView({
         open={resultModalOpen}
         displayDurationMs={resultModalDisplayMs}
         onClose={() => setResultModalOpen(false)}
+      />
+
+      <GreedyLeaderboardModal
+        open={leaderboardOpen}
+        onClose={() => setLeaderboardOpen(false)}
+        currentUserId={snapshot.wallet?.user_id}
+        playSound={playSound}
       />
     </main>
   );
