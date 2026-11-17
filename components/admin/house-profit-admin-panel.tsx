@@ -116,7 +116,7 @@ export function HouseProfitAdminPanel() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Period Selector (like Tecsior) */}
+          {/* Period Selector */}
           <div className="flex rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
             {(["daily", "weekly", "monthly"] as const).map((p) => (
               <button
@@ -250,7 +250,7 @@ export function HouseProfitAdminPanel() {
         </Card>
       </div>
 
-      {/* Daily Profit Bar Chart (Tecsior Screenshot Style) */}
+      {/* Daily Profit Bar Chart */}
       <Card className="border-slate-200 bg-white shadow-sm">
         <CardHeader>
           <CardTitle className="text-base font-bold text-slate-950">

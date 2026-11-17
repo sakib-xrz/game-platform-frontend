@@ -28,6 +28,7 @@ import { ChipTray } from "@/components/greedy/chip-tray";
 import { RecentResults } from "@/components/greedy/recent-results";
 import { ResultModal } from "@/components/greedy/result-modal";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
+import { sendGameClose, sendGameRecharge, onHostWalletUpdate } from "@/lib/game-bridge";
 import { useGameBoot } from "@/components/game-boot-provider";
 import { usePlayerHref } from "@/hooks/use-player-href";
 import type { PublicBetAggregate, PublicOption } from "@/types/greedy";
@@ -226,6 +227,12 @@ function GreedyGameScreenView({
   useEffect(() => {
     if (snapshot || fatalError) hideBoot();
   }, [fatalError, hideBoot, snapshot]);
+
+  useEffect(() => {
+    return onHostWalletUpdate(() => {
+      void recover();
+    });
+  }, [recover]);
 
   const chips = useMemo(
     () =>
@@ -521,7 +528,14 @@ function GreedyGameScreenView({
         <MachineIllustration />
 
         <nav className="machine-toolbar" aria-label="Game controls">
-          <Link href={homeHref} className="machine-control" aria-label="Home">
+          <Link
+            href={homeHref}
+            className="machine-control"
+            aria-label="Home"
+            onClick={() => {
+              sendGameClose();
+            }}
+          >
             <House />
           </Link>
           <button
@@ -649,7 +663,13 @@ function GreedyGameScreenView({
           >
             <RefreshCw className={refreshing ? "animate-spin" : ""} />
           </button>
-          <div className="dashboard-metric">
+          <div
+            className="dashboard-metric cursor-pointer transition-transform active:scale-95"
+            onClick={() => sendGameRecharge()}
+            role="button"
+            tabIndex={0}
+            title="Recharge / Add Coins"
+          >
             <span>Coins left</span>
             <strong>
               <b aria-hidden="true">●</b>

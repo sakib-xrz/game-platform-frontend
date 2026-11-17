@@ -433,11 +433,16 @@ export type AdminWalletSearchItem = {
 export type PlatformAppRecord = {
   id: string;
   app_name: string;
+  app_key?: string | null;
   package_name: string;
   sha_key: string;
   signing_secret_preview: string;
   has_rotated_signing_secret: boolean;
   signing_secret?: string;
+  wallet_mode?: "local" | "seamless";
+  wallet_base_url?: string | null;
+  player_token_secret?: string | null;
+  allowed_origins?: string | null;
   status: "active" | "disabled";
   created_by_admin_id: string | null;
   created_at: string;
@@ -446,8 +451,13 @@ export type PlatformAppRecord = {
 
 export type CreatePlatformAppInput = {
   app_name: string;
+  app_key?: string | null;
   package_name: string;
   sha_key: string;
+  wallet_mode?: "local" | "seamless";
+  wallet_base_url?: string | null;
+  player_token_secret?: string | null;
+  allowed_origins?: string | null;
   status?: "active" | "disabled";
 };
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Banknote,
+  BookOpen,
   CircleDollarSign,
   Dices,
   Gamepad2,
@@ -17,7 +18,7 @@ import {
   UserCog,
   Users,
 } from "lucide-react";
-import type { ComponentType, ReactNode } from "react";
+import { type ComponentType, type ReactNode, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,7 @@ const navigation: Array<{
   { href: "/admin/teen-patti", label: "Manage Teen Patti", icon: Spade, permission: "game.config.draft.create" },
   { href: "/admin/lucky-77", label: "Manage Lucky 77", icon: ShieldCheck, permission: "game.config.draft.create" },
   { href: "/admin/apps", label: "Platform Apps", icon: Smartphone, permission: "platform.app.read" },
+  { href: "/admin/integration", label: "Integration Docs", icon: BookOpen, permission: "dashboard.read" },
   { href: "/admin/platform-users", label: "Platform Users", icon: Users, permission: "platform.user.read" },
   {
     href: "/admin/balance",
@@ -128,10 +130,19 @@ export function AdminShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
+
   async function logout() {
-    await adminFetch("/session", { method: "DELETE" });
-    router.replace("/admin/login");
-    router.refresh();
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await adminFetch("/session", { method: "DELETE" });
+    } catch (err) {
+      console.warn("Logout session notice:", err);
+    } finally {
+      router.replace("/admin/login");
+      router.refresh();
+    }
   }
   const initials = identity.display_name
     .split(/\s+/)
@@ -166,8 +177,9 @@ export function AdminShell({
             variant="outline"
             className="w-full justify-start"
             onClick={logout}
+            disabled={loggingOut}
           >
-            <LogOut /> Sign out
+            <LogOut /> {loggingOut ? "Signing out..." : "Sign out"}
           </Button>
         </div>
       </aside>
@@ -180,15 +192,26 @@ export function AdminShell({
                 <span className="sr-only">Open navigation</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0">
+            <SheetContent side="left" className="flex flex-col w-72 p-0">
               <SheetHeader className="sr-only">
                 <SheetTitle>Admin navigation</SheetTitle>
                 <SheetDescription>Open an admin page.</SheetDescription>
               </SheetHeader>
               <Brand />
               <Separator />
-              <div className="py-4">
+              <div className="flex-1 overflow-y-auto py-4">
                 <Navigation pathname={pathname} identity={identity} mobile />
+              </div>
+              <Separator />
+              <div className="p-4">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={logout}
+                  disabled={loggingOut}
+                >
+                  <LogOut /> {loggingOut ? "Signing out..." : "Sign out"}
+                </Button>
               </div>
             </SheetContent>
           </Sheet>

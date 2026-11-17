@@ -24,6 +24,7 @@ import {
 import { getClassicOptionDisplayName } from "@/lib/greedy-classic-art";
 import { usePlayerHref } from "@/hooks/use-player-href";
 import type { PublicBetAggregate, PublicOption } from "@/types/greedy";
+import { sendGameClose, sendGameRecharge, onHostWalletUpdate } from "@/lib/game-bridge";
 
 const LIVE_RESULT_SOUND_MAX_AGE_MS = 2_000;
 
@@ -119,6 +120,12 @@ function GreedyClassicGameScreenView({
   useEffect(() => {
     if (snapshot || fatalError) hideBoot();
   }, [fatalError, hideBoot, snapshot]);
+
+  useEffect(() => {
+    return onHostWalletUpdate(() => {
+      void recover();
+    });
+  }, [recover]);
 
   const chips = useMemo(
     () =>
@@ -446,6 +453,9 @@ function GreedyClassicGameScreenView({
             href={homeHref}
             className="gc-toolbar__button"
             aria-label="Home"
+            onClick={() => {
+              sendGameClose();
+            }}
           >
             <House aria-hidden="true" />
           </Link>
@@ -488,7 +498,11 @@ function GreedyClassicGameScreenView({
           </span>
 
           <div
-            className="gc-toolbar__wallet"
+            className="gc-toolbar__wallet cursor-pointer transition-transform active:scale-95"
+            onClick={() => sendGameRecharge()}
+            role="button"
+            tabIndex={0}
+            title="Recharge / Add Coins"
             aria-label={`${formatInteger(optimisticWallet)} coins available`}
           >
             <i className={connected ? "is-online" : ""} aria-hidden="true" />

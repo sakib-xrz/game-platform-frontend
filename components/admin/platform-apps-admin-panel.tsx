@@ -1,8 +1,21 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Pencil, Plus, RefreshCw, Smartphone, Trash2 } from "lucide-react";
+import {
+  BookOpen,
+  Check,
+  ExternalLink,
+  Loader2,
+  Pencil,
+  Play,
+  Plus,
+  RefreshCw,
+  Smartphone,
+  Trash2,
+  Zap,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useAdminIdentity } from "@/components/admin/admin-gate";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -37,26 +50,43 @@ import {
 import { adminClient } from "@/lib/admin-client";
 import { hasAdminPermission } from "@/lib/admin-permissions";
 import type { PlatformAppRecord } from "@/types/admin";
+import { IntegrationGuideModal } from "./integration-guide-modal";
+import { WalletDiagnosticsModal } from "./wallet-diagnostics-modal";
 
 type FormState = {
   app_name: string;
+  app_key: string;
   package_name: string;
   sha_key: string;
+  wallet_mode: "local" | "seamless";
+  wallet_base_url: string;
+  player_token_secret: string;
+  allowed_origins: string;
   status: "active" | "disabled";
 };
 
 const emptyForm = (): FormState => ({
   app_name: "",
+  app_key: "",
   package_name: "",
   sha_key: "",
+  wallet_mode: "local",
+  wallet_base_url: "",
+  player_token_secret: "",
+  allowed_origins: "*",
   status: "active",
 });
 
 function formFromApp(app: PlatformAppRecord): FormState {
   return {
     app_name: app.app_name,
+    app_key: app.app_key || "",
     package_name: app.package_name,
     sha_key: app.sha_key,
+    wallet_mode: app.wallet_mode || "local",
+    wallet_base_url: app.wallet_base_url || "",
+    player_token_secret: app.player_token_secret || "",
+    allowed_origins: app.allowed_origins || "*",
     status: app.status,
   };
 }
@@ -65,11 +95,15 @@ export function PlatformAppsAdminPanel() {
   const identity = useAdminIdentity();
   const queryClient = useQueryClient();
   const canManage = hasAdminPermission(identity.role, "platform.app.manage");
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<PlatformAppRecord | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm());
   const [deleteTarget, setDeleteTarget] = useState<PlatformAppRecord | null>(null);
   const [revealedSecret, setRevealedSecret] = useState<{ app_name: string; signing_secret: string } | null>(null);
+
+  const [guideApp, setGuideApp] = useState<PlatformAppRecord | null>(null);
+  const [diagnosticsApp, setDiagnosticsApp] = useState<PlatformAppRecord | null>(null);
 
   const apps = useQuery({
     queryKey: ["admin", "platform-apps"],
@@ -85,14 +119,24 @@ export function PlatformAppsAdminPanel() {
       if (editing) {
         return adminClient.updatePlatformApp(editing.id, {
           app_name: form.app_name.trim(),
+          app_key: form.app_key.trim() || null,
           sha_key: form.sha_key.trim(),
+          wallet_mode: form.wallet_mode,
+          wallet_base_url: form.wallet_base_url.trim() || null,
+          player_token_secret: form.player_token_secret.trim() || null,
+          allowed_origins: form.allowed_origins.trim() || null,
           status: form.status,
         });
       }
       return adminClient.createPlatformApp({
         app_name: form.app_name.trim(),
+        app_key: form.app_key.trim() || null,
         package_name: form.package_name.trim().toLowerCase(),
         sha_key: form.sha_key.trim(),
+        wallet_mode: form.wallet_mode,
+        wallet_base_url: form.wallet_base_url.trim() || null,
+        player_token_secret: form.player_token_secret.trim() || null,
+        allowed_origins: form.allowed_origins.trim() || null,
         status: form.status,
       });
     },
@@ -140,6 +184,15 @@ export function PlatformAppsAdminPanel() {
       toast.error(reason instanceof Error ? reason.message : "Could not rotate signing secret"),
   });
 
+  const launchTestGame = useMutation({
+    mutationFn: async (app: PlatformAppRecord) => {
+      const res = await adminClient.generatePlatformAppLaunchUrl(app.id, { game: "monk-wheel" });
+      window.open(res.launch_url, "_blank");
+      toast.success("Game launched with signed test token");
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to launch test game"),
+  });
+
   const activeCount = useMemo(
     () => (apps.data || []).filter((app) => app.status === "active").length,
     [apps.data],
@@ -166,19 +219,26 @@ export function PlatformAppsAdminPanel() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-500">Mobile integration</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight">Platform Apps</h1>
+          <p className="text-sm font-medium text-slate-500">Enterprise 3rd Party Provider</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight">Platform Apps & Integration</h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-500">
-            Register mobile apps and manage the HMAC signing secret used by each app backend to
-            call integration APIs securely.
+            Configure external host applications, enable automated coin sync (seamless wallet), generate launch tokens, and test webhooks.
           </p>
         </div>
-        {canManage && (
-          <Button onClick={openCreate}>
-            <Plus />
-            Add app
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <Link href="/admin/integration">
+            <Button variant="outline">
+              <BookOpen className="mr-1.5 size-4 text-slate-500" />
+              Integration Docs
+            </Button>
+          </Link>
+          {canManage && (
+            <Button onClick={openCreate} className="bg-indigo-600 hover:bg-indigo-700">
+              <Plus className="mr-1.5 size-4" />
+              Add platform app
+            </Button>
+          )}
+        </div>
       </div>
 
       {!canManage && (
@@ -215,10 +275,9 @@ export function PlatformAppsAdminPanel() {
 
       <Card>
         <CardHeader>
-          <CardTitle>App registry</CardTitle>
+          <CardTitle>Connected Applications</CardTitle>
           <CardDescription>
-            Package name identifies the app in signed requests. SHA key is kept for Android app
-            attestation; API auth uses the signing secret.
+            Each app can use local ledger wallets or real-time automated seamless wallet webhooks.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -230,13 +289,12 @@ export function PlatformAppsAdminPanel() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>App name</TableHead>
-                  <TableHead>Package name</TableHead>
-                  <TableHead>Signing secret</TableHead>
-                  <TableHead>SHA key</TableHead>
+                  <TableHead>App Name</TableHead>
+                  <TableHead>App Key / Package</TableHead>
+                  <TableHead>Wallet Mode</TableHead>
+                  <TableHead>Signing Secret</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Updated</TableHead>
-                  {canManage && <TableHead className="text-right">Actions</TableHead>}
+                  <TableHead className="text-right">Integration Tools</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -245,52 +303,101 @@ export function PlatformAppsAdminPanel() {
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <Smartphone className="size-4 text-slate-400" />
-                        {app.app_name}
+                        <div>
+                          <div>{app.app_name}</div>
+                          {app.wallet_base_url && (
+                            <div className="text-[11px] font-mono text-slate-400 truncate max-w-[200px]">
+                              {app.wallet_base_url}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </TableCell>
-                    <TableCell className="font-mono text-xs">{app.package_name}</TableCell>
+                    <TableCell>
+                      <div className="font-mono text-xs font-semibold text-slate-800">
+                        {app.app_key || "—"}
+                      </div>
+                      <div className="font-mono text-[11px] text-slate-400">
+                        {app.package_name}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {app.wallet_mode === "seamless" ? (
+                        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-semibold">
+                          <Zap className="size-3 mr-1 text-emerald-600 inline" /> Seamless
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="font-semibold">
+                          Local Ledger
+                        </Badge>
+                      )}
+                    </TableCell>
                     <TableCell className="font-mono text-xs">
                       {app.signing_secret_preview}
                       {app.has_rotated_signing_secret ? " · rotated" : ""}
-                    </TableCell>
-                    <TableCell className="max-w-[180px] truncate font-mono text-xs">
-                      {app.sha_key}
                     </TableCell>
                     <TableCell>
                       <Badge variant={app.status === "active" ? "success" : "secondary"}>
                         {app.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-slate-500">
-                      {new Date(app.updated_at).toLocaleString()}
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1.5 flex-wrap">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          title="View Integration Code & Snippets"
+                          onClick={() => setGuideApp(app)}
+                        >
+                          <BookOpen className="size-3.5 mr-1" />
+                          Docs
+                        </Button>
+
+                        {app.wallet_mode === "seamless" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-amber-200 text-amber-800 hover:bg-amber-50"
+                            title="Run live HMAC diagnostic tests"
+                            onClick={() => setDiagnosticsApp(app)}
+                          >
+                            <Zap className="size-3.5 mr-1 text-amber-500" />
+                            Test
+                          </Button>
+                        )}
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                          title="Open game with signed JWT token"
+                          disabled={launchTestGame.isPending}
+                          onClick={() => launchTestGame.mutate(app)}
+                        >
+                          <Play className="size-3.5 mr-1 text-indigo-600" />
+                          Launch
+                        </Button>
+
+                        {canManage && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openEdit(app)}
+                            >
+                              <Pencil className="size-3.5" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setDeleteTarget(app)}
+                            >
+                              <Trash2 className="size-3.5 text-red-500" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
-                    {canManage && (
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={rotateSecret.isPending}
-                            onClick={() => rotateSecret.mutate(app)}
-                          >
-                            <RefreshCw />
-                            Rotate secret
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => openEdit(app)}>
-                            <Pencil />
-                            Edit
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setDeleteTarget(app)}
-                          >
-                            <Trash2 />
-                            Delete
-                          </Button>
-                        </div>
-                      </TableCell>
-                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -298,14 +405,14 @@ export function PlatformAppsAdminPanel() {
           ) : (
             <div className="rounded-lg border border-dashed border-slate-300 p-10 text-center">
               <Smartphone className="mx-auto size-8 text-slate-400" />
-              <p className="mt-3 text-sm font-medium">No platform apps yet</p>
+              <p className="mt-3 text-sm font-medium">No platform apps registered yet</p>
               <p className="mt-1 text-xs text-slate-500">
-                Add your first mobile app to store its package name and SHA signing key.
+                Register your first mobile or web host application to generate signing secrets.
               </p>
               {canManage && (
-                <Button className="mt-4" onClick={openCreate}>
-                  <Plus />
-                  Add app
+                <Button className="mt-4 bg-indigo-600 hover:bg-indigo-700" onClick={openCreate}>
+                  <Plus className="mr-1.5 size-4" />
+                  Add platform app
                 </Button>
               )}
             </div>
@@ -313,6 +420,7 @@ export function PlatformAppsAdminPanel() {
         </CardContent>
       </Card>
 
+      {/* Create / Edit Dialog */}
       <Dialog
         open={dialogOpen}
         onOpenChange={(open) => {
@@ -323,34 +431,46 @@ export function PlatformAppsAdminPanel() {
           }
         }}
       >
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit platform app" : "Add platform app"}</DialogTitle>
+            <DialogTitle>{editing ? "Edit Platform App" : "Add Platform App"}</DialogTitle>
             <DialogDescription>
-              Store the mobile app identity used when validating requests from the phone app
-              backend.
+              Configure mobile app credentials and wallet synchronization mode.
             </DialogDescription>
           </DialogHeader>
           <form className="space-y-4" onSubmit={submit}>
-            <div className="space-y-2">
-              <Label htmlFor="app_name">App name</Label>
-              <Input
-                id="app_name"
-                value={form.app_name}
-                onChange={(event) => setForm({ ...form, app_name: event.target.value })}
-                placeholder="Greedy Live"
-                minLength={1}
-                maxLength={120}
-                required
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="app_name">App name</Label>
+                <Input
+                  id="app_name"
+                  value={form.app_name}
+                  onChange={(event) => setForm({ ...form, app_name: event.target.value })}
+                  placeholder="e.g. Zimo Live"
+                  minLength={1}
+                  maxLength={120}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="app_key">App key (Slug)</Label>
+                <Input
+                  id="app_key"
+                  value={form.app_key}
+                  onChange={(event) => setForm({ ...form, app_key: event.target.value })}
+                  placeholder="e.g. zimo-live"
+                  maxLength={64}
+                />
+              </div>
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="package_name">Package name</Label>
+              <Label htmlFor="package_name">Package name (Android Identifier)</Label>
               <Input
                 id="package_name"
                 value={form.package_name}
                 onChange={(event) => setForm({ ...form, package_name: event.target.value })}
-                placeholder="com.example.greedy"
+                placeholder="com.example.zimo"
                 minLength={3}
                 maxLength={255}
                 required
@@ -362,8 +482,9 @@ export function PlatformAppsAdminPanel() {
                 </p>
               )}
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="sha_key">SHA key</Label>
+              <Label htmlFor="sha_key">SHA-256 Fingerprint</Label>
               <Input
                 id="sha_key"
                 value={form.sha_key}
@@ -373,11 +494,76 @@ export function PlatformAppsAdminPanel() {
                 maxLength={128}
                 required
               />
-              <p className="text-xs text-slate-500">
-                Android signing certificate fingerprint. Colons are optional; stored as uppercase
-                hex.
-              </p>
             </div>
+
+            <div className="rounded-lg border border-slate-200 p-4 space-y-4 bg-slate-50">
+              <div className="space-y-2">
+                <Label className="font-bold text-slate-800">Wallet Mode</Label>
+                <Select
+                  value={form.wallet_mode}
+                  onValueChange={(val: "local" | "seamless") =>
+                    setForm({ ...form, wallet_mode: val })
+                  }
+                >
+                  <SelectTrigger className="bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="local">Local Ledger (Platform Wallet)</SelectItem>
+                    <SelectItem value="seamless">Automated Seamless Wallet (Real-Time Webhook)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-500">
+                  Seamless mode checks balance and debits/credits bets directly on your host server in real-time.
+                </p>
+              </div>
+
+              {form.wallet_mode === "seamless" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="wallet_base_url">Host Wallet Webhook Base URL</Label>
+                    <Input
+                      id="wallet_base_url"
+                      value={form.wallet_base_url}
+                      onChange={(e) => setForm({ ...form, wallet_base_url: e.target.value })}
+                      placeholder="https://api.yourdomain.com"
+                      className="bg-white"
+                      required={form.wallet_mode === "seamless"}
+                    />
+                    <p className="text-xs text-slate-500">
+                      Must implement <code>/internal/wallet/debit</code>, <code>/credit</code>, and <code>/balance</code>.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="player_token_secret">Player Token Secret (HS256)</Label>
+                    <Input
+                      id="player_token_secret"
+                      value={form.player_token_secret}
+                      onChange={(e) => setForm({ ...form, player_token_secret: e.target.value })}
+                      placeholder="Secret key for signing 15-minute player JWTs"
+                      className="bg-white"
+                      minLength={8}
+                    />
+                    <p className="text-xs text-slate-500">
+                      If left blank, signing secret will be used as default.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="allowed_origins">Allowed Iframe Origins (CORS & CSP)</Label>
+                    <Input
+                      id="allowed_origins"
+                      value={form.allowed_origins}
+                      onChange={(e) => setForm({ ...form, allowed_origins: e.target.value })}
+                      placeholder="https://yourdomain.com, *"
+                      className="bg-white"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label>Status</Label>
               <Select
@@ -395,11 +581,12 @@ export function PlatformAppsAdminPanel() {
                 </SelectContent>
               </Select>
             </div>
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={!canManage || save.isPending}>
+              <Button type="submit" disabled={!canManage || save.isPending} className="bg-indigo-600 hover:bg-indigo-700">
                 {save.isPending ? <Loader2 className="animate-spin" /> : null}
                 {editing ? "Save changes" : "Create app"}
               </Button>
@@ -408,6 +595,7 @@ export function PlatformAppsAdminPanel() {
         </DialogContent>
       </Dialog>
 
+      {/* Delete Dialog */}
       <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent>
           <DialogHeader>
@@ -432,6 +620,8 @@ export function PlatformAppsAdminPanel() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Revealed Secret Dialog */}
       <Dialog open={Boolean(revealedSecret)} onOpenChange={(open) => !open && setRevealedSecret(null)}>
         <DialogContent>
           <DialogHeader>
@@ -458,6 +648,20 @@ export function PlatformAppsAdminPanel() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Integration Guide Modal */}
+      <IntegrationGuideModal
+        app={guideApp}
+        open={Boolean(guideApp)}
+        onOpenChange={(open) => !open && setGuideApp(null)}
+      />
+
+      {/* Wallet Diagnostics Modal */}
+      <WalletDiagnosticsModal
+        app={diagnosticsApp}
+        open={Boolean(diagnosticsApp)}
+        onOpenChange={(open) => !open && setDiagnosticsApp(null)}
+      />
     </div>
   );
 }

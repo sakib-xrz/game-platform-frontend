@@ -68,22 +68,25 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const session = await requireAdminMutation(request);
-  if (session instanceof Response) return session;
-  const backendResponse = await proxyAdminRequest(
-    "/admin/auth/logout",
-    session,
-    { method: "POST", headers: forwardMutationHeaders(request) },
-  );
-  if (!backendResponse.ok) return backendResponse;
-  const response = NextResponse.json(
-    { success: true, data: null },
-    {
-      headers: {
-        "x-request-id": backendResponse.headers.get("x-request-id") || "",
-      },
-    },
-  );
+  const response = NextResponse.json({ success: true, data: null });
   clearSessionCookies(response);
+
+  const session = await requireAdminMutation(request);
+  if (!(session instanceof Response)) {
+    try {
+      const backendResponse = await proxyAdminRequest(
+        "/admin/auth/logout",
+        session,
+        { method: "POST", headers: forwardMutationHeaders(request) },
+      );
+      const requestId = backendResponse.headers.get("x-request-id");
+      if (requestId) {
+        response.headers.set("x-request-id", requestId);
+      }
+    } catch {
+      // Backend logout errors can be safely ignored - cookies are already cleared
+    }
+  }
+
   return response;
 }

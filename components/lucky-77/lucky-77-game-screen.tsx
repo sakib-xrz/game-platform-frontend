@@ -18,6 +18,7 @@ import { useLucky77Game } from "@/hooks/use-lucky-77-game";
 import { Lucky77Symbol, lucky77DisplayName } from "@/lib/lucky-77-art";
 import { usePlayerHref } from "@/hooks/use-player-href";
 import type { PublicBetAggregate, PublicOption } from "@/types/greedy";
+import { sendGameClose, sendGameRecharge, onHostWalletUpdate } from "@/lib/game-bridge";
 
 const OPTION_ORDER = ["APPLE", "SEVENTY_SEVEN", "WATERMELON"];
 const LAST_BET_KEY = "lucky-77:last-bet";
@@ -79,6 +80,12 @@ function Lucky77GameScreenView({
   useEffect(() => {
     if (snapshot || fatalError) hideBoot();
   }, [fatalError, hideBoot, snapshot]);
+
+  useEffect(() => {
+    return onHostWalletUpdate(() => {
+      void recover();
+    });
+  }, [recover]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -326,6 +333,9 @@ function Lucky77GameScreenView({
           href={homeHref}
           aria-label="Back to games"
           className="l77-toolbar__round-button"
+          onClick={() => {
+            sendGameClose();
+          }}
         >
           <ArrowLeft aria-hidden="true" />
         </Link>

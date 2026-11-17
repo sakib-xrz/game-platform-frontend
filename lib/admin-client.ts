@@ -224,6 +224,35 @@ export const adminClient = {
       `/platform-apps/${encodeURIComponent(id)}/regenerate-signing-secret`,
       { method: "POST" },
     ),
+  testPlatformAppWallet: (id: string, testUserId?: string) =>
+    adminFetch<{
+      overall_status: "SUCCESS" | "WARNING" | "FAILED";
+      duration_ms: number;
+      tests: Array<{
+        name: string;
+        endpoint: string;
+        passed: boolean;
+        status_code?: number;
+        message: string;
+        latency_ms: number;
+      }>;
+    }>(`/platform-apps/${encodeURIComponent(id)}/test-wallet`, {
+      method: "POST",
+      body: JSON.stringify({ test_user_id: testUserId }),
+    }),
+  generatePlatformAppLaunchUrl: (
+    id: string,
+    options?: { game?: string; user_id?: string; username?: string },
+  ) =>
+    adminFetch<{
+      launch_url: string;
+      token: string;
+      app_key: string;
+      game: string;
+    }>(`/platform-apps/${encodeURIComponent(id)}/generate-launch-url`, {
+      method: "POST",
+      body: JSON.stringify(options || {}),
+    }),
   platformUsers: (query = "?page=1&limit=20") =>
     adminFetchPaged<import("@/types/admin").PlatformUserRecord>(`/platform-users${query}`),
   platformUser: (id: string) =>

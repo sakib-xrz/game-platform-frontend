@@ -28,6 +28,7 @@ import { TeenPattiPhaseRing } from "@/components/teen-patti/teen-patti-phase-rin
 import { TeenPattiResultModal } from "@/components/teen-patti/teen-patti-result-modal";
 import { TeenPattiHistorySheet } from "@/components/teen-patti/teen-patti-history-sheet";
 import { TeenPattiPayoutLayer } from "@/components/teen-patti/teen-patti-payout-layer";
+import { sendGameClose, sendGameRecharge, onHostWalletUpdate } from "@/lib/game-bridge";
 import { GameLoadingScreen } from "@/components/game-loading-screen";
 import { useGameBoot } from "@/components/game-boot-provider";
 import { PlayerAvatar } from "@/components/greedy/player-avatar";
@@ -191,6 +192,12 @@ function TeenPattiGameScreenView({
   const serverOffsetRef = useRef(serverOffsetMs);
 
   const round = snapshot?.round ?? null;
+
+  useEffect(() => {
+    return onHostWalletUpdate(() => {
+      void recover();
+    });
+  }, [recover]);
   const disabledChipAmounts = useMemo(() => {
     const disabled = new Set<string>();
     if (!snapshot || !round) return disabled;
@@ -585,7 +592,14 @@ function TeenPattiGameScreenView({
         </span>
 
         <header className="tp-topbar">
-          <Link href={homeHref} className="tp-back" aria-label="Back to games">
+          <Link
+            href={homeHref}
+            className="tp-back"
+            aria-label="Back to games"
+            onClick={() => {
+              sendGameClose();
+            }}
+          >
             <ChevronLeft />
           </Link>
 
@@ -770,7 +784,11 @@ function TeenPattiGameScreenView({
         <div className="tp-bet-console">
           <div className="tp-bet-console__status">
             <div
-              className="tp-wallet-pill"
+              className="tp-wallet-pill cursor-pointer transition-transform active:scale-95"
+              onClick={() => sendGameRecharge()}
+              role="button"
+              tabIndex={0}
+              title="Recharge / Add Coins"
               aria-label={`${formatInteger(optimisticWalletBalance.toString())} ${snapshot.wallet.currency.name}`}
             >
               <span className="tp-wallet-pill__coin" aria-hidden="true">

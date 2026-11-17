@@ -1,4 +1,5 @@
 import type { Viewport } from "next";
+import Link from "next/link";
 import { GameCard } from "@/components/game-selection/game-card";
 import { userIdFromSearchParam } from "@/lib/player-identity";
 
@@ -51,6 +52,15 @@ export default async function GameSelectionPage({
             image={{ src: "/assets/game-lobby/lucky-77.webp" }}
             preload
           />
+        </div>
+
+        <div className="pt-6 pb-2 text-center">
+          <Link
+            href="/admin/integration"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-500/90 hover:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-3.5 py-1.5 rounded-full border border-amber-500/30 transition-all shadow-sm"
+          >
+            <span>B2B App Integration & API Docs</span> →
+          </Link>
         </div>
       </section>
     </main>

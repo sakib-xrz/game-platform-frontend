@@ -4,7 +4,7 @@ import type {
   BetResponse as TeenPattiBetResponse,
   TeenPattiSnapshot,
 } from "@/types/teen-patti";
-import { getPlayerUserId } from "@/lib/player-identity";
+import { getPlayerApp, getPlayerToken, getPlayerUserId, savePlayerProfile } from "@/lib/player-identity";
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1").replace(/\/$/, "");
 const BET_REQUEST_TIMEOUT_MS = 12_000;
@@ -35,9 +35,56 @@ export type GreedyGameApi = Readonly<{
   placeBet: (payload: BetRequest) => Promise<BetResponse>;
 }>;
 
-function playerHeaders(): HeadersInit {
+function playerHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {};
   const userId = getPlayerUserId();
-  return userId ? { "X-User-Id": userId } : {};
+  const token = getPlayerToken();
+  const app = getPlayerApp();
+
+  if (userId) headers["X-User-Id"] = userId;
+  if (token) headers["X-Player-Token"] = token;
+  if (app) headers["X-App-Key"] = app;
+
+  return headers;
+}
+
+export async function syncBalance(): Promise<{ balance: string; currency: string }> {
+  const userId = getPlayerUserId();
+  return request<{ balance: string; currency: string }>("/integrations/wallet/sync", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId }),
+  });
+}
+
+export async function verifyIntegrationSession(): Promise<any> {
+  const token = getPlayerToken();
+  const appKey = getPlayerApp();
+  if (!token) return null;
+
+  try {
+    const data = await request<any>("/integrations/session/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, appKey }),
+    });
+
+    if (data?.user_id) {
+      savePlayerProfile({
+        userId: data.user_id,
+        externalUserId: data.external_user_id,
+        displayName: data.display_name,
+        avatarUrl: data.photo_url,
+        walletMode: data.wallet_mode,
+        appKey: data.app_key,
+      });
+    }
+
+    return data;
+  } catch (err) {
+    console.warn("Session verification warning:", err);
+    return null;
+  }
 }
 
 async function request<T>(path: string, init: RequestInit = {}, timeoutMs = 8_000): Promise<T> {
