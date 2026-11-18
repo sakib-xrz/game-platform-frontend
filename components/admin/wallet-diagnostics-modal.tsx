@@ -4,6 +4,8 @@ import { useState } from "react";
 import { CheckCircle2, XCircle, AlertTriangle, Loader2, Play, RefreshCw, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -40,6 +42,7 @@ export function WalletDiagnosticsModal({
   onOpenChange,
 }: WalletDiagnosticsModalProps) {
   const [running, setRunning] = useState(false);
+  const [testUserId, setTestUserId] = useState("1");
   const [report, setReport] = useState<TestReport | null>(null);
 
   if (!app) return null;
@@ -48,7 +51,8 @@ export function WalletDiagnosticsModal({
     setRunning(true);
     setReport(null);
     try {
-      const data = await adminClient.testPlatformAppWallet(app.id, "diag_user_001");
+      const targetUserId = testUserId.trim() || "1";
+      const data = await adminClient.testPlatformAppWallet(app.id, targetUserId);
       setReport(data);
       if (data.overall_status === "SUCCESS") {
         toast.success("All integration tests passed successfully!");
@@ -76,26 +80,52 @@ export function WalletDiagnosticsModal({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs space-y-1 font-mono">
-            <div><span className="text-slate-400">Target URL:</span> {app.wallet_base_url || "Not configured"}</div>
-            <div><span className="text-slate-400">Wallet Mode:</span> {app.wallet_mode || "local"}</div>
+          <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs space-y-2">
+            <div className="font-mono space-y-1">
+              <div><span className="text-slate-400">Target URL:</span> {app.wallet_base_url || "Not configured"}</div>
+              <div><span className="text-slate-400">Wallet Mode:</span> {app.wallet_mode || "local"}</div>
+            </div>
+            <div className="pt-2 border-t border-slate-200/80 space-y-1.5">
+              <Label htmlFor="diag_user_id" className="text-xs font-semibold text-slate-700">
+                Test Player User ID
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="diag_user_id"
+                  value={testUserId}
+                  onChange={(e) => setTestUserId(e.target.value)}
+                  placeholder="e.g. 1 or diag_user_001"
+                  className="h-8 text-xs font-mono bg-white"
+                  disabled={running}
+                />
+                <Button
+                  size="sm"
+                  onClick={runTest}
+                  disabled={running}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-xs shrink-0"
+                >
+                  {running ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Play className="size-3.5 mr-1.5" />}
+                  {report ? "Re-run Test" : "Start Diagnostics"}
+                </Button>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Provide a real user ID from your backend (e.g. <code className="text-indigo-600 font-semibold">1</code>). If the user does not exist, a 404 USER_NOT_FOUND with valid signature will also be accepted as a pass.
+              </p>
+            </div>
           </div>
 
           {!report && !running && (
-            <div className="text-center py-8 space-y-3">
-              <Zap className="mx-auto size-10 text-slate-300" />
-              <p className="text-sm font-medium text-slate-700">Ready to run 4-point verification check</p>
+            <div className="text-center py-6 space-y-2">
+              <Zap className="mx-auto size-8 text-slate-300" />
+              <p className="text-sm font-medium text-slate-700">Ready to run verification check</p>
               <p className="text-xs text-slate-400 max-w-sm mx-auto">
                 Tests balance reading, HMAC canonical headers, replay window freshness, and transaction lookup recovery.
               </p>
-              <Button onClick={runTest} className="mt-2 bg-indigo-600 hover:bg-indigo-700">
-                <Play className="size-4 mr-1.5" /> Start Diagnostics
-              </Button>
             </div>
           )}
 
           {running && (
-            <div className="text-center py-12 space-y-3">
+            <div className="text-center py-10 space-y-3">
               <Loader2 className="mx-auto size-8 animate-spin text-indigo-600" />
               <p className="text-sm font-medium text-slate-700">Testing host wallet endpoints with HMAC signing...</p>
             </div>

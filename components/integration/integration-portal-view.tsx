@@ -55,8 +55,8 @@ export function IntegrationPortalView() {
   const [activeVerifyTab, setActiveVerifyTab] = useState<"node" | "python" | "php" | "go">("node");
   const [activeWebhookTab, setActiveWebhookTab] = useState<"balance" | "debit" | "credit" | "transaction">("balance");
 
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://games.example.com";
-  const apiBaseUrl = typeof window !== "undefined" ? `${window.location.origin}/api/v1` : "https://games.example.com/api/v1";
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://game.maxlived.net";
+  const apiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://game-api.maxlived.net/api/v1").replace(/\/$/, "");
 
   const copyToClipboard = async (text: string, key: string) => {
     try {
@@ -111,7 +111,8 @@ export function IntegrationPortalView() {
       const path = selectedGame === "greedy" ? "/games/greedy" :
                    selectedGame === "greedy-classic" ? "/games/greedy-classic" :
                    selectedGame === "teen-patti" ? "/games/teen-patti" :
-                   "/games/lucky-77";
+                   selectedGame === "lucky-77" ? "/games/lucky-77" :
+                   "/games/monk-wheel";
 
       const finalUrl = `${baseUrl}${path}?token=${encodeURIComponent(jwt)}&app=${encodeURIComponent(appKey)}&game=${encodeURIComponent(selectedGame)}`;
       setGeneratedUrl(finalUrl);
@@ -460,10 +461,10 @@ export function IntegrationPortalView() {
     },
     "games": [
       {
-        "gameKey": "greedy-classic",
-        "name": "Monkey Wheel (Tropical Fortune)",
-        "launchUrl": "${baseUrl}/games/greedy-classic",
-        "iconUrl": "${baseUrl}/assets/game-lobby/monkey-wheel-v4.webp"
+        "gameKey": "monk-wheel",
+        "name": "Monk Wheel (Tropical Fortune)",
+        "launchUrl": "${baseUrl}/games/monk-wheel",
+        "iconUrl": "${baseUrl}/icons/monk-wheel.png"
       },
       {
         "gameKey": "greedy",
@@ -827,12 +828,15 @@ export function IntegrationPortalView() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-1 text-xs">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-2 text-xs">
               <div className="text-slate-800 font-semibold">Canonical String Construction:</div>
+              <p className="text-slate-600 text-[11px] leading-relaxed">
+                <strong className="text-amber-700">Important:</strong> The signed path is <strong>relative to your configured Webhook Base URL</strong> (e.g. <code className="text-indigo-600 font-semibold">/internal/wallet/debit</code>, <code className="text-indigo-600 font-semibold">/internal/wallet/:userId/balance</code>). If your routes are mounted under a prefix (e.g. <code>app.use('/api', walletRoutes)</code>), do NOT include the mount prefix in the canonical string; use the relative path starting with <code>/internal/wallet/...</code> to avoid HTTP 401 signature mismatches.
+              </p>
               <pre className="font-mono text-slate-800 text-[11px]">
 {`v1
 \${METHOD.toUpperCase()}
-\${req.originalUrl}
+\${relativeWalletPath}  // e.g. /internal/wallet/debit (without host base URL prefix)
 \${req.headers['x-timestamp']}
 \${req.headers['x-nonce']}
 \${crypto.createHash('sha256').update(rawBody).digest('hex')}`}
@@ -1248,8 +1252,11 @@ function verifyGamePlatformSignature(req, res, next) {
   const rawBody = req.rawBody || JSON.stringify(req.body);
   const bodyHash = crypto.createHash('sha256').update(rawBody).digest('hex');
 
-  // 3. Build Canonical String
-  const canonical = ['v1', req.method.toUpperCase(), req.originalUrl, timestamp, nonce, bodyHash].join('\\n');
+  // 3. Build Canonical String (Path is relative to Webhook Base URL, starting with /internal/wallet)
+  const signedPath = req.originalUrl.includes('/internal/wallet')
+    ? req.originalUrl.substring(req.originalUrl.indexOf('/internal/wallet'))
+    : req.path;
+  const canonical = ['v1', req.method.toUpperCase(), signedPath, timestamp, nonce, bodyHash].join('\\n');
 
   // 4. Calculate Expected HMAC
   const expectedSignature = 'v1=' + crypto
@@ -1282,7 +1289,12 @@ async def verify_signature(request: Request):
     raw_body = await request.body()
     body_hash = hashlib.sha256(raw_body).hexdigest()
 
-    canonical = f"v1\\n{request.method.upper()}\\n{request.url.path}\\n{timestamp}\\n{nonce}\\n{body_hash}"
+    # Signed path is relative to webhook base URL (starts with /internal/wallet)
+    path = request.url.path
+    if "/internal/wallet" in path:
+        path = path[path.index("/internal/wallet"):]
+
+    canonical = f"v1\\n{request.method.upper()}\\n{path}\\n{timestamp}\\n{nonce}\\n{body_hash}"
     expected = "v1=" + hmac.new(
         SECRET.encode("utf-8"),
         canonical.encode("utf-8"),
@@ -1306,10 +1318,15 @@ function verifySignature($request, $secret) {
     $rawBody = $request->getContent();
     $bodyHash = hash('sha256', $rawBody);
 
+    // Signed path is relative to webhook base URL (starts with /internal/wallet)
+    $uri = $request->getRequestUri();
+    $pos = strpos($uri, '/internal/wallet');
+    $path = $pos !== false ? substr($uri, $pos) : $uri;
+
     $canonical = implode("\\n", [
         'v1',
         strtoupper($request->method()),
-        $request->getRequestUri(),
+        $path,
         $timestamp,
         $nonce,
         $bodyHash
@@ -1349,10 +1366,16 @@ func VerifyGameSignature(r *http.Request, secret string) bool {
 	bodyHash := sha256.Sum256(bodyBytes)
 	hexBodyHash := hex.EncodeToString(bodyHash[:])
 
+	// Signed path is relative to webhook base URL (starts with /internal/wallet)
+	path := r.URL.RequestURI()
+	if idx := strings.Index(path, "/internal/wallet"); idx != -1 {
+		path = path[idx:]
+	}
+
 	canonical := strings.Join([]string{
 		"v1",
 		strings.ToUpper(r.Method),
-		r.URL.RequestURI(),
+		path,
 		tsStr,
 		nonce,
 		hexBodyHash,

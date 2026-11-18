@@ -30,8 +30,8 @@ export function IntegrationGuideModal({
   if (!app) return null;
 
   const appKey = app.app_key || app.package_name;
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://game.example.com";
-  const apiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.game.example.com/api/v1").replace(/\/$/, "");
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://game.maxlived.net";
+  const apiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://game-api.maxlived.net/api/v1").replace(/\/$/, "");
 
   const copyToClipboard = async (text: string, key: string) => {
     await navigator.clipboard.writeText(text);
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   const webIframeCode = `<!-- Web Embed / Iframe Integration -->
 <iframe
   id="game-frame"
-  src="${baseUrl}/?token=YOUR_SIGNED_PLAYER_TOKEN&app=${appKey}&game=monk-wheel"
+  src="${baseUrl}/games/monk-wheel?token=YOUR_SIGNED_PLAYER_TOKEN&app=${appKey}&game=monk-wheel"
   allow="autoplay; fullscreen"
   style="width: 100%; height: 100vh; border: none;"
 ></iframe>
@@ -186,7 +186,8 @@ function generateGameUrl(user, gameKey = 'monk-wheel') {
     game: gameKey,
   });
 
-  return \`\${GAMES_HOST}/?\${query.toString()}\`;
+  const path = gameKey === 'monk-wheel' ? '/games/monk-wheel' : \`/games/\${gameKey}\`;
+  return \`\${GAMES_HOST}\${path}?\${query.toString()}\`;
 }`;
 
   const pythonJwtCode = `# Python Backend: Issue 15-Minute Player Token
@@ -210,7 +211,8 @@ def get_game_url(user_id, display_name, avatar_url=None, game_key="monk-wheel"):
     }
     token = jwt.encode(payload, PLAYER_SECRET, algorithm="HS256")
     query = urlencode({"token": token, "app": APP_KEY, "game": game_key})
-    return f"{GAMES_HOST}/?{query}"`;
+    path = "/games/monk-wheel" if game_key == "monk-wheel" else f"/games/{game_key}"
+    return f"{GAMES_HOST}{path}?{query}"`;
 
   const webhookVerifyNode = `// Node.js Express: HMAC-SHA256 Webhook Verification
 const crypto = require('crypto');
@@ -226,9 +228,13 @@ function verifyGamesWebhook(req) {
   if (Math.abs(Date.now() / 1000 - Number(ts)) > 300) return false;
 
   // 2. Canonical message: v1\\nMETHOD\\nURI\\nTS\\nNONCE\\nHASH
+  // Signed path is relative to your Webhook Base URL (starts with /internal/wallet)
+  const relativePath = req.originalUrl.includes('/internal/wallet')
+    ? req.originalUrl.substring(req.originalUrl.indexOf('/internal/wallet'))
+    : req.path;
   const rawBody = req.rawBody || JSON.stringify(req.body);
   const bodyHash = crypto.createHash('sha256').update(rawBody).digest('hex');
-  const canonical = ['v1', req.method.toUpperCase(), req.originalUrl, ts, nonce, bodyHash].join('\\n');
+  const canonical = ['v1', req.method.toUpperCase(), relativePath, ts, nonce, bodyHash].join('\\n');
 
   // 3. Constant-time timingSafeEqual HMAC comparison
   const expectedHmac = crypto.createHmac('sha256', WALLET_SECRET).update(canonical).digest('hex');
@@ -240,7 +246,7 @@ function verifyGamesWebhook(req) {
 // 1. GET /internal/wallet/:userId/balance -> { "balance": 15000, "currency": "coins" }
 // 2. POST /internal/wallet/debit -> { "userId", "amount", "idempotencyKey" }
 // 3. POST /internal/wallet/credit -> { "userId", "amount", "idempotencyKey", "type": "game_payout" }
-// 4. GET /internal/wallet/transaction/:key -> { "status": "FOUND", "amount": 500 }`;
+// 4. GET /internal/wallet/transaction/:key -> { "found": false } or { "status": "NOT_FOUND" } / { "found": true, "amount": 500 }`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

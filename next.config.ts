@@ -13,6 +13,14 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: "/games/monk-wheel",
+        destination: "/games/greedy-classic",
+      },
+    ];
+  },
   async headers() {
     return [
       {
