@@ -9,7 +9,13 @@ import type {
   LeaderboardGameCode,
   LeaderboardPeriod,
 } from "@/types/leaderboard";
-import { getPlayerApp, getPlayerToken, getPlayerUserId, savePlayerProfile } from "@/lib/player-identity";
+import {
+  getPlayerApp,
+  getPlayerToken,
+  getPlayerUserId,
+  savePlayerProfile,
+  setVerifiedPlayerUserId,
+} from "@/lib/player-identity";
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1").replace(/\/$/, "");
 const BET_REQUEST_TIMEOUT_MS = 12_000;
@@ -75,6 +81,7 @@ export async function verifyIntegrationSession(): Promise<any> {
     });
 
     if (data?.user_id) {
+      setVerifiedPlayerUserId(token, String(data.user_id));
       savePlayerProfile({
         userId: data.user_id,
         externalUserId: data.external_user_id,

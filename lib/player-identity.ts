@@ -3,6 +3,8 @@ const LOCAL_KEY = "greedy.player_user_id";
 const TOKEN_KEY = "greedy.player_token";
 const APP_KEY = "greedy.player_app";
 const USER_PROFILE_KEY = "greedy.player_profile";
+// { token, userId }: internal player id returned by session verify for a token.
+const VERIFIED_KEY = "greedy.player_verified";
 
 const ENV_USER_ID = process.env.NEXT_PUBLIC_DEV_USER_ID?.trim() || "";
 
@@ -82,6 +84,36 @@ export function savePlayerProfile(profile: PlayerProfile): void {
   }
 }
 
+function readVerifiedUserId(token: string): string {
+  try {
+    const raw =
+      window.sessionStorage.getItem(VERIFIED_KEY) ||
+      window.localStorage.getItem(VERIFIED_KEY);
+    if (!raw) return "";
+    const parsed = JSON.parse(raw) as { token?: string; userId?: string };
+    return parsed.token === token ? normalizeString(parsed.userId, 128) : "";
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Host launch tokens carry the host's own user id (`sub`, e.g. "3"). The
+ * game backend keys players by its internal id, returned by session verify.
+ * Remember it for this token so every later read uses the internal id.
+ */
+export function setVerifiedPlayerUserId(token: string, userId: string): void {
+  if (typeof window === "undefined" || !token || !userId) return;
+  try {
+    const serialized = JSON.stringify({ token, userId });
+    window.sessionStorage.setItem(VERIFIED_KEY, serialized);
+    window.localStorage.setItem(VERIFIED_KEY, serialized);
+  } catch {
+    // Ignore
+  }
+  writeStoredUserId(userId);
+}
+
 function writeStoredUserId(userId: string): void {
   if (typeof window === "undefined") return;
   try {
@@ -131,7 +163,9 @@ export function capturePlayerIdentity(): string {
 
       const claims = parseJwtClaims(cleanToken);
       if (claims?.sub) {
-        writeStoredUserId(claims.sub);
+        // Prefer the internal id already verified for this exact token; the
+        // raw `sub` is only a placeholder until session verify answers.
+        writeStoredUserId(readVerifiedUserId(cleanToken) || claims.sub);
         savePlayerProfile({
           userId: claims.sub,
           externalUserId: claims.sub,

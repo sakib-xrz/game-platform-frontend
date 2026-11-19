@@ -104,6 +104,8 @@ export function PlatformAppsAdminPanel() {
 
   const [guideApp, setGuideApp] = useState<PlatformAppRecord | null>(null);
   const [diagnosticsApp, setDiagnosticsApp] = useState<PlatformAppRecord | null>(null);
+  const [launchApp, setLaunchApp] = useState<PlatformAppRecord | null>(null);
+  const [launchForm, setLaunchForm] = useState({ userId: "", username: "", game: "monk-wheel" });
 
   const apps = useQuery({
     queryKey: ["admin", "platform-apps"],
@@ -184,14 +186,36 @@ export function PlatformAppsAdminPanel() {
       toast.error(reason instanceof Error ? reason.message : "Could not rotate signing secret"),
   });
 
+  // Launch a game exactly as the host app would: a signed player token whose
+  // `sub` is the host app's own user id (e.g. "3"). With a seamless wallet the
+  // game then shows that user's real host balance.
   const launchTestGame = useMutation({
-    mutationFn: async (app: PlatformAppRecord) => {
-      const res = await adminClient.generatePlatformAppLaunchUrl(app.id, { game: "monk-wheel" });
-      window.open(res.launch_url, "_blank");
-      toast.success("Game launched with signed test token");
+    mutationFn: async ({ app, tab }: { app: PlatformAppRecord; tab: Window | null }) => {
+      const res = await adminClient.generatePlatformAppLaunchUrl(app.id, {
+        game: launchForm.game,
+        user_id: launchForm.userId.trim(),
+        username: launchForm.username.trim() || undefined,
+      });
+      if (tab) tab.location.href = res.launch_url;
+      else window.open(res.launch_url, "_blank");
     },
-    onError: (err: any) => toast.error(err.message || "Failed to launch test game"),
+    onSuccess: () => {
+      toast.success(`Game launched as user ${launchForm.userId.trim()}`);
+      setLaunchApp(null);
+    },
+    onError: (err: unknown, { tab }) => {
+      tab?.close();
+      toast.error(err instanceof Error ? err.message : "Failed to launch test game");
+    },
   });
+
+  function submitLaunch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!launchApp || !launchForm.userId.trim()) return;
+    // Open the tab inside the click so popup blockers allow it.
+    const tab = window.open("about:blank", "_blank");
+    launchTestGame.mutate({ app: launchApp, tab });
+  }
 
   const activeCount = useMemo(
     () => (apps.data || []).filter((app) => app.status === "active").length,
@@ -370,9 +394,8 @@ export function PlatformAppsAdminPanel() {
                           size="sm"
                           variant="outline"
                           className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-                          title="Open game with signed JWT token"
-                          disabled={launchTestGame.isPending}
-                          onClick={() => launchTestGame.mutate(app)}
+                          title="Open a game as a specific user with a signed JWT token"
+                          onClick={() => setLaunchApp(app)}
                         >
                           <Play className="size-3.5 mr-1 text-indigo-600" />
                           Launch
@@ -646,6 +669,77 @@ export function PlatformAppsAdminPanel() {
               Copy secret
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Launch As User Dialog */}
+      <Dialog open={Boolean(launchApp)} onOpenChange={(open) => !open && setLaunchApp(null)}>
+        <DialogContent>
+          <form onSubmit={submitLaunch}>
+            <DialogHeader>
+              <DialogTitle>Launch game as a user</DialogTitle>
+              <DialogDescription>
+                Opens the game with a signed player token for <strong>{launchApp?.app_name}</strong>,
+                exactly like the host app does. Use the user&apos;s ID from the host app (e.g.{" "}
+                <code>3</code>). In seamless mode the game shows that user&apos;s real balance and
+                bets move real coins.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4 grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="launch-user-id">Host app user ID</Label>
+                <Input
+                  id="launch-user-id"
+                  required
+                  autoFocus
+                  maxLength={128}
+                  placeholder="e.g. 3"
+                  value={launchForm.userId}
+                  onChange={(event) =>
+                    setLaunchForm((current) => ({ ...current, userId: event.target.value }))
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="launch-username">Display name (optional)</Label>
+                <Input
+                  id="launch-username"
+                  maxLength={64}
+                  placeholder="Test Player"
+                  value={launchForm.username}
+                  onChange={(event) =>
+                    setLaunchForm((current) => ({ ...current, username: event.target.value }))
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Game</Label>
+                <Select
+                  value={launchForm.game}
+                  onValueChange={(game) => setLaunchForm((current) => ({ ...current, game }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="monk-wheel">Monk Wheel</SelectItem>
+                    <SelectItem value="greedy">Greedy</SelectItem>
+                    <SelectItem value="lucky-77">Lucky 77</SelectItem>
+                    <SelectItem value="teen-patti">Teen Patti</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter className="mt-6">
+              <Button type="button" variant="outline" onClick={() => setLaunchApp(null)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={launchTestGame.isPending || !launchForm.userId.trim()}>
+                {launchTestGame.isPending ? <Loader2 className="animate-spin" /> : <Play />}
+                Launch game
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
