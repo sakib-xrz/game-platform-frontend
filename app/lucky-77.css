@@ -84,7 +84,7 @@
   align-items: center;
   width: 100%;
   min-height: 12cqw;
-  padding-top: max(8px, env(safe-area-inset-top));
+  padding-top: max(8px, var(--safe-top));
   padding-inline: 2.8cqw;
   padding-bottom: 2px;
   gap: 1.8cqw;
@@ -207,7 +207,7 @@
 .l77-status-note {
   position: absolute;
   z-index: 45;
-  top: calc(max(10px, env(safe-area-inset-top)) + 10cqw);
+  top: calc(max(10px, var(--safe-top)) + 10cqw);
   left: 50%;
   max-width: 80%;
   padding: 1.1cqw 2.6cqw;
@@ -908,7 +908,7 @@
   flex-direction: column;
   width: 100%;
   margin-top: auto;
-  padding: 2cqw 3.2cqw max(1.8cqw, env(safe-area-inset-bottom));
+  padding: 2cqw 3.2cqw max(1.8cqw, var(--safe-bottom));
   gap: 1.2cqw;
   border-top: 0.45cqw solid rgba(255, 197, 255, 0.4);
   background: linear-gradient(

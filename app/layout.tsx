@@ -25,12 +25,21 @@ export const viewport: Viewport = {
   themeColor: "#f6b526",
 };
 
+// Runs before first paint. When the page fills clearly less than the screen
+// height (host app shows the game in a partial-height sheet), the webview is
+// not under the status bar / gesture bar, so device safe-area insets must not
+// add padding. Re-checked on resize (sheet expand/collapse, rotation).
+const EMBEDDED_SHEET_SCRIPT = `(function(){var d=document.documentElement;function u(){var s=window.screen&&window.screen.height;var h=window.innerHeight;if(s&&h&&h<s*0.86){d.setAttribute("data-embedded-sheet","")}else{d.removeAttribute("data-embedded-sheet")}}u();window.addEventListener("resize",u)})();`;
+
 const paymentLocked =
   process.env.NEXT_PUBLIC_PAYMENT_LOCK?.trim().toLowerCase() === "true";
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: EMBEDDED_SHEET_SCRIPT }} />
+      </head>
       <body>
         {paymentLocked ? <PaymentLockOverlay /> : null}
         <PlayerIdentityBootstrap />

@@ -103,7 +103,7 @@
   position: relative;
   z-index: 60;
   min-height: 15cqw;
-  padding: max(10px, env(safe-area-inset-top)) 3.3cqw 1cqw;
+  padding: max(10px, var(--safe-top)) 3.3cqw 1cqw;
   gap: 1.8cqw;
   background: linear-gradient(180deg, rgba(44, 4, 85, 0.54), transparent);
 }
@@ -119,7 +119,7 @@
 }
 
 .l77-toolbar::before {
-  top: max(11px, env(safe-area-inset-top));
+  top: max(11px, var(--safe-top));
   content: "LUCKY 77";
   color: #fff0a8;
   font-family: Georgia, "Times New Roman", serif;
@@ -133,7 +133,7 @@
 }
 
 .l77-toolbar::after {
-  top: calc(max(11px, env(safe-area-inset-top)) + min(5.2cqw, 22px));
+  top: calc(max(11px, var(--safe-top)) + min(5.2cqw, 22px));
   content: "FORTUNE WHEEL";
   color: rgba(255, 235, 185, 0.72);
   font-size: min(1.65cqw, 7px);
@@ -209,7 +209,7 @@
 }
 
 .l77-status-note {
-  top: calc(max(12px, env(safe-area-inset-top)) + 12cqw);
+  top: calc(max(12px, var(--safe-top)) + 12cqw);
   max-width: 82%;
   border: 1px solid rgba(255, 223, 121, 0.55);
   color: #fff0b5;
@@ -851,7 +851,7 @@
 /* Bottom betting console */
 .l77-controls {
   position: relative;
-  padding: 2.2cqw 3.2cqw max(2.2cqw, env(safe-area-inset-bottom));
+  padding: 2.2cqw 3.2cqw max(2.2cqw, var(--safe-bottom));
   gap: 1.45cqw;
   border-top: 0.55cqw solid #d18b22;
   background:
@@ -1135,14 +1135,14 @@
 @media (max-height: 760px) {
   .l77-toolbar {
     min-height: 13cqw;
-    padding-top: max(7px, env(safe-area-inset-top));
+    padding-top: max(7px, var(--safe-top));
   }
   .l77-toolbar::before {
-    top: max(8px, env(safe-area-inset-top));
+    top: max(8px, var(--safe-top));
     font-size: min(4.7cqw, 20px);
   }
   .l77-toolbar::after {
-    top: calc(max(8px, env(safe-area-inset-top)) + min(4.9cqw, 21px));
+    top: calc(max(8px, var(--safe-top)) + min(4.9cqw, 21px));
   }
   .l77-playfield {
     gap: 0.3cqw;
