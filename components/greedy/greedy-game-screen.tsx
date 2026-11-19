@@ -63,7 +63,7 @@ function MachineIllustration() {
     <svg
       className="machine-illustration"
       viewBox="0 0 414 560"
-      preserveAspectRatio="xMidYMid meet"
+      preserveAspectRatio="none"
       aria-hidden="true"
     >
       <defs>

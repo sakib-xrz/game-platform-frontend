@@ -201,7 +201,14 @@ a:focus-visible {
 }
 
 .greedy-game-shell {
+  /* Lock to the host webview height (often ~80% of the phone screen). The
+     machine flexes to fill what is left, so the page never scrolls. */
+  display: flex;
+  height: 100dvh;
   min-height: 100dvh;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-top: env(safe-area-inset-top);
   /* The machine paints its own yellow surface; continue the dashboard colour
      through tall phone viewports so the game never ends in an empty dark band. */
@@ -257,8 +264,29 @@ a:focus-visible {
   position: relative;
   z-index: 2;
   width: 100%;
-  aspect-ratio: 414 / 560;
-  container-type: inline-size;
+  /* Natural height is 414:560 of the canvas width. In shorter webviews the
+     machine gives up height (flex-shrink) instead of the page scrolling.
+     Width never changes: board positions are % based, so the wheel
+     compresses vertically and keeps its full horizontal spread. */
+  flex: 0 1 calc(min(100vw, 414px) * 560 / 414);
+  min-height: 260px;
+  container-type: size;
+  /* Sizing unit for the board artwork. Equals 1cqw (unchanged look) until
+     the machine is squeezed below ~94% of its natural height; only then do
+     nodes, hub, kiosks and chips shrink with the available height. The
+     toolbar keeps plain cqw so its tap targets never shrink. */
+  --gm-u: min(1cqw, 0.7865cqh);
+  /* Pinch needed for the top node (centre 18.39%, radius 11.35u) to sit
+     2px below the toolbar (top + 9.7cqw button). Resolves to 0 at normal
+     heights. */
+  --gm-toolbar-top: 1.7cqw;
+  --gm-pinch: max(
+    0px,
+    calc(
+      var(--gm-toolbar-top) + 9.7cqw + 2px - 18.392857cqh +
+        11.352657 * var(--gm-u)
+    )
+  );
   isolation: isolate;
   overflow: hidden;
 }
@@ -275,7 +303,7 @@ a:focus-visible {
 .machine-toolbar {
   position: absolute;
   z-index: 40;
-  top: 1.7cqw;
+  top: var(--gm-toolbar-top);
   left: 2.4cqw;
   display: flex;
   gap: 2.4cqw;
@@ -416,39 +444,44 @@ a:focus-visible {
 .machine-decoration {
   position: absolute;
   z-index: 3;
-  filter: drop-shadow(0 0.35cqw 0.2cqw rgba(65, 46, 4, 0.22));
+  filter: drop-shadow(0 calc(0.35 * var(--gm-u)) calc(0.2 * var(--gm-u)) rgba(65, 46, 4, 0.22));
   user-select: none;
 }
 
 .machine-decoration--carrot {
-  top: 10.5cqw;
-  left: -0.5cqw;
+  top: calc(10.5 * var(--gm-u));
+  left: calc(-0.5 * var(--gm-u));
   transform: rotate(-20deg);
-  font-size: 7.2cqw;
+  font-size: calc(7.2 * var(--gm-u));
 }
 
 .machine-decoration--gem-left {
-  top: 98cqw;
-  left: 1.5cqw;
-  width: 5.8cqw;
-  height: 5.8cqw;
+  top: calc(98 * var(--gm-u));
+  left: calc(1.5 * var(--gm-u));
+  width: calc(5.8 * var(--gm-u));
+  height: calc(5.8 * var(--gm-u));
   transform: rotate(-15deg);
   background: url("/assets/greedy/diamond.png") center / contain no-repeat;
 }
 
 .machine-decoration--gem-right {
-  top: 106cqw;
-  right: 1.8cqw;
-  width: 5.3cqw;
-  height: 5.3cqw;
+  top: calc(106 * var(--gm-u));
+  right: calc(1.8 * var(--gm-u));
+  width: calc(5.3 * var(--gm-u));
+  height: calc(5.3 * var(--gm-u));
   transform: rotate(15deg);
   background: url("/assets/greedy/diamond.png") center / contain no-repeat;
 }
 
 .option-node-wrap {
-  --option-node-band: clamp(1px, 0.28cqw, 1.25px);
+  /* Vertical ring pinch (0 unless the machine is squeezed). Moves the top
+     node down / bottom node up just enough for the top node to clear the
+     toolbar; diagonal nodes follow proportionally. Uses `translate` so the
+     centring transform and its animations stay untouched. */
+  translate: 0 calc(var(--node-pinch, 0) * var(--gm-pinch, 0px));
+  --option-node-band: clamp(1px, calc(0.28 * var(--gm-u)), 1.25px);
   position: absolute;
-  inline-size: 22.705314cqw;
+  inline-size: calc(22.705314 * var(--gm-u));
   block-size: auto;
   aspect-ratio: 1 / 1;
   transform: translate(-50%, -50%);
@@ -471,7 +504,7 @@ a:focus-visible {
   -webkit-appearance: none;
   background: linear-gradient(180deg, #72baf0 0%, #4b91cf 50%, #3475b2 100%);
   color: #17263a;
-  box-shadow: 0 1.1cqw 1.9cqw rgba(71, 49, 12, 0.2);
+  box-shadow: 0 calc(1.1 * var(--gm-u)) calc(1.9 * var(--gm-u)) rgba(71, 49, 12, 0.2);
   cursor: pointer;
   transition:
     transform 100ms ease,
@@ -485,16 +518,16 @@ a:focus-visible {
   border-color: #922936;
   background: linear-gradient(180deg, #ffae76 0%, #f45f5f 52%, #c83243 100%);
   box-shadow:
-    0 0 0 0.42cqw #fff0a5,
-    0 0 0 0.78cqw rgba(238, 66, 76, 0.9),
-    0 1.25cqw 2.2cqw rgba(103, 38, 29, 0.28);
+    0 0 0 calc(0.42 * var(--gm-u)) #fff0a5,
+    0 0 0 calc(0.78 * var(--gm-u)) rgba(238, 66, 76, 0.9),
+    0 calc(1.25 * var(--gm-u)) calc(2.2 * var(--gm-u)) rgba(103, 38, 29, 0.28);
 }
 
 .option-node--has-bet > .option-node::after {
   position: absolute;
   z-index: -1;
-  inset: -0.62cqw;
-  border: 0.3cqw solid rgba(255, 240, 135, 0.92);
+  inset: calc(-0.62 * var(--gm-u));
+  border: calc(0.3 * var(--gm-u)) solid rgba(255, 240, 135, 0.92);
   border-radius: inherit;
   opacity: 0.5;
   animation: selectedBetGlow 1.65s ease-in-out infinite;
@@ -508,9 +541,9 @@ a:focus-visible {
 
 .option-node:focus-visible {
   box-shadow:
-    0 0 0 0.7cqw white,
-    0 0 0 1.2cqw #102b4e,
-    0 1.1cqw 1.9cqw rgba(71, 49, 12, 0.2);
+    0 0 0 calc(0.7 * var(--gm-u)) white,
+    0 0 0 calc(1.2 * var(--gm-u)) #102b4e,
+    0 calc(1.1 * var(--gm-u)) calc(1.9 * var(--gm-u)) rgba(71, 49, 12, 0.2);
 }
 
 .option-node--has-bet > .option-node:focus-visible::after {
@@ -528,9 +561,9 @@ a:focus-visible {
   border-color: #8f2630;
   background: linear-gradient(180deg, #ff8388 0%, #f3515a 52%, #cb303d 100%);
   box-shadow:
-    0 0 0 0.8cqw rgba(255, 255, 255, 0.74),
-    0 0 0 1.18cqw rgba(189, 38, 51, 0.5),
-    0 1.1cqw 1.9cqw rgba(71, 49, 12, 0.22);
+    0 0 0 calc(0.8 * var(--gm-u)) rgba(255, 255, 255, 0.74),
+    0 0 0 calc(1.18 * var(--gm-u)) rgba(189, 38, 51, 0.5),
+    0 calc(1.1 * var(--gm-u)) calc(1.9 * var(--gm-u)) rgba(71, 49, 12, 0.22);
   will-change: transform, filter;
 }
 
@@ -548,7 +581,7 @@ a:focus-visible {
   clip-path: circle(50%);
   isolation: isolate;
   pointer-events: none;
-  box-shadow: inset 0 0 0 0.3cqw rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 0 0 calc(0.3 * var(--gm-u)) rgba(255, 255, 255, 0.7);
 }
 
 .option-node__art-half,
@@ -574,36 +607,36 @@ a:focus-visible {
 
 .option-node__art {
   inline-size: 72%;
-  block-size: calc(100% - 1.5cqw);
+  block-size: calc(100% - calc(1.5 * var(--gm-u)));
   object-fit: contain;
   object-position: center;
-  filter: drop-shadow(0 0.2cqw 0.15cqw rgba(36, 39, 47, 0.18));
+  filter: drop-shadow(0 calc(0.2 * var(--gm-u)) calc(0.15 * var(--gm-u)) rgba(36, 39, 47, 0.18));
 }
 
 .option-node--has-bet .option-node__art {
-  block-size: calc(100% - 5cqw);
-  transform: translateY(-1.7cqw);
+  block-size: calc(100% - calc(5 * var(--gm-u)));
+  transform: translateY(calc(-1.7 * var(--gm-u)));
 }
 
 .option-node__my-bet {
   position: absolute;
-  bottom: 0.35cqw;
+  bottom: calc(0.35 * var(--gm-u));
   left: 50%;
   max-inline-size: calc(100% - 8px);
-  padding: 0.12cqw 0.8cqw 0.22cqw;
+  padding: calc(0.12 * var(--gm-u)) calc(0.8 * var(--gm-u)) calc(0.22 * var(--gm-u));
   transform: translateX(-50%);
   overflow: hidden;
   border-radius: 9999px;
   background: rgba(255, 249, 222, 0.96);
   color: #e64d45;
-  font-size: clamp(7.75px, 2.85cqw, 11.75px);
+  font-size: clamp(7.75px, calc(2.85 * var(--gm-u)), 11.75px);
   font-weight: 900;
   letter-spacing: -0.035em;
   line-height: 1.05;
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
-  box-shadow: 0 0.25cqw 0.5cqw rgba(120, 47, 25, 0.16);
+  box-shadow: 0 calc(0.25 * var(--gm-u)) calc(0.5 * var(--gm-u)) rgba(120, 47, 25, 0.16);
 }
 
 .game-gem {
@@ -712,7 +745,7 @@ a:focus-visible {
   bottom: 0;
   height: 38%;
   flex-direction: column;
-  border-top: clamp(0.8px, 0.28cqw, 1.3px) solid #7b7770;
+  border-top: clamp(0.8px, calc(0.28 * var(--gm-u)), 1.3px) solid #7b7770;
   background: #c4efff;
 }
 
@@ -726,19 +759,19 @@ a:focus-visible {
   z-index: 6;
   display: grid;
   place-items: center;
-  min-inline-size: 5.2cqw;
-  padding: 0.35cqw 1.1cqw;
-  border: 0.35cqw solid #173f59;
+  min-inline-size: calc(5.2 * var(--gm-u));
+  padding: calc(0.35 * var(--gm-u)) calc(1.1 * var(--gm-u));
+  border: calc(0.35 * var(--gm-u)) solid #173f59;
   border-radius: 999px;
   background: linear-gradient(180deg, #fff7c8 0%, #ffd65a 100%);
   color: #173f59;
-  font-size: clamp(9px, 3.2cqw, 13px);
+  font-size: clamp(9px, calc(3.2 * var(--gm-u)), 13px);
   font-weight: 950;
   letter-spacing: -0.03em;
   line-height: 1;
   box-shadow:
-    inset 0 0.15cqw 0 rgba(255, 255, 255, 0.65),
-    0 0.25cqw 0.35cqw rgba(23, 63, 89, 0.18);
+    inset 0 calc(0.15 * var(--gm-u)) 0 rgba(255, 255, 255, 0.65),
+    0 calc(0.25 * var(--gm-u)) calc(0.35 * var(--gm-u)) rgba(23, 63, 89, 0.18);
 }
 
 .option-node--has-bet .option-node__multiplier {
@@ -750,28 +783,28 @@ a:focus-visible {
 .option-node__badge {
   position: absolute;
   z-index: 8;
-  top: -2.5cqw;
-  right: -1.9cqw;
-  padding: 0.35cqw 1.2cqw 0.55cqw;
-  border: 0.4cqw solid #a8252f;
-  border-radius: 1.4cqw;
+  top: calc(-2.5 * var(--gm-u));
+  right: calc(-1.9 * var(--gm-u));
+  padding: calc(0.35 * var(--gm-u)) calc(1.2 * var(--gm-u)) calc(0.55 * var(--gm-u));
+  border: calc(0.4 * var(--gm-u)) solid #a8252f;
+  border-radius: calc(1.4 * var(--gm-u));
   background: #ff4d58;
   color: #fff384;
-  font-size: 2.9cqw;
+  font-size: calc(2.9 * var(--gm-u));
   font-weight: 950;
   line-height: 1;
   pointer-events: none;
 }
 
 .option-node__coin-landing {
-  --landing-x: 0cqw;
+  --landing-x: calc(0 * var(--gm-u));
   position: absolute;
   z-index: 60;
   top: 46%;
   left: 50%;
   display: grid;
-  width: 6.8cqw;
-  height: 6.8cqw;
+  width: calc(6.8 * var(--gm-u));
+  height: calc(6.8 * var(--gm-u));
   transform: translate(-50%, -50%);
   place-items: center;
   pointer-events: none;
@@ -781,17 +814,17 @@ a:focus-visible {
 }
 
 .option-node__coin-landing--1 {
-  --landing-x: -5cqw;
+  --landing-x: calc(-5 * var(--gm-u));
 }
 
 .option-node__coin-landing--2 {
-  --landing-x: 5cqw;
+  --landing-x: calc(5 * var(--gm-u));
 }
 
 .option-node__coin-landing .player-avatar__coin {
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 0.8cqw 1.2cqw rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 calc(0.8 * var(--gm-u)) calc(1.2 * var(--gm-u)) rgba(0, 0, 0, 0.45));
 }
 
 .option-node__bettors {
@@ -811,9 +844,9 @@ a:focus-visible {
 }
 
 .option-node__bettor-avatar {
-  width: 4.6cqw;
-  height: 4.6cqw;
-  filter: drop-shadow(0 0.4cqw 0.8cqw rgba(0, 0, 0, 0.4));
+  width: calc(4.6 * var(--gm-u));
+  height: calc(4.6 * var(--gm-u));
+  filter: drop-shadow(0 calc(0.4 * var(--gm-u)) calc(0.8 * var(--gm-u)) rgba(0, 0, 0, 0.4));
 }
 
 .center-stage {
@@ -821,12 +854,12 @@ a:focus-visible {
   z-index: 36;
   top: 41.43%;
   left: 50%;
-  inline-size: 31.400966cqw;
+  inline-size: calc(31.400966 * var(--gm-u));
   block-size: auto;
   aspect-ratio: 1 / 1;
-  padding: 1.75cqw;
+  padding: calc(1.75 * var(--gm-u));
   transform: translate(-50%, -50%);
-  border: 0.65cqw solid #72341d;
+  border: calc(0.65 * var(--gm-u)) solid #72341d;
   border-radius: 9999px;
   background:
     repeating-conic-gradient(
@@ -835,7 +868,7 @@ a:focus-visible {
       transparent 3.4deg 22.5deg
     ),
     #fb4d55;
-  box-shadow: 0 1.7cqw 3cqw rgba(84, 49, 5, 0.28);
+  box-shadow: 0 calc(1.7 * var(--gm-u)) calc(3 * var(--gm-u)) rgba(84, 49, 5, 0.28);
 }
 
 .center-stage__inner {
@@ -844,17 +877,17 @@ a:focus-visible {
   block-size: auto;
   aspect-ratio: 1 / 1;
   overflow: hidden;
-  border: 0.45cqw solid #ad2b36;
+  border: calc(0.45 * var(--gm-u)) solid #ad2b36;
   border-radius: 9999px;
   background: #ffe117;
 }
 
 .center-stage__platter {
   position: absolute;
-  top: -0.8cqw;
+  top: calc(-0.8 * var(--gm-u));
   left: 50%;
-  width: 25cqw;
-  height: 25cqw;
+  width: calc(25 * var(--gm-u));
+  height: calc(25 * var(--gm-u));
   transform: translateX(-50%);
   object-fit: contain;
 }
@@ -869,22 +902,22 @@ a:focus-visible {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-top: 0.45cqw solid #ae3138;
+  border-top: calc(0.45 * var(--gm-u)) solid #ae3138;
   background: linear-gradient(180deg, #ff5c63 0%, #ed414b 100%);
   color: white;
   text-align: center;
 }
 
 .center-stage__copy span {
-  font-size: 3.75cqw;
+  font-size: calc(3.75 * var(--gm-u));
   font-weight: 600;
   letter-spacing: -0.04em;
   line-height: 1;
 }
 
 .center-stage__copy strong {
-  margin-top: 0.7cqw;
-  font-size: 6.7cqw;
+  margin-top: calc(0.7 * var(--gm-u));
+  font-size: calc(6.7 * var(--gm-u));
   font-weight: 950;
   letter-spacing: -0.06em;
   line-height: 0.96;
@@ -912,15 +945,15 @@ a:focus-visible {
 }
 
 .center-stage--drawing .center-stage__copy span {
-  max-width: 25cqw;
-  margin-top: 2cqw;
-  font-size: 3.25cqw;
+  max-width: calc(25 * var(--gm-u));
+  margin-top: calc(2 * var(--gm-u));
+  font-size: calc(3.25 * var(--gm-u));
   line-height: 1.15;
 }
 
 .center-stage--drawing .center-stage__copy strong {
   margin: 0;
-  font-size: 14.2cqw;
+  font-size: calc(14.2 * var(--gm-u));
   font-weight: 500;
 }
 
@@ -929,8 +962,8 @@ a:focus-visible {
   z-index: 9;
   top: 68.3%;
   display: flex;
-  width: 13cqw;
-  height: 16cqw;
+  width: calc(13 * var(--gm-u));
+  height: calc(16 * var(--gm-u));
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
@@ -945,19 +978,19 @@ a:focus-visible {
 }
 
 .machine-kiosk span {
-  font-size: 8.2cqw;
+  font-size: calc(8.2 * var(--gm-u));
   line-height: 0.85;
-  filter: drop-shadow(0 0.4cqw 0 #71410a);
+  filter: drop-shadow(0 calc(0.4 * var(--gm-u)) 0 #71410a);
 }
 
 .machine-kiosk small {
   width: 100%;
-  padding: 0.1cqw 0.5cqw 0.4cqw;
-  border: 0.45cqw solid #855106;
-  border-radius: 0.8cqw;
+  padding: calc(0.1 * var(--gm-u)) calc(0.5 * var(--gm-u)) calc(0.4 * var(--gm-u));
+  border: calc(0.45 * var(--gm-u)) solid #855106;
+  border-radius: calc(0.8 * var(--gm-u));
   background: #ffc820;
   font-family: Georgia, serif;
-  font-size: 3.3cqw;
+  font-size: calc(3.3 * var(--gm-u));
   line-height: 1;
   text-align: center;
 }
@@ -968,24 +1001,24 @@ a:focus-visible {
   top: 74.7%;
   left: 50%;
   display: flex;
-  min-width: 28cqw;
-  height: 7.2cqw;
+  min-width: calc(28 * var(--gm-u));
+  height: calc(7.2 * var(--gm-u));
   align-items: center;
   justify-content: center;
-  gap: 1cqw;
+  gap: calc(1 * var(--gm-u));
   transform: translateX(-50%);
-  border: 0.55cqw solid #294354;
-  border-radius: 1.3cqw;
+  border: calc(0.55 * var(--gm-u)) solid #294354;
+  border-radius: calc(1.3 * var(--gm-u));
   background: white;
-  box-shadow: 0 0.5cqw 0 rgba(31, 74, 93, 0.35);
-  font-size: 3.1cqw;
+  box-shadow: 0 calc(0.5 * var(--gm-u)) 0 rgba(31, 74, 93, 0.35);
+  font-size: calc(3.1 * var(--gm-u));
   font-weight: 850;
   white-space: nowrap;
 }
 
 .machine-rate .game-coin {
-  width: 4.4cqw;
-  height: 4.4cqw;
+  width: calc(4.4 * var(--gm-u));
+  height: calc(4.4 * var(--gm-u));
 }
 
 .machine-chip-strip {
@@ -995,12 +1028,12 @@ a:focus-visible {
   right: 13.7%;
   left: 13.7%;
   display: flex;
-  height: 14.6cqw;
+  height: calc(14.6 * var(--gm-u));
   align-items: center;
-  gap: 3.2cqw;
+  gap: calc(3.2 * var(--gm-u));
   overflow-x: auto;
   overflow-y: visible;
-  padding: 0.8cqw 0.5cqw 1.2cqw;
+  padding: calc(0.8 * var(--gm-u)) calc(0.5 * var(--gm-u)) calc(1.2 * var(--gm-u));
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
 }
@@ -1012,9 +1045,9 @@ a:focus-visible {
 .machine-chip {
   position: relative;
   display: grid;
-  width: 12.6cqw;
-  height: 12.6cqw;
-  flex: 0 0 12.6cqw;
+  width: calc(12.6 * var(--gm-u));
+  height: calc(12.6 * var(--gm-u));
+  flex: 0 0 calc(12.6 * var(--gm-u));
   place-items: center;
   padding: 0;
   border: 0;
@@ -1034,8 +1067,8 @@ a:focus-visible {
 
 .machine-chip__ring {
   position: absolute;
-  inset: 0.5cqw;
-  border: 0.55cqw dashed rgba(255, 255, 255, 0.85);
+  inset: calc(0.5 * var(--gm-u));
+  border: calc(0.55 * var(--gm-u)) dashed rgba(255, 255, 255, 0.85);
   border-radius: 50%;
   background: radial-gradient(
     circle at 50% 50%,
@@ -1044,16 +1077,16 @@ a:focus-visible {
     color-mix(in srgb, var(--chip-rim) 65%, #1b1713) 73% 100%
   );
   box-shadow:
-    inset 0 0 0 0.55cqw rgba(255, 255, 255, 0.3),
-    inset 0 -1.3cqw 0 rgba(0, 0, 0, 0.18),
-    0 0.8cqw 1.2cqw rgba(0, 0, 0, 0.42);
+    inset 0 0 0 calc(0.55 * var(--gm-u)) rgba(255, 255, 255, 0.3),
+    inset 0 calc(-1.3 * var(--gm-u)) 0 rgba(0, 0, 0, 0.18),
+    0 calc(0.8 * var(--gm-u)) calc(1.2 * var(--gm-u)) rgba(0, 0, 0, 0.42);
 }
 
 .machine-chip__ring::before {
   content: "";
   position: absolute;
-  inset: 1.1cqw;
-  border: 0.25cqw solid rgba(255, 255, 255, 0.48);
+  inset: calc(1.1 * var(--gm-u));
+  border: calc(0.25 * var(--gm-u)) solid rgba(255, 255, 255, 0.48);
   border-radius: 50%;
   background: transparent;
 }
@@ -1061,10 +1094,10 @@ a:focus-visible {
 .machine-chip__face {
   position: relative;
   display: grid;
-  width: 7.2cqw;
-  height: 7.2cqw;
+  width: calc(7.2 * var(--gm-u));
+  height: calc(7.2 * var(--gm-u));
   place-items: center;
-  border: 0.25cqw solid color-mix(in srgb, var(--chip-rim) 80%, #16110d);
+  border: calc(0.25 * var(--gm-u)) solid color-mix(in srgb, var(--chip-rim) 80%, #16110d);
   border-radius: 50%;
   background: radial-gradient(
     circle at 36% 28%,
@@ -1073,41 +1106,41 @@ a:focus-visible {
     color-mix(in srgb, var(--chip-core) 70%, #7b695a)
   );
   color: var(--chip-ink);
-  font-size: 2.65cqw;
+  font-size: calc(2.65 * var(--gm-u));
   font-weight: 950;
   letter-spacing: -0.05em;
-  text-shadow: 0 0.25cqw 0 rgba(255, 255, 255, 0.45);
-  box-shadow: inset 0 0 0 0.25cqw rgba(255, 255, 255, 0.3);
+  text-shadow: 0 calc(0.25 * var(--gm-u)) 0 rgba(255, 255, 255, 0.45);
+  box-shadow: inset 0 0 0 calc(0.25 * var(--gm-u)) rgba(255, 255, 255, 0.3);
 }
 
 .machine-chip--active {
   z-index: 3;
-  transform: translateY(-0.9cqw) scale(1.08);
-  filter: drop-shadow(0 1cqw 1cqw rgba(0, 0, 0, 0.38));
+  transform: translateY(calc(-0.9 * var(--gm-u))) scale(1.08);
+  filter: drop-shadow(0 calc(1 * var(--gm-u)) calc(1 * var(--gm-u)) rgba(0, 0, 0, 0.38));
 }
 
 .machine-chip--active::after {
   content: "";
   position: absolute;
-  right: 1.8cqw;
-  bottom: -0.4cqw;
-  left: 1.8cqw;
-  height: 0.5cqw;
+  right: calc(1.8 * var(--gm-u));
+  bottom: calc(-0.4 * var(--gm-u));
+  left: calc(1.8 * var(--gm-u));
+  height: calc(0.5 * var(--gm-u));
   border-radius: 50%;
   background: #ffe69a;
-  box-shadow: 0 0 1.5cqw #f6c857;
+  box-shadow: 0 0 calc(1.5 * var(--gm-u)) #f6c857;
 }
 
 .machine-chip--active .machine-chip__ring {
   box-shadow:
-    inset 0 0 0 0.55cqw rgba(255, 255, 255, 0.45),
-    inset 0 -1.3cqw 0 rgba(0, 0, 0, 0.18),
-    0 0 0 0.55cqw rgba(255, 230, 154, 0.85),
-    0 1.4cqw 2cqw rgba(0, 0, 0, 0.48);
+    inset 0 0 0 calc(0.55 * var(--gm-u)) rgba(255, 255, 255, 0.45),
+    inset 0 calc(-1.3 * var(--gm-u)) 0 rgba(0, 0, 0, 0.18),
+    0 0 0 calc(0.55 * var(--gm-u)) rgba(255, 230, 154, 0.85),
+    0 calc(1.4 * var(--gm-u)) calc(2 * var(--gm-u)) rgba(0, 0, 0, 0.48);
 }
 
 .machine-chip:active:not(:disabled) {
-  transform: translateY(-0.2cqw) scale(0.98);
+  transform: translateY(calc(-0.2 * var(--gm-u))) scale(0.98);
 }
 
 .machine-quick-bet {
@@ -1127,19 +1160,19 @@ a:focus-visible {
 
 .machine-quick-bet span {
   position: absolute;
-  top: 1.3cqw;
-  padding: 0.15cqw 3.2cqw 0.45cqw;
-  border: 0.4cqw solid #b83c55;
-  border-radius: 0.8cqw;
+  top: calc(1.3 * var(--gm-u));
+  padding: calc(0.15 * var(--gm-u)) calc(3.2 * var(--gm-u)) calc(0.45 * var(--gm-u));
+  border: calc(0.4 * var(--gm-u)) solid #b83c55;
+  border-radius: calc(0.8 * var(--gm-u));
   background: #ffa1bb;
   color: #84345e;
-  font-size: 3cqw;
+  font-size: calc(3 * var(--gm-u));
   line-height: 1;
 }
 
 .machine-quick-bet strong {
-  margin-top: 3.2cqw;
-  font-size: 3.55cqw;
+  margin-top: calc(3.2 * var(--gm-u));
+  font-size: calc(3.55 * var(--gm-u));
   font-weight: 900;
   letter-spacing: -0.035em;
 }
@@ -1155,6 +1188,7 @@ a:focus-visible {
 .greedy-dashboard {
   position: relative;
   z-index: 1;
+  flex: 0 0 auto;
   min-height: 0;
   margin-top: -2.4cqw;
   padding: 5.3cqw 3.4cqw max(3cqw, env(safe-area-inset-bottom));
@@ -8784,5 +8818,42 @@ body:has(.game-select-page) {
   .payment-lock__icon,
   .payment-lock__panel {
     animation: none !important;
+  }
+}
+
+/* Greedy: short host webviews (game shown in an ~80%-height sheet). Tighten
+   dashboard spacing so the machine keeps more room. Every card stays visible;
+   only padding and gaps shrink. */
+@media (max-height: 760px) {
+  .greedy-dashboard {
+    padding-top: 3.6cqw;
+    padding-bottom: max(2.2cqw, env(safe-area-inset-bottom));
+  }
+
+  .dashboard-results {
+    margin-top: 1.6cqw;
+  }
+
+  .dashboard-ranking {
+    margin-top: 2cqw;
+  }
+}
+
+@media (max-height: 620px) {
+  /* Lift the toolbar a little so the wheel's top node needs less pinch. */
+  .greedy-machine {
+    --gm-toolbar-top: 0.6cqw;
+  }
+
+  .machine-round-label {
+    top: 2.6cqw;
+  }
+
+  .dashboard-results {
+    height: 10.5cqw;
+  }
+
+  .dashboard-ranking {
+    height: 12.8cqw;
   }
 }

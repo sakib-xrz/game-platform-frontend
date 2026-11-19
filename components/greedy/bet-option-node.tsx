@@ -69,20 +69,26 @@ export function BetOptionNode({
         busy && !disabled && "option-node--busy",
         landings.length > 0 && "option-node--flying-landing",
       )}
-      style={{
-        left: `${left}%`,
-        top: `${top}%`,
-        zIndex:
-          landings.length > 0
-            ? 45
-            : drawingHighlighted
-              ? 38
-              : winner
-                ? 40
-                : hasBet
-                  ? 25
-                  : 20,
-      }}
+      style={
+        {
+          left: `${left}%`,
+          top: `${top}%`,
+          // Ring position relative to the hub (41.43%): +1 for the top node,
+          // -1 for the bottom one. Lets CSS pinch the ring vertically in
+          // short webviews so it clears the toolbar.
+          "--node-pinch": ((41.428571 - top) / 23.035714).toFixed(4),
+          zIndex:
+            landings.length > 0
+              ? 45
+              : drawingHighlighted
+                ? 38
+                : winner
+                  ? 40
+                  : hasBet
+                    ? 25
+                    : 20,
+        } as CSSProperties
+      }
     >
       <button
         type="button"
